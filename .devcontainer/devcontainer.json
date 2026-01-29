@@ -5,9 +5,6 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
 	"features": {
-<<<<<<< HEAD
-		"ghcr.io/devcontainers/features/java:1": {}
-=======
 		"ghcr.io/devcontainers/features/java:1": {
 			"installMaven": true,
 			"version": "latest",
@@ -17,7 +14,6 @@
 			"antVersion": "latest",
 			"groovyVersion": "latest"
 		}
->>>>>>> main
 	}
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
