@@ -5,7 +5,8 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 
 public class OurEngine implements Engine {
+    @Override
     public GameResult play() throws PlayerViolationException {
-        return new GameResult(null);
+        throw new UnsupportedOperationException();
     }
 }
