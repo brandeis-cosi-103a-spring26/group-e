@@ -26,6 +26,14 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Jansi for colored console output in Renderer -->
+    <dependency>
+      <groupId>org.fusesource.jansi</groupId>
+      <artifactId>jansi</artifactId>
+      <version>2.4.2</version>
+    </dependency>
+
     <!-- Source: https://mvnrepository.com/artifact/io.github.brandeis-cosi-103a/atg-api -->
     <dependency>
       <groupId>io.github.brandeis-cosi-103a</groupId>
