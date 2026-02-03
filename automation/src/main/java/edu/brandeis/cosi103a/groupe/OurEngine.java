@@ -23,8 +23,7 @@ import edu.brandeis.cosi.atg.player.Player;
 public class OurEngine implements Engine {
     GameState.TurnPhase phase;
     List<Player> players;
-    Map<Player, List<Card>> hands; // This could also be Map<Player, Hand> but Hands are immutable so this will
-                                   // probably be easier to work with
+    Map<Player, MutableHand> hands;
     Map<Player, List<Card>> decks;
     Map<Player, List<Card>> discards;
     Player activePlayer;
@@ -65,7 +64,7 @@ public class OurEngine implements Engine {
         discards = new HashMap<>();
         hands = new HashMap<>();
         for (Player p : players) {
-            hands.put(p, new ArrayList<>());
+            hands.put(p, new MutableHand());
             decks.put(p, new ArrayList<>());
             discards.put(p, new ArrayList<>());
         }
@@ -382,11 +381,11 @@ public class OurEngine implements Engine {
      * Draws a card from the deck into the hand. If the deck is empty, shuffles the
      * discard pile into the deck first.
      *
-     * @param hand    The list representing the player's hand.
+     * @param hand    The MutableHand representing the player's hand.
      * @param deck    The list representing the player's deck.
      * @param discard The list representing the player's discard pile.
      */
-    private void drawCard(List<Card> hand, List<Card> deck, List<Card> discard) {
+    private void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
@@ -394,7 +393,7 @@ public class OurEngine implements Engine {
             java.util.Collections.shuffle(deck);
         }
         if (!deck.isEmpty()) {
-            hand.add(deck.remove(deck.size() - 1));
+            hand.addToUnplayed(deck.remove(deck.size() - 1));
         }
     }
 
