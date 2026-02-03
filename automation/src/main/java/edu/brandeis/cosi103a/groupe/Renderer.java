@@ -152,10 +152,10 @@ public class Renderer {
         int pileWidth = COLUMN_WIDTH;
         
         // 2. Supply area (3 rows)
-        List<Card> playedCards = new ArrayList<>();
-        for (Card c : state.currentPlayerHand().playedCards()) {
-            playedCards.add(c);
-        }
+        Iterable<Card> playedCards = state.currentPlayerHand().playedCards();
+        
+        
+        
         
         // Row 1: Victory cards
         StringBuilder row1 = new StringBuilder();
