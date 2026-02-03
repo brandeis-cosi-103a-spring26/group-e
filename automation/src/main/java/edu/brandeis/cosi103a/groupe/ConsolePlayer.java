@@ -5,7 +5,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 
 import com.google.common.collect.ImmutableList;
 
-public class ConsolePlayer extends AbstractPlayer{
+public class ConsolePlayer extends AbstractPlayer {
     @Override
     public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
         throw new UnsupportedOperationException("Not implemented yet");
