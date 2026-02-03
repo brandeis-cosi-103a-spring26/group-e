@@ -9,5 +9,5 @@ public class AIPlayer extends AbstractPlayer{
     @Override
     public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
         throw new UnsupportedOperationException("Not implemented yet");
-    };
+    }
 }

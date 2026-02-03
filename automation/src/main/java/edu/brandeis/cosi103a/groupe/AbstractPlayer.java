@@ -12,7 +12,7 @@ public abstract class AbstractPlayer implements Player {
 
     // A thread-safe counter to ensure unique player names
     private static final AtomicInteger counter = new AtomicInteger(0);
-    private String name;
+    private final String name;
 
     // Constructor to initialize player name
     public AbstractPlayer() {
