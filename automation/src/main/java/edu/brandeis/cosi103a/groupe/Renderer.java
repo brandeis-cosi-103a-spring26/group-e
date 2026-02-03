@@ -69,7 +69,9 @@ public class Renderer {
         
         System.out.println( ansi().eraseScreen() );
         System.out.println();
-          // 1. Welcome message
+
+        // 1. Welcome message
+        
         String prepostfix = " -------- ";
         String welcome = "Welcome to Automation: The Game";
         int welcomeLength = prepostfix.length() + welcome.length() + prepostfix.length();
@@ -80,7 +82,8 @@ public class Renderer {
         System.out.println(ansi().fgBrightBlue().a(prepostfix).reset());
         System.out.println();
 
-        System.out.print("Player: " + state.currentPlayerName());
+        String playerText = "Player: " + state.currentPlayerName();
+        System.out.print(playerText);
 
         String phaseText = "";
         switch (state.phase()) {
@@ -101,7 +104,6 @@ public class Renderer {
                 break;
         }
         
-        String playerText = "Player: " + state.currentPlayerName();
         int phasePosition = SCREEN_WIDTH - phaseText.length();
         int spacesNeeded = phasePosition - playerText.length();
         System.out.print(" ".repeat(Math.max(1, spacesNeeded)));
@@ -135,7 +137,7 @@ public class Renderer {
         System.out.println();
 
 
-         // Prepare supply piles by category
+        // Prepare supply piles by category
         List<Card.Type> victoryCards = new ArrayList<>();
         List<Card.Type> treasureCards = new ArrayList<>();
         List<Card.Type> actionCards = new ArrayList<>();
@@ -152,7 +154,10 @@ public class Renderer {
         int pileWidth = COLUMN_WIDTH;
         
         // 2. Supply area (3 rows)
-        Iterable<Card> playedCards = state.currentPlayerHand().playedCards();
+        List<Card> playedCards = new ArrayList<>();
+        for (Card c : state.currentPlayerHand().playedCards()) {
+            playedCards.add(c);
+        }
         
         
         
@@ -297,9 +302,9 @@ public class Renderer {
         String currentPlayerName = "Player 1";
         Hand currentPlayerHand = new Hand(
             ImmutableList.of(
-                new Card(Type.BITCOIN,6),
-                new Card(Type.BITCOIN,7),
-                new Card(Type.BITCOIN,8)
+                new Card(Type.BITCOIN, 6),
+                new Card(Type.BITCOIN, 7),
+                new Card(Type.BITCOIN, 8)
             ),
             ImmutableList.of(
                 new Card(Type.BITCOIN, 1),
