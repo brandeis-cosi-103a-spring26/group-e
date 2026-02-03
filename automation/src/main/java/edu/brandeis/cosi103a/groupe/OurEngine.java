@@ -137,13 +137,18 @@ public class OurEngine implements Engine {
                     processDecision(decision, options);
 
                 } catch (PlayerViolationException e) {
-                    throw new PlayerViolationException("An exception occurred while making a decision", e);
+                    handleCheating(activePlayer, e);
                 }
             }
             // Cleanup phase
             executeCleanupPhase();
         }
         return endGame();
+    }
+
+    private void handleCheating(Player activePlayer2, PlayerViolationException e) {
+        // TODO future week
+        throw new UnsupportedOperationException("Unimplemented method 'handleCheating'");
     }
 
     /**
