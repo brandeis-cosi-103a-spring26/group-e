@@ -275,9 +275,9 @@ public class Renderer {
         System.out.print(" ".repeat(statusPadding));
         
         System.out.print(ansi().fgBrightBlue().a("Actions: " + state.availableActions()).reset());
-        System.out.print(" ".repeat(spaces) + "|"+ " ".repeat(spaces));
+        System.out.print(" ".repeat(spaces) + "|" + " ".repeat(spaces));
         System.out.print(ansi().fgGreen().a("Buys: " + state.availableBuys()).reset());
-        System.out.print(" ".repeat(spaces) + "|"+ " ".repeat(spaces));
+        System.out.print(" ".repeat(spaces) + "|" + " ".repeat(spaces));
         System.out.print(ansi().fgYellow().a("Money: " + state.spendableMoney()).reset());
 
         System.out.println("\n");
