@@ -8,12 +8,8 @@ import java.util.Map;
 import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.cards.Card;
-import edu.brandeis.cosi.atg.decisions.BuyDecision;
-import edu.brandeis.cosi.atg.decisions.Decision;
-import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
-import edu.brandeis.cosi.atg.decisions.GainCardDecision;
-import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
-import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
+import edu.brandeis.cosi.atg.cards.Card.Type;
+import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -30,10 +26,8 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    // For most use cases, use setShopQuantity and getShopQuantity instead of
-    // querying this map directly
-    private Map<Card, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
-                             // CardStacks(ImmutableMap.copyOf(shop))`
+    private Map<Card.Type, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
+    // CardStacks(ImmutableMap.copyOf(shop))`
     private int cardIdCounter = 1;
 
     /**
@@ -61,7 +55,8 @@ public class OurEngine implements Engine {
         // Initialize fields
         phase = GameState.TurnPhase.ACTION;
         this.players = new ArrayList<>(players);
-        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
+        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns
+                                                                  // players[0]
         // Create empty hands, decks, and discards for each player
         decks = new HashMap<>();
         discards = new HashMap<>();
@@ -75,10 +70,10 @@ public class OurEngine implements Engine {
         // Initialize decks with the starting cards then shuffles
         for (List<Card> deck : decks.values()) {
             for (int i = 0; i < 7; i++) {
-                deck.add(new Card(Card.Type.BITCOIN, cardIdCounter++));
+                deck.add(new Card(Type.BITCOIN, cardIdCounter++));
             }
             for (int i = 0; i < 3; i++) {
-                deck.add(new Card(Card.Type.METHOD, cardIdCounter++));
+                deck.add(new Card(Type.METHOD, cardIdCounter++));
             }
             java.util.Collections.shuffle(deck);
         }
@@ -94,18 +89,17 @@ public class OurEngine implements Engine {
         }
 
         // Initialize shop
-        // Shop uses Cards with id 0 as keys
         shop = new HashMap<>();
-        setShopQuantity(Card.Type.BITCOIN, 60);
-        setShopQuantity(Card.Type.ETHEREUM, 40);
-        setShopQuantity(Card.Type.DOGECOIN, 30);
-        setShopQuantity(Card.Type.METHOD, 14);
-        setShopQuantity(Card.Type.MODULE, 8);
-        setShopQuantity(Card.Type.FRAMEWORK, 8);
-        setShopQuantity(Card.Type.BUG, this.players.size() * 10);
-        setShopQuantity(Card.Type.REFACTOR, 10);
-        setShopQuantity(Card.Type.CODE_REVIEW, 10);
-        setShopQuantity(Card.Type.EVERGREEN_TEST, 10);
+        shop.put(Type.BITCOIN, 60);
+        shop.put(Type.ETHEREUM, 40);
+        shop.put(Type.DOGECOIN, 30);
+        shop.put(Type.METHOD, 14);
+        shop.put(Type.MODULE, 8);
+        shop.put(Type.FRAMEWORK, 8);
+        shop.put(Type.BUG, this.players.size() * 10);
+        shop.put(Type.REFACTOR, 10);
+        shop.put(Type.CODE_REVIEW, 10);
+        shop.put(Type.EVERGREEN_TEST, 10);
     }
 
     /**
@@ -299,7 +293,17 @@ public class OurEngine implements Engine {
         }
     }
 
-    private void executeGainPhase(Card.Type triggeredBy) throws PlayerViolationException {
+    /**
+     * Executes a temporary GAIN phase triggered by an action card.
+     * 
+     * @param triggeredBy The Type of card that triggered the GAIN phase.
+     * @throws PlayerViolationException if the active player makes an invalid
+     *                                  decision during the GAIN phase.
+     */
+    private void executeGainPhase(Type triggeredBy) throws PlayerViolationException {
+        if (phase != GameState.TurnPhase.ACTION) {
+            throw new IllegalStateException("Can only execute temporary GAIN phase from ACTION phase");
+        }
         // Swaps to GAIN and builds decisions and gameState
         phase = GameState.TurnPhase.GAIN;
         ImmutableList<Decision> options = buildGainDecisions(triggeredBy);
@@ -311,27 +315,6 @@ public class OurEngine implements Engine {
 
         // Returns to the previous phase.
         phase = GameState.TurnPhase.ACTION;
-    }
-
-    /**
-     * Executes a temporary GAIN phase triggered by a specific card, then returns to
-     * the previous phase.
-     * @param triggeredBy The card type that triggered the gain phase.
-     * @param prevPhase The previous phase to return to after the gain phase.
-     * @throws PlayerViolationException if the active player makes an invalid decision.
-     */
-    private void executeGainPhase(Card.Type triggeredBy, GameState.TurnPhase prevPhase) throws PlayerViolationException {
-        // Swaps to GAIN and builds decisions and gameState
-        phase = GameState.TurnPhase.GAIN;
-        ImmutableList<Decision> options = buildGainDecisions(triggeredBy);
-        GameState gs = buildGameState();
-
-        Decision decision = activePlayer.makeDecision(gs, options);
-
-        processDecision(decision, options);
-
-        // Returns to the previous phase.
-        phase = prevPhase;
     }
 
     /**
@@ -350,7 +333,7 @@ public class OurEngine implements Engine {
      *
      * @return An ImmutableList of Decision objects for the GAIN phase.
      */
-    private ImmutableList<Decision> buildGainDecisions(Card.Type triggeredBy) {
+    private ImmutableList<Decision> buildGainDecisions(Type triggeredBy) {
         // TODO: Oneg: Likely a future week issue since it's related to action
         // functionality
         throw new UnsupportedOperationException("Not yet implemented");
@@ -393,8 +376,7 @@ public class OurEngine implements Engine {
      *         otherwise.
      */
     private boolean isGameOver() {
-        Card framework = new Card(Card.Type.FRAMEWORK, 0);
-        return shop.getOrDefault(framework, 0) == 0;
+        return shop.getOrDefault(Type.FRAMEWORK, 0) == 0;
     }
 
     /**
@@ -427,23 +409,4 @@ public class OurEngine implements Engine {
         }
     }
 
-    /**
-     * Gets the quantity of a specific card type available in the shop.
-     *
-     * @param type The type of card to check.
-     * @return The quantity of the specified card type in the shop.
-     */
-    private int getShopQuantity(Card.Type type) {
-        return shop.getOrDefault(new Card(type, 0), 0);
-    }
-
-    /**
-     * Sets the quantity of a specific card type in the shop.
-     *
-     * @param type     The type of card to set.
-     * @param quantity The new quantity of the specified card type in the shop.
-     */
-    private void setShopQuantity(Card.Type type, int quantity) {
-        shop.put(new Card(type, 0), quantity);
-    }
 }
