@@ -29,6 +29,9 @@ public class Renderer {
         String[] words = raw.split(" ");
         StringBuilder display = new StringBuilder();
         for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
             display.append(Character.toUpperCase(word.charAt(0)));
             display.append(word.substring(1));
             display.append(" ");
