@@ -21,20 +21,20 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
 public class OurEngine implements Engine {
-    GameState.TurnPhase phase;
-    List<Player> players;
-    Map<Player, MutableHand> hands;
-    Map<Player, List<Card>> decks;
-    Map<Player, List<Card>> discards;
-    Player activePlayer;
-    int numActions;
-    int numMoney;
-    int numBuys;
+    private GameState.TurnPhase phase;
+    private List<Player> players;
+    private Map<Player, MutableHand> hands;
+    private Map<Player, List<Card>> decks;
+    private Map<Player, List<Card>> discards;
+    private Player activePlayer;
+    private int numActions;
+    private int numMoney;
+    private int numBuys;
     // For most use cases, use setShopQuantity and getShopQuantity instead of
     // querying this map directly
-    Map<Card, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
+    private Map<Card, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
                              // CardStacks(ImmutableMap.copyOf(shop))`
-    int cardIdCounter = 1;
+    private int cardIdCounter = 1;
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -47,6 +47,9 @@ public class OurEngine implements Engine {
      *                                  more than 4.
      */
     public OurEngine(List<Player> players) throws IllegalArgumentException {
+        if (players == null) {
+            throw new IllegalArgumentException("Players list cannot be null");
+        }
         // Throw exceptions for invalid number of players
         if (players.size() > 4) {
             throw new IllegalArgumentException("Provide at most four players");
@@ -57,13 +60,13 @@ public class OurEngine implements Engine {
 
         // Initialize fields
         phase = GameState.TurnPhase.ACTION;
-        this.players = players;
-        activePlayer = players.get(players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
+        this.players = new ArrayList<>(players);
+        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
         // Create empty hands, decks, and discards for each player
         decks = new HashMap<>();
         discards = new HashMap<>();
         hands = new HashMap<>();
-        for (Player p : players) {
+        for (Player p : this.players) {
             hands.put(p, new MutableHand());
             decks.put(p, new ArrayList<>());
             discards.put(p, new ArrayList<>());
@@ -80,13 +83,13 @@ public class OurEngine implements Engine {
             java.util.Collections.shuffle(deck);
         }
 
-        for (Player p : players) {
+        for (Player p : this.players) {
             // Draw initial hands of 5 cards
             var hand = hands.get(p);
             var deck = decks.get(p);
-            var discards = this.discards;
+            var discard = discards.get(p);
             for (int i = 0; i < 5; i++) {
-                drawCard(hand, deck, discards.get(p));
+                drawCard(hand, deck, discard);
             }
         }
 
@@ -99,7 +102,7 @@ public class OurEngine implements Engine {
         setShopQuantity(Card.Type.METHOD, 14);
         setShopQuantity(Card.Type.MODULE, 8);
         setShopQuantity(Card.Type.FRAMEWORK, 8);
-        setShopQuantity(Card.Type.BUG, players.size() * 10);
+        setShopQuantity(Card.Type.BUG, this.players.size() * 10);
         setShopQuantity(Card.Type.REFACTOR, 10);
         setShopQuantity(Card.Type.CODE_REVIEW, 10);
         setShopQuantity(Card.Type.EVERGREEN_TEST, 10);
@@ -123,6 +126,7 @@ public class OurEngine implements Engine {
 
             // A turn consists of multiple runs through this loop, until the CLEANUP phase
             // is reached, then executeCleanupPhase() is called.
+            // won't work until everything called in the loop is implemented,
             while (phase != GameState.TurnPhase.CLEANUP) {
                 try {
                     // Build decision options and game state
@@ -146,7 +150,7 @@ public class OurEngine implements Engine {
         return endGame();
     }
 
-    private void handleCheating(Player activePlayer2, PlayerViolationException e) {
+    private void handleCheating(Player cheater, PlayerViolationException e) {
         // TODO future week
         throw new UnsupportedOperationException("Unimplemented method 'handleCheating'");
     }
@@ -238,7 +242,7 @@ public class OurEngine implements Engine {
     /**
      * Processes the BuyDecision made by the active player, should subtract money
      * and buys, then add the purchased card to the player's discard pile.
-     * Make sure to update the shop inventory numMoney, and numBuys.
+     * Make sure to update the shop inventory, numMoney, and numBuys.
      *
      * @param decision The BuyDecision made by the active player.
      */

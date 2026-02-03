@@ -13,14 +13,9 @@ import edu.brandeis.cosi.atg.state.Hand;
 
 public class MutableHand {
     @Nonnull
-    List<Card> unplayedCards;
+    List<Card> unplayedCards = new ArrayList<>();
     @Nonnull
-    List<Card> playedCards;
-
-    public MutableHand() {
-        unplayedCards = new ArrayList<>();
-        playedCards = new ArrayList<>();
-    }
+    List<Card> playedCards = new ArrayList<>();
 
     public List<Card> getUnplayedCards() {
         return List.copyOf(unplayedCards);
@@ -33,7 +28,7 @@ public class MutableHand {
     public List<Card> getAllCards() {
         List<Card> allCards = new ArrayList<>(unplayedCards);
         allCards.addAll(playedCards);
-        return allCards;
+        return List.copyOf(allCards);
     }
 
     public Hand toImmutableHand() {
