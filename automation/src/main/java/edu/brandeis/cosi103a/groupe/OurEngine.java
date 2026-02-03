@@ -305,8 +305,29 @@ public class OurEngine implements Engine {
 
         processDecision(decision, options);
 
-        // Returns to the action phase since no non-actions can trigger a gain phase
+        // Returns to the previous phase.
         phase = GameState.TurnPhase.ACTION;
+    }
+
+    /**
+     * Executes a temporary GAIN phase triggered by a specific card, then returns to
+     * the previous phase.
+     * @param triggeredBy The card type that triggered the gain phase.
+     * @param prevPhase The previous phase to return to after the gain phase.
+     * @throws PlayerViolationException if the active player makes an invalid decision.
+     */
+    private void executeGainPhase(Card.Type triggeredBy, GameState.TurnPhase prevPhase) throws PlayerViolationException {
+        // Swaps to GAIN and builds decisions and gameState
+        phase = GameState.TurnPhase.GAIN;
+        ImmutableList<Decision> options = buildGainDecisions(triggeredBy);
+        GameState gs = buildGameState();
+
+        Decision decision = activePlayer.makeDecision(gs, options);
+
+        processDecision(decision, options);
+
+        // Returns to the previous phase.
+        phase = prevPhase;
     }
 
     /**
