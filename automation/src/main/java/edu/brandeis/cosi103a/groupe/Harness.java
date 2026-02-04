@@ -87,6 +87,7 @@ public class Harness {
         } catch (Exception e) {
             System.out.println(
                     ansi().fg(RED).bold().a("\n✗ An error occurred during the game: ").a(e.getMessage()).reset());
+            System.out.println();
         } finally {
             AnsiConsole.systemUninstall();
         }
