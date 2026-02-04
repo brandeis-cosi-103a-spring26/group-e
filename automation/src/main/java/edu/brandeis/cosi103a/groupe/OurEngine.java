@@ -295,12 +295,13 @@ public class OurEngine implements Engine {
 
     /**
      * Executes a temporary GAIN phase triggered by an action card.
-     * 
+     *
      * @param triggeredBy The Type of card that triggered the GAIN phase.
      * @throws PlayerViolationException if the active player makes an invalid
      *                                  decision during the GAIN phase.
+     * @throws IllegalStateException    if the current phase is not ACTION.
      */
-    private void executeGainPhase(Type triggeredBy) throws PlayerViolationException {
+    private void executeGainPhase(Type triggeredBy) throws PlayerViolationException, IllegalStateException {
         if (phase != GameState.TurnPhase.ACTION) {
             throw new IllegalStateException("Can only execute temporary GAIN phase from ACTION phase");
         }
@@ -376,7 +377,7 @@ public class OurEngine implements Engine {
      *         otherwise.
      */
     private boolean isGameOver() {
-        return shop.getOrDefault(Type.FRAMEWORK, 0) == 0;
+        return getShopQuantity(Type.FRAMEWORK) == 0;
     }
 
     /**
@@ -409,4 +410,7 @@ public class OurEngine implements Engine {
         }
     }
 
+    private int getShopQuantity(Type type) {
+        return shop.getOrDefault(type, 0);
+    }
 }
