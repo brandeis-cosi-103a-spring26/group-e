@@ -197,6 +197,7 @@ public class Renderer {
         int playedPadding = (SCREEN_WIDTH - playedCardsLabel.length()) / 2;
         System.out.print(" ".repeat(playedPadding));
         System.out.println(ansi().fgBrightBlue().a(playedCardsLabel).reset());
+        System.out.println();
         if (playedCards.isEmpty()) {
             System.out.print(" ".repeat(playedPadding));
             System.out.println("(none)");
@@ -218,6 +219,7 @@ public class Renderer {
         int handPadding = (SCREEN_WIDTH - yourHandLabel.length()) / 2;
         System.out.print(" ".repeat(handPadding));
         System.out.println(ansi().fgBrightBlue().a(yourHandLabel).reset());
+        System.out.println();
         List<Card> actionsInHand = new ArrayList<>();
         List<Card> treasuresInHand = new ArrayList<>();
         List<Card> victoriesInHand = new ArrayList<>();
