@@ -3,7 +3,6 @@ package edu.brandeis.cosi103a.groupe;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import org.fusesource.jansi.Ansi;
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 import org.fusesource.jansi.AnsiConsole;
@@ -20,7 +19,7 @@ public class Harness {
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
 
-        ArrayList<Player> players = new ArrayList<Player>();
+        ArrayList<Player> players = new ArrayList<>();
 
         Scanner scanner = new Scanner(System.in);
 
@@ -77,6 +76,8 @@ public class Harness {
             numAI += additionalAI;
         }
 
+        scanner.close();
+
         System.out.println(ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
         System.out.println(ansi().fg(YELLOW).bold().a("    Starting Game...").reset());
         System.out.println(ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
@@ -87,6 +88,7 @@ public class Harness {
         } catch (Exception e) {
             System.out.println(
                     ansi().fg(RED).bold().a("\n✗ An error occurred during the game: ").a(e.getMessage()).reset());
+            e.printStackTrace();
             System.out.println();
         } finally {
             AnsiConsole.systemUninstall();
@@ -113,6 +115,7 @@ public class Harness {
 
             if (scanner.hasNextInt()) {
                 value = scanner.nextInt();
+                scanner.nextLine(); // consume the rest of the line (including newline) Copilot Suggestion
                 if (value >= min && value <= max) {
                     valid = true;
                 } else {
