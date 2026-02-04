@@ -194,6 +194,7 @@ public class Renderer {
         
         // 3. Played cards section
         String playedCardsLabel = "═══ Played Cards ═══";
+        System.out.println();
         int playedPadding = (SCREEN_WIDTH - playedCardsLabel.length()) / 2;
         System.out.print(" ".repeat(playedPadding));
         System.out.println(ansi().fgBrightBlue().a(playedCardsLabel).reset());
