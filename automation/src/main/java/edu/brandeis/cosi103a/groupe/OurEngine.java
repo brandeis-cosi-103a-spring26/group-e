@@ -42,15 +42,18 @@ public class OurEngine implements Engine {
      *                                  more than 4.
      */
     public OurEngine(List<Player> players) throws IllegalArgumentException {
+        // Throws exceptions for missing or invalid player configurations
         if (players == null) {
             throw new IllegalArgumentException("Players list cannot be null");
         }
-        // Throw exceptions for invalid number of players
         if (players.size() > 4) {
             throw new IllegalArgumentException("Provide at most four players");
         }
         if (players.size() <= 1) {
             throw new IllegalArgumentException("Provide at least two players");
+        }
+        if (players.contains(null)) {
+            throw new IllegalArgumentException("Players list cannot contain null players");
         }
 
         // Initialize fields
@@ -413,7 +416,6 @@ public class OurEngine implements Engine {
             hand.addToUnplayed(deck.remove(deck.size() - 1));
         }
     }
-
 
     @VisibleForTesting
     int getShopQuantity(Type type) {
