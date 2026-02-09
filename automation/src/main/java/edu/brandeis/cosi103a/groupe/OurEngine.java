@@ -31,6 +31,26 @@ public class OurEngine implements Engine {
     // CardStacks(ImmutableMap.copyOf(shop))`
     private int cardIdCounter = 1;
 
+    // Constants
+    private static final int MAX_PLAYERS = 4;
+    private static final int MIN_PLAYERS = 2;
+    private static final int PLAYER_STARTING_BITCOINS = 7;
+    private static final int PLAYER_STARTING_METHODS = 3;
+    private static final int HAND_SIZE = 5;
+
+    // Starting shop quantities
+    private static final int SHOP_BITCOIN_COUNT = 60;
+    private static final int SHOP_ETHEREUM_COUNT = 40;
+    private static final int SHOP_DOGECOIN_COUNT = 30;
+    private static final int SHOP_METHOD_COUNT = 14;
+    private static final int SHOP_MODULE_COUNT = 8;
+    private static final int SHOP_FRAMEWORK_COUNT_TWO_PLAYERS = 8;
+    private static final int SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS = 12;
+    private static final int SHOP_BUG_COUNT_PER_PLAYER = 10; // Multiplied by number of players
+    private static final int SHOP_REFACTOR_COUNT = 10;
+    private static final int SHOP_CODE_REVIEW_COUNT = 10;
+    private static final int SHOP_EVERGREEN_TEST_COUNT = 10;
+
     /**
      * 1 Argument constructor which initializes the game engine with the provided
      * players.
@@ -47,10 +67,11 @@ public class OurEngine implements Engine {
         if (players == null) {
             throw new IllegalArgumentException("Players list cannot be null");
         }
-        if (players.size() > 4) {
+        // Throw exceptions for invalid number of players
+        if (players.size() > MAX_PLAYERS) {
             throw new IllegalArgumentException("Provide at most four players");
         }
-        if (players.size() <= 1) {
+        if (players.size() < MIN_PLAYERS) {
             throw new IllegalArgumentException("Provide at least two players");
         }
         if (players.contains(null)) {
@@ -60,8 +81,8 @@ public class OurEngine implements Engine {
         // Initialize fields
         phase = GameState.TurnPhase.ACTION;
         this.players = new ArrayList<>(players);
-        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns
-                                                                  // players[0]
+        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
+
         // Create empty hands, decks, and discards for each player
         decks = new HashMap<>();
         discards = new HashMap<>();
@@ -74,10 +95,10 @@ public class OurEngine implements Engine {
 
         // Initialize decks with the starting cards then shuffles
         for (List<Card> deck : decks.values()) {
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < PLAYER_STARTING_BITCOINS; i++) {
                 deck.add(new Card(Type.BITCOIN, cardIdCounter++));
             }
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < PLAYER_STARTING_METHODS; i++) {
                 deck.add(new Card(Type.METHOD, cardIdCounter++));
             }
             java.util.Collections.shuffle(deck);
@@ -88,23 +109,24 @@ public class OurEngine implements Engine {
             var hand = hands.get(p);
             var deck = decks.get(p);
             var discard = discards.get(p);
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < HAND_SIZE; i++) {
                 drawCard(hand, deck, discard);
             }
         }
 
         // Initialize shop
         shop = new HashMap<>();
-        shop.put(Type.BITCOIN, 60);
-        shop.put(Type.ETHEREUM, 40);
-        shop.put(Type.DOGECOIN, 30);
-        shop.put(Type.METHOD, 14);
-        shop.put(Type.MODULE, 8);
-        shop.put(Type.FRAMEWORK, 8);
-        shop.put(Type.BUG, this.players.size() * 10);
-        shop.put(Type.REFACTOR, 10);
-        shop.put(Type.CODE_REVIEW, 10);
-        shop.put(Type.EVERGREEN_TEST, 10);
+        shop.put(Type.BITCOIN, SHOP_BITCOIN_COUNT);
+        shop.put(Type.ETHEREUM, SHOP_ETHEREUM_COUNT);
+        shop.put(Type.DOGECOIN, SHOP_DOGECOIN_COUNT);
+        shop.put(Type.METHOD, SHOP_METHOD_COUNT);
+        shop.put(Type.MODULE, SHOP_MODULE_COUNT);
+        shop.put(Type.BUG, this.players.size() * SHOP_BUG_COUNT_PER_PLAYER);
+        shop.put(Type.REFACTOR, SHOP_REFACTOR_COUNT);
+        shop.put(Type.CODE_REVIEW, SHOP_CODE_REVIEW_COUNT);
+        shop.put(Type.EVERGREEN_TEST, SHOP_EVERGREEN_TEST_COUNT);
+        // Set FRAMEWORK count based on the number of players.
+        shop.put(Type.FRAMEWORK, (this.players.size() == 2) ? SHOP_FRAMEWORK_COUNT_TWO_PLAYERS : SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
     }
 
     /**
