@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.cards.Card;
@@ -263,7 +264,8 @@ public class OurEngine implements Engine {
      *
      * @return The next player in turn order.
      */
-    private Player getNextPlayer() {
+    @VisibleForTesting
+    Player getNextPlayer() {
         return players.get((players.indexOf(activePlayer) + 1) % players.size());
     }
 
@@ -376,7 +378,8 @@ public class OurEngine implements Engine {
      * @return true if the FRAMEWORK cards are sold out or do not exist, false
      *         otherwise.
      */
-    private boolean isGameOver() {
+    @VisibleForTesting
+    boolean isGameOver() {
         return getShopQuantity(Type.FRAMEWORK) == 0;
     }
 
@@ -398,7 +401,8 @@ public class OurEngine implements Engine {
      * @param deck    The list representing the player's deck.
      * @param discard The list representing the player's discard pile.
      */
-    private void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
+    @VisibleForTesting
+    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
@@ -410,7 +414,9 @@ public class OurEngine implements Engine {
         }
     }
 
-    private int getShopQuantity(Type type) {
+
+    @VisibleForTesting
+    int getShopQuantity(Type type) {
         return shop.getOrDefault(type, 0);
     }
 }
