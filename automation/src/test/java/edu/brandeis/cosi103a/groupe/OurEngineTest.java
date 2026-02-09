@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  * Tests constructor validation, game mechanics, game state queries, and
  * orchestration logic.
  */
-public class EngineTest {
+public class OurEngineTest {
 
     private List<Player> twoPlayers;
     private List<Player> threePlayers;

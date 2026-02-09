@@ -38,8 +38,9 @@ public class OurEngine implements Engine {
      * @param players A list of players participating in the game. It must contain
      *                between 2 and 4 players. The order of players in the list
      *                determines the turn order.
-     * @throws IllegalArgumentException if the number of players is less than 2 or
-     *                                  more than 4.
+     * @throws IllegalArgumentException If the list of players is null, contains
+     *                                  null players, has fewer than 2 players, or
+     *                                  more than 4 players.
      */
     public OurEngine(List<Player> players) throws IllegalArgumentException {
         // Throws exceptions for missing or invalid player configurations
