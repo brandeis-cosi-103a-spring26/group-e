@@ -75,8 +75,7 @@ public class OurEngine implements Engine {
         // Initialize fields
         phase = GameState.TurnPhase.ACTION;
         this.players = new ArrayList<>(players);
-        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns
-                                                                  // players[0]
+        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
 
         // Create empty hands, decks, and discards for each player
         decks = new HashMap<>();
@@ -121,11 +120,7 @@ public class OurEngine implements Engine {
         shop.put(Type.CODE_REVIEW, SHOP_CODE_REVIEW_COUNT);
         shop.put(Type.EVERGREEN_TEST, SHOP_EVERGREEN_TEST_COUNT);
         // Set FRAMEWORK count based on the number of players.
-        if (this.players.size() == 2) {
-            shop.put(Type.FRAMEWORK, SHOP_FRAMEWORK_COUNT_TWO_PLAYERS);
-        } else {
-            shop.put(Type.FRAMEWORK, SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
-        }
+        shop.put(Type.FRAMEWORK, (this.players.size() == 2) ? SHOP_FRAMEWORK_COUNT_TWO_PLAYERS : SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
     }
 
     /**
