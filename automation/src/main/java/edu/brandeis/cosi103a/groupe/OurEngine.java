@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.cards.Card;
@@ -57,10 +58,12 @@ public class OurEngine implements Engine {
      * @param players A list of players participating in the game. It must contain
      *                between 2 and 4 players. The order of players in the list
      *                determines the turn order.
-     * @throws IllegalArgumentException if the number of players is less than 2 or
-     *                                  more than 4.
+     * @throws IllegalArgumentException If the list of players is null, contains
+     *                                  null players, has fewer than 2 players, or
+     *                                  more than 4 players.
      */
     public OurEngine(List<Player> players) throws IllegalArgumentException {
+        // Throws exceptions for missing or invalid player configurations
         if (players == null) {
             throw new IllegalArgumentException("Players list cannot be null");
         }
@@ -70,6 +73,9 @@ public class OurEngine implements Engine {
         }
         if (players.size() < MIN_PLAYERS) {
             throw new IllegalArgumentException("Provide at least two players");
+        }
+        if (players.contains(null)) {
+            throw new IllegalArgumentException("Players list cannot contain null players");
         }
 
         // Initialize fields
@@ -284,7 +290,8 @@ public class OurEngine implements Engine {
      *
      * @return The next player in turn order.
      */
-    private Player getNextPlayer() {
+    @VisibleForTesting
+    Player getNextPlayer() {
         return players.get((players.indexOf(activePlayer) + 1) % players.size());
     }
 
@@ -397,7 +404,8 @@ public class OurEngine implements Engine {
      * @return true if the FRAMEWORK cards are sold out or do not exist, false
      *         otherwise.
      */
-    private boolean isGameOver() {
+    @VisibleForTesting
+    boolean isGameOver() {
         return getShopQuantity(Type.FRAMEWORK) == 0;
     }
 
@@ -419,7 +427,8 @@ public class OurEngine implements Engine {
      * @param deck    The list representing the player's deck.
      * @param discard The list representing the player's discard pile.
      */
-    private void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
+    @VisibleForTesting
+    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
@@ -431,7 +440,8 @@ public class OurEngine implements Engine {
         }
     }
 
-    private int getShopQuantity(Type type) {
+    @VisibleForTesting
+    int getShopQuantity(Type type) {
         return shop.getOrDefault(type, 0);
     }
 }
