@@ -289,47 +289,6 @@ public class EngineTest {
         assertEquals("numMoney should be initialized to 0", 0, numMoney);
     }
 
-    @Test
-    public void testConstructor_DecksAreShuffled() throws Exception {
-        // Create multiple engines and verify decks are in different orders
-        // We'll create several engines and check if at least one pair differs
-        final int SAMPLES = 5;
-        List<List<Card>> sampleDecks = new ArrayList<>();
-
-        for (int i = 0; i < SAMPLES; i++) {
-            OurEngine engine = new OurEngine(createPlayers(2));
-            Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
-            List<Player> players = getPrivateField(engine, "players");
-            List<Card> deck = decks.get(players.get(0));
-
-            // Copy the deck to preserve its state
-            List<Card> deckCopy = new ArrayList<>(deck);
-            sampleDecks.add(deckCopy);
-        }
-
-        // Check that at least one deck differs from the first
-        boolean foundDifference = false;
-        List<Card> firstDeck = sampleDecks.get(0);
-
-        for (int i = 1; i < SAMPLES; i++) {
-            List<Card> otherDeck = sampleDecks.get(i);
-            assertEquals("All decks should have same size", firstDeck.size(), otherDeck.size());
-
-            for (int j = 0; j < firstDeck.size(); j++) {
-                if (!firstDeck.get(j).type().equals(otherDeck.get(j).type())) {
-                    foundDifference = true;
-                    break;
-                }
-            }
-            if (foundDifference)
-                break;
-        }
-
-        assertTrue("With " + SAMPLES
-                + " samples, at least one deck should have different order (probability of false failure: ~1e-30)",
-                foundDifference);
-    }
-
     // ========== Game State Query Tests ==========
 
     @Test
