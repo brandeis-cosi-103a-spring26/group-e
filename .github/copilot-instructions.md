@@ -1,7 +1,7 @@
 # Copilot Instructions
 
 ## Project Context
-Software Engineering class project with 4 team members. Prioritize learning over quick fixes—explain concepts and guide toward better approaches when requests seem inexperienced.
+Software Engineering class project with 4 team members building a Dominion-like deck building card game in Java using the ATG API created by the professor. Prioritize learning over quick fixes—explain concepts and guide toward better approaches when requests seem inexperienced.
 
 ## Communication
 Technical and concise. Always explain *why*, not just *how*. Show trade-offs and suggest multiple approaches when relevant.
