@@ -235,23 +235,127 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes the PlayCardDecision made by the active player, updating the game
-     * state accordingly.
-     * Make sure to modify numActions, numMoney, and numBuys as necessary.
-     * If an action triggers a GAIN phase, call executeGainPhase with the
-     * appropriate card.
+     * Processes the PlayCardDecision made by the active player
+     * by calling the process card method for Action or Money cards
      *
      * @param decision The PlayCardDecision made by the active player.
      */
     private void processPlayCardDecision(PlayCardDecision decision) {
-        // TODO: Ana
-        // Should probably delegate to different methods based on card type
-        throw new UnsupportedOperationException("Not yet implemented");
+
+        Card card = decision.card();
+
+        // Move card to played cards in hand
+        hands.get(activePlayer).playCard(card);
+        
+        switch (card.getCategory()) {
+            case ACTION -> processPlayActionCard(card.type());
+            case MONEY -> processPlayMoneyCard(card.type());
+            default -> throw new UnsupportedOperationException("Unsupported card category");
+        }
+    }
+
+    /**
+     * Plays an action card
+     * Calls the apropriate execute action method based on card type
+     * Subtracts one action from player
+     * @param type
+     */
+    private void processPlayActionCard(Card.Type type) {
+
+        // This should never be possible as Player shouldn't be offered to play action card if no remaining actions
+        if (numActions <= 0) {
+            throw new IllegalStateException("No actions remaining to play an action card");
+        }
+
+        switch (type) {
+            case CODE_REVIEW -> executeActionCodeReview();
+            case REFACTOR -> executeActionRefactor();
+            case EVERGREEN_TEST -> executeActionEvergreenTest();
+            default -> throw new UnsupportedOperationException("Unsupported action card type");
+        }
+
+        // Subtract one action from player
+        numActions -= 1;
+
+    }
+
+    /**
+     * Updates numMoney based on the type of money card played
+     * @param type
+     */
+    private void processPlayMoneyCard(Card.Type type) {
+        switch (type) {
+            case BITCOIN -> numMoney += 1;
+            case ETHEREUM -> numMoney += 2;
+            case DOGECOIN -> numMoney += 3;
+            default -> throw new UnsupportedOperationException("Unsupported money card type");
+        }
+    }
+
+    // --- ACTION IMPLEMENTATIONS ---
+
+    /**
+     * +1 Card, +2 Actions.
+     * When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.
+     */
+    private void executeActionCodeReview() {
+        // Calls Draw card for current player
+        // Adds 2 to numActions
+    }
+
+    /**
+     * Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.
+     * 
+     * Trashing a card removes it from the player's deck entirely
+     * When this card is played, the player will be prompted with TrashCardDecisions for each card in their hand. 
+     * Trashing is not optional, so the list of decisions will not include an EndPhaseDecision. 
+     * After the player makes a trash decision, they will be prompted with GainCardDecisions representing the cards they can possibly gain - every card that costs up to 2 more than the trashed card.
+     * Gaining a card is also not optional. Gained cards are placed into the player's discard pile.
+     */
+    private void executeActionRefactor() {
+        
+        // Creates trashCardDecision for each card in players hand and prompts them. Not optional unless no cards in hand.
+        // (If they did not trash a card, action ends here)
+        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikey, as there are many bitcoins)
+
+    }
+
+    /**
+     * (Attack card) +2 Cards; Each other player gains a Bug.
+     * When this card is played, the engine immediately adds a BUG to the discard pile of each other player.
+     */
+    private void executeActionEvergreenTest() {
+
+        // Draws 2 cards for current player
+        // For each other player, add a BUG card to their discard pile
+
+    }
+
+
+    /**
+     * Helper method to process gaining a card, used for when a player buys a card, or gains a card from an action effect.
+     * This method should reduce the shop count of the gained card by 1, and add a newly instantiated card to the player's discard pile.
+     * @param type the Card Type to be gained
+     * @param player the Player gaining the card
+     */
+    private void processGainingCard(Card.Type type, Player player) {
+
+        // Ensure the card is available in the shop
+        // Reduces shop count of the card by 1
+        // Creates instance of Card and adds the card to the player's discard pile 
+
+        /*
+        Uses:
+        - Buying a card
+        - Gaining a card from a gainDecision (refactor)
+        - Gaining a card from an action (evergreen test) 
+        */
+
     }
 
     /**
      * Adds the card specified in the GainCardDecision to the active player's
-     * discard pile.
+     * discard pile by calling processGainingCard
      *
      * @param decision The GainCardDecision containing the card to be gained.
      */
@@ -284,6 +388,9 @@ public class OurEngine implements Engine {
         // TODO: Ana or Oneg
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
+
+
 
     /**
      * Gets the next player in turn order.
