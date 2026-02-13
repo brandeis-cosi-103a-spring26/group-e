@@ -4,8 +4,6 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.state.GameState;
 
-import java.util.Scanner;
-
 import com.google.common.collect.ImmutableList;
 
 public class ConsolePlayer extends AbstractPlayer {
@@ -26,8 +24,6 @@ public class ConsolePlayer extends AbstractPlayer {
             return options.get(0);
         }
 
-        Scanner scanner = new Scanner(System.in);
-
         // Print available options
         for (int i = 0; i < options.size(); i++) {
             System.out.println("Option " + (i + 1) + ": " + options.get(i).getDescription());
@@ -39,6 +35,7 @@ public class ConsolePlayer extends AbstractPlayer {
         while (choice < 1 || choice > options.size()) {
             if (scanner.hasNextInt()) {
                 choice = scanner.nextInt();
+                scanner.nextLine(); // Consume the leftover newline character
                 if (choice < 1 || choice > options.size()) {
                     System.out.print("Invalid choice. Please enter a number between 1 and " + options.size() + ": ");
                 }
@@ -48,7 +45,6 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        scanner.close();
         return options.get(choice - 1);
     }
 }

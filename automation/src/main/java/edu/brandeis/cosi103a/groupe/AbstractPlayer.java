@@ -4,12 +4,18 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.state.GameState;
 
+import java.util.Scanner;
+
 import com.google.common.collect.ImmutableList;
 
 public abstract class AbstractPlayer implements Player {
 
     // Static counter to generate unique player names
     private static int counter = 1;
+
+    // Static scanner instance for all players to use for console input
+    protected static final Scanner scanner = new Scanner(System.in);
+
     private final String name;
 
     // Constructor to initialize player name
