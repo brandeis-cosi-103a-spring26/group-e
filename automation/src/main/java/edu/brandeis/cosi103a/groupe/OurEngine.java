@@ -351,18 +351,17 @@ public class OurEngine implements Engine {
      */
     private void processGainingCard(Card.Type type, Player player) {
 
-        // Ensure the card is available in the shop
-        // Reduces shop count of the card by 1
-        // Creates instance of Card and adds the card to the player's discard pile 
+        int numCardsRemaining = shop.getOrDefault(type, 0);
+        if (numCardsRemaining <= 0) {
+            // There are no cards to gain
+            // Note – this does not necessarily signify an illegal state. For example, this will happen if Evergreen Test attempts to give a player a Bug, but there are none left in the supply
+            return;
+        }
 
-        /*
-        Uses:
-        - Buying a card
-        - Gaining a card from a gainDecision (refactor)
-        - Gaining a card from an action (evergreen test) 
-        */
-        throw new UnsupportedOperationException("Not yet implemented");
-
+        shop.put(type, numCardsRemaining - 1);
+        // Create new card instance and add to player's discard pile
+        Card gainedCard = new Card(type, cardIdCounter++);
+        discards.get(player).add(gainedCard);
     }
 
     /**
