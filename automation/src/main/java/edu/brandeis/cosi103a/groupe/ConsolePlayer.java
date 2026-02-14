@@ -18,9 +18,10 @@ public class ConsolePlayer extends AbstractPlayer {
         // Render the current game state to the console
         Renderer.renderGame(state);
 
-        // If the only option is EndPhaseDecision, return it
+        // If the only option is EndPhaseDecision, prompt player to press enter to continue
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
-            System.out.println("Only option available is to end phase. Automatically selecting it.");
+            System.out.print("No choices available. Press enter to continue...");
+            scanner.nextLine(); // Wait for enter key
             return options.get(0);
         }
 
