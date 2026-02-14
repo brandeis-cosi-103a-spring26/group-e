@@ -7,11 +7,13 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.Engine;
+import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
@@ -504,8 +506,16 @@ public class OurEngine implements Engine {
      * @return The current GameState object.
      */
     private GameState buildGameState() {
-        // TODO: Oneg or Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        GameState gamestate = new GameState(
+            activePlayer.getName(),
+            hands.get(activePlayer).toImmutableHand(),
+            phase,
+            numActions,
+            numMoney,
+            numBuys,
+            new CardStacks(ImmutableMap.copyOf(shop))
+        );
+        return gamestate;
     }
 
     /**
