@@ -155,6 +155,14 @@ public class Harness {
     }
 
 
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options.
+     * If the only available option is an {@link EndPhaseDecision}, the user is
+     * prompted to press enter to continue and that decision is returned.
+     *
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @return the {@link Decision} chosen by the user from the provided options
+     */
     public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
 
 
