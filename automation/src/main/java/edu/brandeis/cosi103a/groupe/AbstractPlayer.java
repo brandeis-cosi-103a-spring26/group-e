@@ -6,17 +6,17 @@ import edu.brandeis.cosi.atg.state.GameState;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public abstract class AbstractPlayer implements Player {
 
-    // A thread-safe counter to ensure unique player names
-    private static final AtomicInteger counter = new AtomicInteger(0);
+    // Static counter to generate unique player names
+    private static int counter = 1;
+
     private final String name;
 
     // Constructor to initialize player name
     public AbstractPlayer() {
-        this.name = "Player-" + counter.incrementAndGet();
+        this.name = "Player-" + counter;
+        counter++;
     }
 
     @Override

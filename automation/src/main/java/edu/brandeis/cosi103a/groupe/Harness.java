@@ -7,9 +7,17 @@ import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 import org.fusesource.jansi.AnsiConsole;
 
+import com.google.common.collect.ImmutableList;
+
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 
 public class Harness {
+
+
+    private static Scanner scanner = new Scanner(System.in);
 
     /**
      * Prompts user for number/type of players
@@ -17,11 +25,27 @@ public class Harness {
      * Creates Engine object and runs Engine.play(List<Player>);
      */
     public static void main(String[] args) {
+
+
+        // Uncomment to test:
+        // ImmutableList<Decision> testOptions = ImmutableList.of(
+        //         new EndPhaseDecision(TurnPhase.ACTION),
+        //         new PlayCardDecision(new Card(Card.Type.REFACTOR, 0)),
+        //         new PlayCardDecision(new Card(Card.Type.REFACTOR, 1)),
+        //         new PlayCardDecision(new Card(Card.Type.REFACTOR, 2))
+        // );
+        // Decision chosen = getDecisionFromConsole(testOptions);
+        // System.out.println("You chose: " + chosen.getDescription());
+
+        // ImmutableList<Decision> testOptions2 = ImmutableList.of(
+        //         new EndPhaseDecision(TurnPhase.ACTION)
+        // );
+        // Decision chosen2 = getDecisionFromConsole(testOptions2);
+        // System.out.println("You chose: " + chosen2.getDescription());
+
         AnsiConsole.systemInstall();
 
         ArrayList<Player> players = new ArrayList<>();
-
-        Scanner scanner = new Scanner(System.in);
 
         // Welcome banner
         System.out.println(ansi().eraseScreen());
@@ -76,8 +100,6 @@ public class Harness {
             numAI += additionalAI;
         }
 
-        scanner.close();
-
         System.out.println(ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
         System.out.println(ansi().fg(YELLOW).bold().a("    Starting Game...").reset());
         System.out.println(ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
@@ -92,6 +114,7 @@ public class Harness {
             System.out.println();
         } finally {
             AnsiConsole.systemUninstall();
+            scanner.close();
         }
 
     }
@@ -130,4 +153,56 @@ public class Harness {
 
         return value;
     }
+
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options.
+     * If the only available option is an {@link EndPhaseDecision}, the user is
+     * prompted to press enter to continue and that decision is returned.
+     *
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @return the {@link Decision} chosen by the user from the provided options
+     */
+    public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
+
+        // Defensively ensure we have at least one option; otherwise, we could loop forever.
+        if (options == null || options.isEmpty()) {
+            throw new IllegalArgumentException("getDecisionFromConsole requires at least one Decision option.");
+        }
+
+        // If the only option is EndPhaseDecision, prompt player to press enter to continue
+        if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
+            System.out.print(ansi().fg(WHITE).a("No choices available. Press enter to continue...").reset());
+            scanner.nextLine(); // Wait for enter key
+            return options.get(0);
+        }
+
+        // Print available options
+        System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
+        for (int i = 0; i < options.size(); i++) {
+            System.out.println(ansi().fg(YELLOW).a("  " + (i + 1) + ". " + options.get(i).getDescription()).reset());
+        }
+
+        // Prompt user for input until a valid choice is made
+        System.out.print(ansi().fg(GREEN).a("Enter the number of your chosen option: ").reset());
+        int choice = -1;
+        while (choice < 1 || choice > options.size()) {
+            if (scanner.hasNextInt()) {
+                choice = scanner.nextInt();
+                scanner.nextLine(); // Consume the leftover newline character
+                if (choice < 1 || choice > options.size()) {
+                    System.out.print(ansi().fg(RED)
+                            .a("✗ Invalid choice. Please enter a number between 1 and " + options.size() + ": ").reset());
+                }
+            } else {
+                System.out.print(ansi().fg(RED).a("✗ Invalid input. Please enter a number: ").reset());
+                scanner.nextLine(); // Consume the invalid input
+            }
+        }
+
+        return options.get(choice - 1);
+    }
+
+
+
 }
