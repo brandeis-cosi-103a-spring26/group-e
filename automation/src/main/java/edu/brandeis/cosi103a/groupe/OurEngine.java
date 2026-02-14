@@ -330,9 +330,16 @@ public class OurEngine implements Engine {
     private void executeActionEvergreenTest() {
 
         // Draws 2 cards for current player
-        // For each other player, add a BUG card to their discard pile
-        throw new UnsupportedOperationException("Not yet implemented");
+        drawCardForPlayer(activePlayer);
+        drawCardForPlayer(activePlayer);
 
+        // For each other player, add a BUG card to their discard pile
+        // TODO: This is not fully correct. In the case where there are not enough BUG cards for all other players, it should be given in player order starting from the next player, instead of starting from P0
+        for (Player p : players) {
+            if (!p.equals(activePlayer)) {
+                processGainingCard(Type.BUG, p);
+            }
+        }
     }
 
 
