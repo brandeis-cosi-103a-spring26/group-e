@@ -551,6 +551,14 @@ public class OurEngine implements Engine {
         }
     }
 
+    /**
+     * Draws a card for given player by calling the drawCard method with player's hand, deck, and discard.
+     * @param player the player to draw the card
+     */
+    private void drawCardForPlayer(Player player) {
+        drawCard(hands.get(player), decks.get(player), discards.get(player));
+    }
+
     @VisibleForTesting
     int getShopQuantity(Type type) {
         return shop.getOrDefault(type, 0);
