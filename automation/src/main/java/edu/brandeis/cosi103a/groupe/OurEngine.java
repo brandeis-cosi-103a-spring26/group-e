@@ -299,9 +299,8 @@ public class OurEngine implements Engine {
      * When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.
      */
     private void executeActionCodeReview() {
-        // Calls Draw card for current player
-        // Adds 2 to numActions
-        throw new UnsupportedOperationException("Not yet implemented");
+        drawCardForPlayer(activePlayer);
+        numActions += 2;
     }
 
     /**
