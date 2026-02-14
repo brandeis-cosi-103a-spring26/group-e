@@ -47,8 +47,6 @@ public class Harness {
 
         ArrayList<Player> players = new ArrayList<>();
 
-        // Scanner scanner = new Scanner(System.in);
-
         // Welcome banner
         System.out.println(ansi().eraseScreen());
         System.out.println(ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
@@ -102,8 +100,6 @@ public class Harness {
             numAI += additionalAI;
         }
 
-        scanner.close();
-
         System.out.println(ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
         System.out.println(ansi().fg(YELLOW).bold().a("    Starting Game...").reset());
         System.out.println(ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
@@ -118,6 +114,7 @@ public class Harness {
             System.out.println();
         } finally {
             AnsiConsole.systemUninstall();
+            scanner.close();
         }
 
     }
