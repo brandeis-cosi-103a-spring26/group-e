@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a;
+package edu.brandeis.cosi103a.groupe;
 
 public class EnginePlayCardTest {
     
@@ -32,6 +32,7 @@ public class EnginePlayCardTest {
     - Draws two cards
     - Gives bug to all other players
     - if not enough bugs, gives to all it can
+    - Ensure all other players receive bugs to discard pile
     */
 
 
