@@ -165,6 +165,10 @@ public class Harness {
      */
     public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
 
+        // Defensively ensure we have at least one option; otherwise, we could loop forever.
+        if (options == null || options.isEmpty()) {
+            throw new IllegalArgumentException("getDecisionFromConsole requires at least one Decision option.");
+        }
 
         // If the only option is EndPhaseDecision, prompt player to press enter to continue
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
