@@ -256,7 +256,7 @@ public class OurEngine implements Engine {
 
     /**
      * Plays an action card
-     * Calls the apropriate execute action method based on card type
+     * Calls the appropriate execute action method based on card type
      * Subtracts one action from player
      * @param type
      */
@@ -301,6 +301,7 @@ public class OurEngine implements Engine {
     private void executeActionCodeReview() {
         // Calls Draw card for current player
         // Adds 2 to numActions
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -316,8 +317,9 @@ public class OurEngine implements Engine {
         
         // Creates trashCardDecision for each card in players hand and prompts them. Not optional unless no cards in hand.
         // (If they did not trash a card, action ends here)
-        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikey, as there are many bitcoins)
+        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikely, as there are many bitcoins)
 
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
@@ -328,6 +330,7 @@ public class OurEngine implements Engine {
 
         // Draws 2 cards for current player
         // For each other player, add a BUG card to their discard pile
+        throw new UnsupportedOperationException("Not yet implemented");
 
     }
 
@@ -350,6 +353,7 @@ public class OurEngine implements Engine {
         - Gaining a card from a gainDecision (refactor)
         - Gaining a card from an action (evergreen test) 
         */
+        throw new UnsupportedOperationException("Not yet implemented");
 
     }
 
