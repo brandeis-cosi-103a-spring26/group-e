@@ -1,9 +1,12 @@
 package edu.brandeis.cosi103a.groupe;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.checkerframework.checker.units.qual.A;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -14,6 +17,7 @@ import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -463,8 +467,15 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the MONEY phase.
      */
     private ImmutableList<Decision> buildMoneyDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> currencyDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.MONEY) {
+                currencyDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        currencyDecisions.add(new EndPhaseDecision(TurnPhase.MONEY));
+        return ImmutableList.copyOf(currencyDecisions);
     }
 
     /**
@@ -495,8 +506,15 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the ACTION phase.
      */
     private ImmutableList<Decision> buildActionDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> actDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.ACTION) {
+                actDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+        return ImmutableList.copyOf(actDecisions);
     }
 
     /**
