@@ -16,6 +16,7 @@ import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -315,12 +316,47 @@ public class OurEngine implements Engine {
      * Gaining a card is also not optional. Gained cards are placed into the player's discard pile.
      */
     private void executeActionRefactor() {
-        
-        // Creates trashCardDecision for each card in players hand and prompts them. Not optional unless no cards in hand.
-        // (If they did not trash a card, action ends here)
-        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikely, as there are many bitcoins)
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        ImmutableList<Decision> trashCardDecisionsOrEndPhase = buildTrashCardDecisionsForCurrentHand();
+        Decision trashDecisionOrEndPhase = activePlayer.makeDecision(buildGameState(), trashCardDecisionsOrEndPhase);
+
+        if (trashDecisionOrEndPhase instanceof EndPhaseDecision) {
+            // Player had no cards in hand to trash. End action execution here
+            return;
+        }
+
+        // Cast to TrashCardDecision and process the trashing of the card
+        TrashCardDecision trashCardDecision = (TrashCardDecision) trashDecisionOrEndPhase;
+        processTrashCardDecision(trashCardDecision);
+
+        int cardCost = trashCardDecision.card().cost();
+        int maxGainCost = cardCost + 2;
+
+        // Create list of gain decisions based on all cards available to gain in the cardstacks that cost <= max cost
+        ArrayList<Decision> gainDecisions = new ArrayList<>();
+
+        for (Map.Entry<Type, Integer> entry : shop.entrySet()) {
+            Type cardType = entry.getKey();
+            Integer numRemaining = entry.getValue();
+            if (numRemaining > 0 && cardType.cost() <= maxGainCost) {
+                gainDecisions.add(new GainCardDecision(cardType));
+            }
+        }
+
+        // If there are no possible cards to gain (unlikely) give a end phase decision
+        if (gainDecisions.isEmpty()) {
+            gainDecisions.add(new EndPhaseDecision(TurnPhase.GAIN));
+        }
+
+        Decision gainDecisionOrEndPhase = activePlayer.makeDecision(buildGameState(), ImmutableList.copyOf(gainDecisions));
+        if (gainDecisionOrEndPhase instanceof EndPhaseDecision) {
+            // Player had no cards available to gain. End action execution here
+            return;
+        }
+
+        GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
+        processGainingCard(gainCardDecision.cardType(), activePlayer);
+
     }
 
     /**
@@ -342,6 +378,24 @@ public class OurEngine implements Engine {
         }
     }
 
+
+    /**
+     * Builds the list of TrashCardDecisions for each card in the active player's hand, as well as an EndPhaseDecision if the player has no cards in hand
+     * Rationale: Merge Conflict in the future will also need this functionality
+     * @return Immutable list of trash card decions or one end phase decision
+     */
+    private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
+        ArrayList<Decision> trashyDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        if (unplayedCards.isEmpty()) {
+            trashyDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+        } else {
+            for (Card card : unplayedCards) {
+                trashyDecisions.add(new TrashCardDecision(card));
+            }
+        }
+        return ImmutableList.copyOf(trashyDecisions);
+    }
 
     /**
      * Helper method to process gaining a card, used for when a player buys a card, or gains a card from an action effect.
