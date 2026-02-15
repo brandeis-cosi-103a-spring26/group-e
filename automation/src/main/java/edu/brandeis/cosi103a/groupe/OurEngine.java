@@ -357,14 +357,18 @@ public class OurEngine implements Engine {
             gainDecisions.add(new EndPhaseDecision(TurnPhase.GAIN));
         }
 
+        // Set phase to GAIN
+        phase = TurnPhase.GAIN;
         Decision gainDecisionOrEndPhase = makeValidDecision(activePlayer, ImmutableList.copyOf(gainDecisions));
         if (gainDecisionOrEndPhase instanceof EndPhaseDecision) {
             // Player had no cards available to gain. End action execution here
+            phase = TurnPhase.ACTION; // Reset phase to Action
             return;
         }
 
         GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
         processGainingCard(gainCardDecision.cardType(), activePlayer);
+        phase = TurnPhase.ACTION; // Reset phase to action
 
     }
 
@@ -518,31 +522,6 @@ public class OurEngine implements Engine {
             default:
                 throw new UnsupportedOperationException("Invalid phase for building decision options");
         }
-    }
-
-    /**
-     * Executes a temporary GAIN phase triggered by an action card.
-     *
-     * @param triggeredBy The Type of card that triggered the GAIN phase.
-     * @throws PlayerViolationException if the active player makes an invalid
-     *                                  decision during the GAIN phase.
-     * @throws IllegalStateException    if the current phase is not ACTION.
-     */
-    private void executeGainPhase(Type triggeredBy) throws PlayerViolationException, IllegalStateException {
-        if (phase != GameState.TurnPhase.ACTION) {
-            throw new IllegalStateException("Can only execute temporary GAIN phase from ACTION phase");
-        }
-        // Swaps to GAIN and builds decisions and gameState
-        phase = GameState.TurnPhase.GAIN;
-        ImmutableList<Decision> options = buildGainDecisions(triggeredBy);
-        GameState gs = buildGameState();
-
-        Decision decision = activePlayer.makeDecision(gs, options);
-
-        processDecision(decision, options);
-
-        // Returns to the previous phase.
-        phase = GameState.TurnPhase.ACTION;
     }
 
     /**
