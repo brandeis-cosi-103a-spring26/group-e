@@ -1,44 +1,42 @@
 # ATG API Documentation
 
-This directory contains the complete Javadoc documentation for the ATG API (`io.github.brandeis-cosi-103a:atg-api:1.5.2`).
+The ATG API javadocs are automatically downloaded by Maven when you build the project (`io.github.brandeis-cosi-103a:atg-api`).
 
-## Purpose
+## How It Works
 
-These javadocs are essential for GitHub Copilot and other AI coding assistants to provide accurate suggestions and understand the ATG API fully. With these docs in the repository, Copilot can:
+The `automation/pom.xml` includes the `maven-dependency-plugin` configured to automatically download sources and javadocs for all dependencies during the `initialize` phase. This happens automatically during:
+- `mvn compile`
+- `mvn test`
+- `mvn package`
+- Or explicitly: `mvn initialize`
 
+Downloaded javadocs are stored in your local Maven repository: `~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/{version}/atg-api-{version}-javadoc.jar`
+
+## Benefits
+
+### For AI Assistants (GitHub Copilot)
+The IDE's language server indexes downloaded sources and javadocs, making them available through LSP integration. Copilot can:
 - Know exact method signatures and parameters
 - Understand return types and exceptions
 - Discover utility methods and classes
 - Provide accurate code completions
 - Suggest idiomatic usage patterns
 
-## How to Use
-
-### For AI Assistants
-The javadocs are automatically available in your workspace context. When you ask Copilot about ATG API classes, methods, or patterns, it can reference these docs.
-
 ### For Developers
-Browse the documentation starting at:
-- **Main index**: `atg-api-javadoc/index.html`
-- **All classes**: `atg-api-javadoc/allclasses-index.html`
+- **IDE Integration**: Hover tooltips, go-to-definition, and inline documentation work seamlessly
+- **Auto-Updates**: When you update the ATG API version in `pom.xml`, Maven automatically downloads the new javadocs
+- **No Manual Maintenance**: No need to commit large HTML files or manually update documentation
+- **Live Website**: For browsing HTML docs, visit: https://brandeis-cosi-103a.github.io/atg-api/
 
-Or open specific package documentation:
-- `atg-api-javadoc/edu/brandeis/cosi/atg/engine/` - Game engine
-- `atg-api-javadoc/edu/brandeis/cosi/atg/state/` - Game state
-- `atg-api-javadoc/edu/brandeis/cosi/atg/cards/` - Card definitions
-- `atg-api-javadoc/edu/brandeis/cosi/atg/decisions/` - Player decisions
-- `atg-api-javadoc/edu/brandeis/cosi/atg/player/` - Player interface
+## Updating the API Version
 
-## Regenerating Documentation
-
-If the ATG API version is updated, regenerate the javadocs:
-
-```bash
-cd automation
-mvn dependency:copy -Dartifact=io.github.brandeis-cosi-103a:atg-api:NEW_VERSION:jar:javadoc -DoutputDirectory=../docs
-cd ../docs
-rm -rf atg-api-javadoc
-unzip -q atg-api-NEW_VERSION-javadoc.jar -d atg-api-javadoc
+Simply change the version in `automation/pom.xml`:
+```xml
+<dependency>
+  <groupId>io.github.brandeis-cosi-103a</groupId>
+  <artifactId>atg-api</artifactId>
+  <version>1.5.2</version> <!-- Change this -->
+</dependency>
 ```
 
-Replace `NEW_VERSION` with the updated version number from `pom.xml`.
+Then run `mvn initialize` (or any build command) to download the new version's javadocs.
