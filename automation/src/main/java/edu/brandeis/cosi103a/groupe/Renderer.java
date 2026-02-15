@@ -13,7 +13,7 @@ import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
-import edu.brandeis.cosi.atg.player.Player;;
+import edu.brandeis.cosi.atg.player.Player;
 
 
 public class Renderer {
