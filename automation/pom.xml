@@ -46,6 +46,20 @@
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to
       parent pom) -->
       <plugins>
+        <!-- Maven dependency plugin to download sources and javadocs -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.6.1</version>
+          <executions>
+            <execution>
+              <id>download-sources</id>
+              <goals>
+                <goal>sources</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
         <!-- clean lifecycle, see
         https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
