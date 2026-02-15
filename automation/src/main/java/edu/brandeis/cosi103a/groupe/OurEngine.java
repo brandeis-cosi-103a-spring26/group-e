@@ -613,13 +613,13 @@ public class OurEngine implements Engine {
     /**
      * Draws a card from the deck into the hand. If the deck is empty, shuffles the
      * discard pile into the deck first.
-     * @param player the player to draw the card
+     *
+     * @param hand    The MutableHand representing the player's hand.
+     * @param deck    The list representing the player's deck.
+     * @param discard The list representing the player's discard pile.
      */
-    private void drawCardForPlayer(Player player) {
-        List<Card> deck = decks.get(player);
-        List<Card> discard = discards.get(player);
-        MutableHand hand = hands.get(player);
-
+    @VisibleForTesting
+    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
