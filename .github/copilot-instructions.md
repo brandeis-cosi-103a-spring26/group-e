@@ -17,7 +17,7 @@ Maven dependency: `io.github.brandeis-cosi-103a:atg-api:1.5.2`
 - **GameState**: Immutable snapshot of current game state (hands, stacks, turn phase, current player)
 - **Engine**: Orchestrates game flow, validates moves, processes decisions
 - **Card**: Represents game cards (has name, cost, types like TREASURE/ACTION/VICTORY)
-- **Decision**: Player choices (PlayCardDecision, BuyCardDecision, EndPhaseDecision, etc.)
+- **Decision**: Player choices (PlayCardDecision, BuyDecision, EndPhaseDecision, etc.)
 - **Player**: Interface for making decisions given current GameState
 
 ### Common Patterns
