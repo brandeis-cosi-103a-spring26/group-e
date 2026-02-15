@@ -215,12 +215,19 @@ public class OurEngine implements Engine {
      * Removes a card from the game based on the TrashCardDecision. Trashing a card
      * removes it from the player's deck entirely, and does not return it to the
      * supply pile.
+     * 
+     * Done by removing the given card from the active player's hand's unnplayed cards
      *
      * @param decision The TrashCardDecision containing the card to be trashed.
      */
     private void processTrashCardDecision(TrashCardDecision decision) {
         // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+
+        Card cardToTrash = decision.card();
+        boolean was_removed = hands.get(activePlayer).removeFromUnplayed(cardToTrash);
+        if (!was_removed) {
+            throw new IllegalStateException("Card to trash was not found in active player's hand's unplayed cards");
+        }
     }
 
     /**
