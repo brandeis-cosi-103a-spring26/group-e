@@ -109,11 +109,8 @@ public class OurEngine implements Engine {
 
         for (Player p : this.players) {
             // Draw initial hands of 5 cards
-            var hand = hands.get(p);
-            var deck = decks.get(p);
-            var discard = discards.get(p);
             for (int i = 0; i < HAND_SIZE; i++) {
-                drawCard(hand, deck, discard);
+                drawCardForPlayer(p);
             }
         }
 
@@ -616,13 +613,13 @@ public class OurEngine implements Engine {
     /**
      * Draws a card from the deck into the hand. If the deck is empty, shuffles the
      * discard pile into the deck first.
-     *
-     * @param hand    The MutableHand representing the player's hand.
-     * @param deck    The list representing the player's deck.
-     * @param discard The list representing the player's discard pile.
+     * @param player the player to draw the card
      */
-    @VisibleForTesting
-    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
+    private void drawCardForPlayer(Player player) {
+        List<Card> deck = decks.get(player);
+        List<Card> discard = discards.get(player);
+        MutableHand hand = hands.get(player);
+
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
