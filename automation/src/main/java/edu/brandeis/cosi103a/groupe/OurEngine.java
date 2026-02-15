@@ -10,6 +10,8 @@ import org.checkerframework.checker.units.qual.A;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
@@ -18,6 +20,7 @@ import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -496,8 +499,19 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> spendyDecisions = new ArrayList<>();
+        CardStacks shopStack = new CardStacks(ImmutableMap.copyOf(shop));
+        ImmutableSet<Card.Type> cardTypes = shopStack.getCardTypes();
+        for (Card.Type cardType : cardTypes) {
+            if (cardType.cost() <= numMoney) {
+                int stock = shopStack.getNumAvailable(cardType);
+                for (int i = 0; i < stock; i++) {
+                    spendyDecisions.add(new BuyDecision(cardType));
+                }
+            }
+        }
+        spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+        return ImmutableList.copyOf(spendyDecisions);
     }
 
     /**
