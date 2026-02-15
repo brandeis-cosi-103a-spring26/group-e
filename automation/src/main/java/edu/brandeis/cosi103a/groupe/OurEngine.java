@@ -171,6 +171,12 @@ public class OurEngine implements Engine {
         return endGame();
     }
 
+    /**
+     * Handles when a player makes an invalid decision or violates game rules.
+     * 
+     * @param cheater The player who violated the rules
+     * @param e The exception detailing the violation
+     */
     private void handleCheating(Player cheater, PlayerViolationException e) {
         // TODO future week
         throw new UnsupportedOperationException("Unimplemented method 'handleCheating'");
@@ -212,13 +218,11 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Removes a card from the game based on the TrashCardDecision. Trashing a card
-     * removes it from the player's deck entirely, and does not return it to the
-     * supply pile.
+     * Processes trashing a card, permanently removing it from the active player's hand.
+     * The trashed card is removed from the game entirely, not returned to the supply.
      * 
-     * Done by removing the given card from the active player's hand's unnplayed cards
-     *
-     * @param decision The TrashCardDecision containing the card to be trashed.
+     * @param decision Decision specifying which card to trash
+     * @throws IllegalStateException if the card is not found in the player's unplayed cards
      */
     private void processTrashCardDecision(TrashCardDecision decision) {
         Card cardToTrash = decision.card();
@@ -263,10 +267,10 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Plays an action card
-     * Calls the appropriate execute action method based on card type
-     * Subtracts one action from player
-     * @param type
+     * Processes an action card by executing its effect and decrementing the player's action count.
+     * Delegates to specific execute methods based on card type.
+     * 
+     * @param type The type of action card being played
      */
     private void processPlayActionCard(Card.Type type) {
 
@@ -287,8 +291,9 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Updates numMoney based on the type of money card played
-     * @param type
+     * Processes a money card, adding its value to the player's spendable money for this turn.
+     * 
+     * @param type The type of money card being played (BITCOIN adds 1, ETHEREUM adds 2, DOGECOIN adds 3)
      */
     private void processPlayMoneyCard(Card.Type type) {
         switch (type) {
@@ -383,9 +388,10 @@ public class OurEngine implements Engine {
 
 
     /**
-     * Builds the list of TrashCardDecisions for each card in the active player's hand, as well as an EndPhaseDecision if the player has no cards in hand
-     * Rationale: Merge Conflict in the future will also need this functionality
-     * @return Immutable list of trash card decions or one end phase decision
+     * Builds decision options for trashing cards from the active player's current hand.
+     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is empty.
+     * 
+     * @return List of trash decisions, or a single EndPhaseDecision if no cards available
      */
     private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
         ArrayList<Decision> trashyDecisions = new ArrayList<>();
@@ -401,11 +407,12 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Helper method to process gaining a card, used for when a player buys a card, or gains a card from an action effect.
-     * This method should reduce the shop count of the gained card by 1, and add a newly instantiated card to the player's discard pile.
-     * @param type the Card Type to be gained
-     * @param player the Player gaining the card
-     * @return if the cards was successfully gained
+     * Processes a card gain by decrementing shop supply and adding the card to a player's discard pile.
+     * Returns false if the card type is unavailable in the shop.
+     * 
+     * @param type The card type to be gained
+     * @param player The player receiving the card
+     * @return true if the card was successfully gained, false if unavailable in shop
      */
     private boolean processGainingCard(Card.Type type, Player player) {
 
@@ -460,10 +467,11 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Calls makeDecision on the given player and throws an error if the decision is invalid. The returned decision can be assumed to be valid
-     * @param player
-     * @param validDecisions
-     * @return a valid decision by the player
+     * Prompts a player to make a decision and validates it against the list of valid options.
+     * 
+     * @param player The player making the decision
+     * @param validDecisions List of valid decision options for the current game state
+     * @return A validated decision that is guaranteed to be in the validDecisions list
      */
     private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
         Decision decision = player.makeDecision(buildGameState(), validDecisions);
@@ -640,8 +648,9 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Draws a card for given player by calling the drawCard method with player's hand, deck, and discard.
-     * @param player the player to draw the card
+     * Draws a card for the specified player from their deck into their hand.
+     * 
+     * @param player The player drawing a card
      */
     private void drawCardForPlayer(Player player) {
         drawCard(hands.get(player), decks.get(player), discards.get(player));
