@@ -269,10 +269,9 @@ public class OurEngine implements Engine {
      */
     private void processPlayActionCard(Card.Type type) {
 
-        // This should never be possible as Player shouldn't be offered to play action card if no remaining actions
-        if (numActions <= 0) {
-            throw new IllegalStateException("No actions remaining to play an action card");
-        }
+        // Note: There is no check here to see if the player has any actions remaining
+        // This is intentional, as if a PARALLELIZATION (Throne Room) is played, this method will be hit twice irregardless of actions remaining.
+        // Thus it is up to decision builders not to allow this method to be run with no actions
 
         switch (type) {
             case CODE_REVIEW -> executeActionCodeReview();
@@ -373,12 +372,11 @@ public class OurEngine implements Engine {
         drawCardForPlayer(activePlayer);
         drawCardForPlayer(activePlayer);
 
-        // For each other player, add a BUG card to their discard pile
-        // TODO: This is not fully correct. In the case where there are not enough BUG cards for all other players, it should be given in player order starting from the next player, instead of starting from P0
-        for (Player p : players) {
-            if (!p.equals(activePlayer)) {
-                processGainingCard(Type.BUG, p);
-            }
+        // For each other player, add a BUG card to their discard pile in turn order starting from the next player
+        for (int i = 1; i < players.size(); i++) {
+            int playerIndex = (players.indexOf(activePlayer) + i) % players.size();
+            Player p = players.get(playerIndex);
+            processGainingCard(Type.BUG, p);
         }
     }
 
