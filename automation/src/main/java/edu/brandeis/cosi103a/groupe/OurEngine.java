@@ -521,6 +521,10 @@ public class OurEngine implements Engine {
      */
     private ImmutableList<Decision> buildActionDecisions() {
         ArrayList<Decision> actDecisions = new ArrayList<>();
+        if (numActions <= 0) {
+            actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+            return ImmutableList.copyOf(actDecisions);
+        }
         List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
         for (Card card : unplayedCards) {
             if (card.getCategory() == Card.Type.Category.ACTION) {
