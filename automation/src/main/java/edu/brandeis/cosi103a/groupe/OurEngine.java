@@ -318,7 +318,7 @@ public class OurEngine implements Engine {
     private void executeActionRefactor() {
 
         ImmutableList<Decision> trashCardDecisionsOrEndPhase = buildTrashCardDecisionsForCurrentHand();
-        Decision trashDecisionOrEndPhase = activePlayer.makeDecision(buildGameState(), trashCardDecisionsOrEndPhase);
+        Decision trashDecisionOrEndPhase = makeValidDecision(activePlayer, trashCardDecisionsOrEndPhase);
 
         if (trashDecisionOrEndPhase instanceof EndPhaseDecision) {
             // Player had no cards in hand to trash. End action execution here
@@ -348,7 +348,7 @@ public class OurEngine implements Engine {
             gainDecisions.add(new EndPhaseDecision(TurnPhase.GAIN));
         }
 
-        Decision gainDecisionOrEndPhase = activePlayer.makeDecision(buildGameState(), ImmutableList.copyOf(gainDecisions));
+        Decision gainDecisionOrEndPhase = makeValidDecision(activePlayer, ImmutableList.copyOf(gainDecisions));
         if (gainDecisionOrEndPhase instanceof EndPhaseDecision) {
             // Player had no cards available to gain. End action execution here
             return;
@@ -452,6 +452,20 @@ public class OurEngine implements Engine {
     private boolean validateDecision(Decision decision, ImmutableList<Decision> validDecisions) {
         // TODO: Ana or Oneg
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    /**
+     * Calls makeDecision on the given player and throws an error if the decision is invalid. The returned decision can be assumed to be valid
+     * @param player
+     * @param validDecisions
+     * @return a valid decision by the player
+     */
+    private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
+        Decision decision = player.makeDecision(buildGameState(), validDecisions);
+        if (!validDecisions.contains(decision)) {
+            handleCheating(player, new PlayerViolationException("Invalid decision made"));
+        }
+        return decision;
     }
 
 
