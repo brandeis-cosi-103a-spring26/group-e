@@ -24,7 +24,7 @@ Maven dependency: `io.github.brandeis-cosi-103a:atg-api:1.5.2`
 - GameState is immutable - engine creates new states after each decision
 - Players receive GameState and return Decision objects
 - Engine validates decisions and throws PlayerViolationException on invalid moves
-- TurnPhase enum: ACTION, BUY, CLEANUP phases in card games
+- TurnPhase enum: ACTION, MONEY, BUY, GAIN, CLEANUP phases in card games
 
 ## Communication
 Technical and concise. Always explain *why*, not just *how*. Show trade-offs and suggest multiple approaches when relevant.

@@ -12,15 +12,21 @@ The `automation/pom.xml` includes the `maven-dependency-plugin` configured to au
 
 Downloaded javadocs are stored in your local Maven repository: `~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/{version}/atg-api-{version}-javadoc.jar`
 
+To verify the download worked, check that the javadoc JAR exists:
+```bash
+ls -lh ~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/1.5.2/atg-api-1.5.2-javadoc.jar
+```
+
 ## Benefits
 
 ### For AI Assistants (GitHub Copilot)
-The IDE's language server indexes downloaded sources and javadocs, making them available through LSP integration. Copilot can:
-- Know exact method signatures and parameters
+The IDE's Java language server indexes downloaded sources and javadocs from your Maven repository. Through LSP (Language Server Protocol) integration, this enhances Copilot's ability to:
+- Suggest accurate method signatures and parameters
 - Understand return types and exceptions
-- Discover utility methods and classes
-- Provide accurate code completions
-- Suggest idiomatic usage patterns
+- Autocomplete with correct ATG API classes
+- Provide contextually relevant code suggestions
+
+**Note**: The manual API reference in `.github/copilot-instructions.md` provides additional direct context to Copilot since it's in the workspace.
 
 ### For Developers
 - **IDE Integration**: Hover tooltips, go-to-definition, and inline documentation work seamlessly

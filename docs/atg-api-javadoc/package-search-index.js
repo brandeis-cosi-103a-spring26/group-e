@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"edu.brandeis.cosi.atg"},{"l":"edu.brandeis.cosi.atg.cards"},{"l":"edu.brandeis.cosi.atg.decisions"},{"l":"edu.brandeis.cosi.atg.engine"},{"l":"edu.brandeis.cosi.atg.player"},{"l":"edu.brandeis.cosi.atg.state"}];updateSearchResults();
