@@ -500,6 +500,10 @@ public class OurEngine implements Engine {
      */
     private ImmutableList<Decision> buildBuyDecisions() {
         ArrayList<Decision> spendyDecisions = new ArrayList<>();
+        if (numBuys <= 0) {
+            spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+            return ImmutableList.copyOf(spendyDecisions);
+        }
         CardStacks shopStack = new CardStacks(ImmutableMap.copyOf(shop));
         ImmutableSet<Card.Type> cardTypes = shopStack.getCardTypes();
         for (Card.Type cardType : cardTypes) {
