@@ -221,9 +221,10 @@ public class OurEngine implements Engine {
      * @param decision The TrashCardDecision containing the card to be trashed.
      */
     private void processTrashCardDecision(TrashCardDecision decision) {
-        // TODO: Ana
-
         Card cardToTrash = decision.card();
+        if (hands.getOrDefault(activePlayer, null) == null) {
+            throw new IllegalStateException("Active player does not have a hand");
+        }
         boolean was_removed = hands.get(activePlayer).removeFromUnplayed(cardToTrash);
         if (!was_removed) {
             throw new IllegalStateException("Card to trash was not found in active player's hand's unplayed cards");
@@ -404,20 +405,22 @@ public class OurEngine implements Engine {
      * This method should reduce the shop count of the gained card by 1, and add a newly instantiated card to the player's discard pile.
      * @param type the Card Type to be gained
      * @param player the Player gaining the card
+     * @return if the cards was successfully gained
      */
-    private void processGainingCard(Card.Type type, Player player) {
+    private boolean processGainingCard(Card.Type type, Player player) {
 
         int numCardsRemaining = shop.getOrDefault(type, 0);
         if (numCardsRemaining <= 0) {
             // There are no cards to gain
             // Note – this does not necessarily signify an illegal state. For example, this will happen if Evergreen Test attempts to give a player a Bug, but there are none left in the supply
-            return;
+            return false;
         }
 
         shop.put(type, numCardsRemaining - 1);
         // Create new card instance and add to player's discard pile
         Card gainedCard = new Card(type, cardIdCounter++);
         discards.get(player).add(gainedCard);
+        return true;
     }
 
     /**
