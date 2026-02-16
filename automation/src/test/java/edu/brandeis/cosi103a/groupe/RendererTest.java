@@ -340,8 +340,8 @@ public class RendererTest {
         
         String output = outputStream.toString();
         // Should show counts like "12 Method" and "30 Bitcoin"
-        assertTrue("Should display Method count", output.contains("12") && output.contains("Method"));
-        assertTrue("Should display Bitcoin count", output.contains("30") && output.contains("Bitcoin"));
+        assertTrue("Should display Method count", output.contains("12 Method") || output.contains("Method: 12"));
+        assertTrue("Should display Bitcoin count", output.contains("30 Bitcoin") || output.contains("Bitcoin: 30"));
     }
     
     // ========== Status Bar Tests ==========
