@@ -326,16 +326,16 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() {
 
-        ImmutableList<Decision> trashCardDecisionsOrEndPhase = buildTrashCardDecisionsForCurrentHand();
-        Decision trashDecisionOrEndPhase = makeValidDecision(activePlayer, trashCardDecisionsOrEndPhase);
+        ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
+        Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
 
-        if (trashDecisionOrEndPhase instanceof EndPhaseDecision) {
+        if (playerChoice instanceof EndPhaseDecision) {
             // Player had no cards in hand to trash. End action execution here
             return;
         }
 
         // Cast to TrashCardDecision and process the trashing of the card
-        TrashCardDecision trashCardDecision = (TrashCardDecision) trashDecisionOrEndPhase;
+        TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
         processTrashCardDecision(trashCardDecision);
 
         int cardCost = trashCardDecision.card().cost();
