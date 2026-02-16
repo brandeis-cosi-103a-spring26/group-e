@@ -6,7 +6,13 @@ The ATG API javadocs are automatically downloaded by Maven when you build the pr
 
 ## How It Works
 
-The `automation/pom.xml` includes the `maven-dependency-plugin` configured to automatically download sources and javadocs for the ATG API during the `initialize` phase. This happens automatically during:
+The `automation/pom.xml` includes a Maven profile (`local-dev-docs`) that automatically downloads sources and javadocs for the ATG API during the `initialize` phase. 
+
+**Profile Activation:**
+- ✅ **Activated in local development** (when `CI` environment variable is not set)
+- ❌ **Skipped in CI/GitHub Actions** (GitHub Actions sets `CI=true`)
+
+This happens automatically during local builds:
 - `cd automation && mvn compile`
 - `cd automation && mvn test`
 - `cd automation && mvn package`
