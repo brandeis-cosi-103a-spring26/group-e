@@ -27,9 +27,9 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private Map<Card.Type, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
-    // CardStacks(ImmutableMap.copyOf(shop))`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toCardStacks()`
     private int cardIdCounter = 1;
+
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -38,18 +38,6 @@ public class OurEngine implements Engine {
     private static final int PLAYER_STARTING_METHODS = 3;
     private static final int HAND_SIZE = 5;
 
-    // Starting shop quantities
-    private static final int SHOP_BITCOIN_COUNT = 60;
-    private static final int SHOP_ETHEREUM_COUNT = 40;
-    private static final int SHOP_DOGECOIN_COUNT = 30;
-    private static final int SHOP_METHOD_COUNT = 14;
-    private static final int SHOP_MODULE_COUNT = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_TWO_PLAYERS = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS = 12;
-    private static final int SHOP_BUG_COUNT_PER_PLAYER = 10; // Multiplied by number of players
-    private static final int SHOP_REFACTOR_COUNT = 10;
-    private static final int SHOP_CODE_REVIEW_COUNT = 10;
-    private static final int SHOP_EVERGREEN_TEST_COUNT = 10;
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -114,19 +102,15 @@ public class OurEngine implements Engine {
             }
         }
 
-        // Initialize shop
-        shop = new HashMap<>();
-        shop.put(Type.BITCOIN, SHOP_BITCOIN_COUNT);
-        shop.put(Type.ETHEREUM, SHOP_ETHEREUM_COUNT);
-        shop.put(Type.DOGECOIN, SHOP_DOGECOIN_COUNT);
-        shop.put(Type.METHOD, SHOP_METHOD_COUNT);
-        shop.put(Type.MODULE, SHOP_MODULE_COUNT);
-        shop.put(Type.BUG, this.players.size() * SHOP_BUG_COUNT_PER_PLAYER);
-        shop.put(Type.REFACTOR, SHOP_REFACTOR_COUNT);
-        shop.put(Type.CODE_REVIEW, SHOP_CODE_REVIEW_COUNT);
-        shop.put(Type.EVERGREEN_TEST, SHOP_EVERGREEN_TEST_COUNT);
-        // Set FRAMEWORK count based on the number of players.
-        shop.put(Type.FRAMEWORK, (this.players.size() == 2) ? SHOP_FRAMEWORK_COUNT_TWO_PLAYERS : SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
+        ImmutableList<Type> actionCardsForGame = ImmutableList.of(
+            Type.CODE_REVIEW,
+            Type.REFACTOR,
+            Type.EVERGREEN_TEST
+        );
+
+        // Set up shop with starting card quantities
+        shop = new MutableCardStacks(this.players.size(), actionCardsForGame);
+
     }
 
     /**
@@ -517,7 +501,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
-        return getShopQuantity(Type.FRAMEWORK) == 0;
+        return shop.getCount(Type.FRAMEWORK) == 0;
     }
 
     /**
@@ -551,8 +535,4 @@ public class OurEngine implements Engine {
         }
     }
 
-    @VisibleForTesting
-    int getShopQuantity(Type type) {
-        return shop.getOrDefault(type, 0);
-    }
 }
