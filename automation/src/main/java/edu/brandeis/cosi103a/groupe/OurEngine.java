@@ -215,7 +215,6 @@ public class OurEngine implements Engine {
         switch (decision) {
             case BuyDecision buy -> processBuyDecision(buy);
             case EndPhaseDecision endPhase -> processEndPhaseDecision(endPhase);
-            case GainCardDecision gain -> processGainCardDecision(gain);
             case PlayCardDecision play -> processPlayCardDecision(play);
             case TrashCardDecision trash -> processTrashCardDecision(trash);
             default -> throw new UnsupportedOperationException("Decision type not supported");
@@ -395,17 +394,6 @@ public class OurEngine implements Engine {
          */
         throw new UnsupportedOperationException("Not yet implemented");
 
-    }
-
-    /**
-     * Adds the card specified in the GainCardDecision to the active player's
-     * discard pile by calling processGainingCard
-     *
-     * @param decision The GainCardDecision containing the card to be gained.
-     */
-    private void processGainCardDecision(GainCardDecision decision) {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
