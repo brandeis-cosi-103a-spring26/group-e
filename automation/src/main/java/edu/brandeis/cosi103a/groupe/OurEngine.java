@@ -229,8 +229,8 @@ public class OurEngine implements Engine {
         if (hands.getOrDefault(activePlayer, null) == null) {
             throw new IllegalStateException("Active player does not have a hand");
         }
-        boolean was_removed = hands.get(activePlayer).removeFromUnplayed(cardToTrash);
-        if (!was_removed) {
+        boolean wasRemoved = hands.get(activePlayer).removeFromUnplayed(cardToTrash);
+        if (!wasRemoved) {
             throw new IllegalStateException("Card to trash was not found in active player's hand's unplayed cards");
         }
     }
