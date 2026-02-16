@@ -66,11 +66,9 @@ public class MutableCardStacks {
             if (actionType == null) {
                 throw new IllegalArgumentException("actionCardsForGame cannot contain null types");
             }
-            // Guard against overwriting base piles (treasures/victories)
-            //.category()
-            if (actionType == Type.BITCOIN || actionType == Type.ETHEREUM || actionType == Type.DOGECOIN ||
-                actionType == Type.METHOD || actionType == Type.MODULE || actionType == Type.FRAMEWORK || actionType == Type.BUG) {
-                throw new IllegalArgumentException("actionCardsForGame cannot contain non-action types: " + actionType);
+            // Guard against non-action cards
+            if (actionType.category() != Type.Category.ACTION) {
+                throw new IllegalArgumentException("actionCardsForGame must only contain ACTION cards, got: " + actionType + " (category: " + actionType.category() + ")");
             }
             shop.put(actionType, ACTION_COUNT);
         }
