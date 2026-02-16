@@ -4,7 +4,7 @@
 Software Engineering class project with 4 team members building a Dominion-like deck building card game in Java using the ATG API created by the professor. Prioritize learning over quick fixes—explain concepts and guide toward better approaches when requests seem inexperienced.
 
 ## ATG API Reference
-Maven dependency: `io.github.brandeis-cosi-103a:atg-api:1.5.2`
+Maven dependency: `io.github.brandeis-cosi-103a:atg-api` (see `automation/pom.xml` for the current version)
 
 ### Core Packages
 - `edu.brandeis.cosi.atg.engine` - Game engine (Engine interface, PlayerViolationException)
