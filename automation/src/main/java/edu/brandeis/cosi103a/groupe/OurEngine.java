@@ -479,8 +479,9 @@ public class OurEngine implements Engine {
      */
     private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
         Decision decision = player.makeDecision(buildGameState(), validDecisions);
-        if (!validDecisions.contains(decision)) {
-            handleCheating(player, new PlayerViolationException("Invalid decision made"));
+        if (!validateDecision(decision, validDecisions)) {
+            throw new UnsupportedOperationException("Invalid decisions not yet handled");
+            // throw new PlayerViolationException("Invalid decision made");
         }
         return decision;
     }
