@@ -507,11 +507,9 @@ public class OurEngine implements Engine {
         CardStacks shopStack = new CardStacks(ImmutableMap.copyOf(shop));
         ImmutableSet<Card.Type> cardTypes = shopStack.getCardTypes();
         for (Card.Type cardType : cardTypes) {
-            if (cardType.cost() <= numMoney) {
-                int stock = shopStack.getNumAvailable(cardType);
-                for (int i = 0; i < stock; i++) {
-                    spendyDecisions.add(new BuyDecision(cardType));
-                }
+            int stock = shopStack.getNumAvailable(cardType);
+            if (stock > 0 && cardType.cost() <= numMoney) {
+                spendyDecisions.add(new BuyDecision(cardType));
             }
         }
         spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
