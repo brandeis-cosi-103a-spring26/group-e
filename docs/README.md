@@ -2,8 +2,6 @@
 
 The ATG API javadocs are automatically downloaded by Maven when you build the project (`io.github.brandeis-cosi-103a:atg-api`). ATG API Documentation
 
-The ATG API javadocs are automatically downloaded by Maven when you build the project (`io.github.brandeis-cosi-103a:atg-api`).
-
 ## How It Works
 
 The `automation/pom.xml` includes a Maven profile (`local-dev-docs`) that automatically downloads sources and javadocs for the ATG API during the `initialize` phase. 
