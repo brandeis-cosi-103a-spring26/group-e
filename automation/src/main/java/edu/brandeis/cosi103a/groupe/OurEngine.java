@@ -110,7 +110,7 @@ public class OurEngine implements Engine {
         for (Player p : this.players) {
             // Draw initial hands of 5 cards
             for (int i = 0; i < HAND_SIZE; i++) {
-                drawCardForPlayer(p);
+                drawCard(p);
             }
         }
 
@@ -314,7 +314,7 @@ public class OurEngine implements Engine {
      * When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.
      */
     private void executeActionCodeReview() {
-        drawCardForPlayer(activePlayer);
+        drawCard(activePlayer);
         numActions += 2;
     }
 
@@ -382,8 +382,8 @@ public class OurEngine implements Engine {
     private void executeActionEvergreenTest() {
 
         // Draws 2 cards for current player
-        drawCardForPlayer(activePlayer);
-        drawCardForPlayer(activePlayer);
+        drawCard(activePlayer);
+        drawCard(activePlayer);
 
         // For each other player, add a BUG card to their discard pile in turn order starting from the next player
         for (int i = 1; i < players.size(); i++) {
@@ -612,13 +612,14 @@ public class OurEngine implements Engine {
     /**
      * Draws a card from the deck into the hand. If the deck is empty, shuffles the
      * discard pile into the deck first.
-     *
-     * @param hand    The MutableHand representing the player's hand.
-     * @param deck    The list representing the player's deck.
-     * @param discard The list representing the player's discard pile.
+     * 
+     * @param player The player drawing a card
      */
-    @VisibleForTesting
-    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
+    private void drawCard(Player player) {
+        MutableHand hand = hands.get(player);
+        List<Card> deck = decks.get(player);
+        List<Card> discard = discards.get(player);
+
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
@@ -628,15 +629,6 @@ public class OurEngine implements Engine {
         if (!deck.isEmpty()) {
             hand.addToUnplayed(deck.remove(deck.size() - 1));
         }
-    }
-
-    /**
-     * Draws a card for the specified player from their deck into their hand.
-     * 
-     * @param player The player drawing a card
-     */
-    private void drawCardForPlayer(Player player) {
-        drawCard(hands.get(player), decks.get(player), discards.get(player));
     }
 
     @VisibleForTesting

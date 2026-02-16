@@ -350,8 +350,9 @@ public class OurEngineTest {
     // ========== Game Mechanics Tests - drawCard ==========
 
     @Test
-    public void testDrawCard_FromNonEmptyDeck_AddsToHand() {
+    public void testDrawCard_FromNonEmptyDeck_AddsToHand() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -361,7 +362,18 @@ public class OurEngineTest {
         deck.add(card1);
         deck.add(card2);
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should have 1 card", 1, hand.size());
         assertEquals("Deck should have 1 card left", 1, deck.size());
@@ -370,8 +382,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_EmptyDeck_ReshufflesDiscard() {
+    public void testDrawCard_EmptyDeck_ReshufflesDiscard() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -383,7 +396,18 @@ public class OurEngineTest {
         discard.add(card2);
         discard.add(card3);
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should have 1 card", 1, hand.size());
         assertTrue("Discard should be empty after reshuffle", discard.isEmpty());
@@ -391,13 +415,25 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_EmptyDeckAndDiscard_NoChange() {
+    public void testDrawCard_EmptyDeckAndDiscard_NoChange() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should remain empty", 0, hand.size());
         assertTrue("Deck should remain empty", deck.isEmpty());
@@ -405,8 +441,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_Reshuffle_ClearsDiscard() {
+    public void testDrawCard_Reshuffle_ClearsDiscard() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -414,14 +451,26 @@ public class OurEngineTest {
         discard.add(new Card(Card.Type.BITCOIN, 1));
         discard.add(new Card(Card.Type.METHOD, 2));
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertTrue("Discard should be cleared after reshuffle", discard.isEmpty());
     }
 
     @Test
-    public void testDrawCard_Reshuffle_ShufflesDeck() {
+    public void testDrawCard_Reshuffle_ShufflesDeck() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -431,7 +480,18 @@ public class OurEngineTest {
             discard.add(new Card(Card.Type.BITCOIN, i));
         }
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         // After shuffle and drawing one card, deck should have 9 cards
         assertEquals("Deck should have 9 cards after reshuffle and draw", 9, deck.size());
@@ -441,8 +501,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_MultipleDrawsWithReshuffles() {
+    public void testDrawCard_MultipleDrawsWithReshuffles() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -452,10 +513,22 @@ public class OurEngineTest {
         deck.add(new Card(Card.Type.BITCOIN, 2));
         deck.add(new Card(Card.Type.BITCOIN, 3));
 
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+
         // Draw 3 cards (empties deck)
-        engine.drawCard(hand, deck, discard);
-        engine.drawCard(hand, deck, discard);
-        engine.drawCard(hand, deck, discard);
+        drawCard.invoke(engine, testPlayer);
+        drawCard.invoke(engine, testPlayer);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should have 3 cards", 3, hand.size());
         assertTrue("Deck should be empty", deck.isEmpty());
@@ -464,7 +537,7 @@ public class OurEngineTest {
         discard.add(new Card(Card.Type.METHOD, 4));
         discard.add(new Card(Card.Type.METHOD, 5));
 
-        engine.drawCard(hand, deck, discard);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should have 4 cards after reshuffle and draw", 4, hand.size());
         assertEquals("Deck should have 1 card after reshuffle and draw", 1, deck.size());
@@ -472,8 +545,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_DrawsFromEndOfDeck() {
+    public void testDrawCard_DrawsFromEndOfDeck() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -483,7 +557,18 @@ public class OurEngineTest {
         deck.add(firstCard);
         deck.add(lastCard);
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertTrue("Should draw the last card in the deck", hand.contains(lastCard));
         assertFalse("Should not draw the first card", hand.contains(firstCard));
@@ -575,8 +660,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_HandAlreadyHasCards_AddsCorrectly() {
+    public void testDrawCard_HandAlreadyHasCards_AddsCorrectly() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -589,7 +675,18 @@ public class OurEngineTest {
         Card deckCard = new Card(Card.Type.METHOD, 101);
         deck.add(deckCard);
 
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         assertEquals("Hand should have 2 cards after draw", 2, hand.size());
         assertTrue("Hand should still contain initial card", hand.contains(initialCard));
@@ -597,8 +694,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_ReshufflePreservesAllCards() {
+    public void testDrawCard_ReshufflePreservesAllCards() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -611,8 +709,18 @@ public class OurEngineTest {
             originalCards.add(card);
         }
 
-        // Draw should reshuffle and draw one card
-        engine.drawCard(hand, deck, discard);
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+        drawCard.invoke(engine, testPlayer);
 
         // Verify all cards are accounted for
         List<Card> allCards = new ArrayList<>(deck);
@@ -712,8 +820,9 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testDrawCard_MultipleSequentialDraws_MaintainsCorrectState() {
+    public void testDrawCard_MultipleSequentialDraws_MaintainsCorrectState() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = new AIPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -723,9 +832,21 @@ public class OurEngineTest {
             deck.add(new Card(Card.Type.BITCOIN, i));
         }
 
+        // Set up engine's internal state
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        hands.put(testPlayer, hand);
+        decks.put(testPlayer, deck);
+        discards.put(testPlayer, discard);
+
+        // Call drawCard using reflection
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        drawCard.setAccessible(true);
+
         // Draw 5 cards
         for (int i = 0; i < 5; i++) {
-            engine.drawCard(hand, deck, discard);
+            drawCard.invoke(engine, testPlayer);
         }
 
         assertEquals("Hand should have 5 cards", 5, hand.size());
