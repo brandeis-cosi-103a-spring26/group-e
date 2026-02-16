@@ -44,27 +44,31 @@
 
   <build>
     <plugins>
-      <!-- Auto-download sources and javadocs for IDE integration and Copilot access -->
+      <!-- Auto-download sources and javadocs for ATG API only -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>3.6.1</version>
         <executions>
           <execution>
-            <id>download-sources</id>
+            <id>download-atg-sources</id>
             <phase>initialize</phase>
             <goals>
               <goal>sources</goal>
             </goals>
+            <configuration>
+              <includeArtifactIds>atg-api</includeArtifactIds>
+            </configuration>
           </execution>
           <execution>
-            <id>download-javadocs</id>
+            <id>download-atg-javadocs</id>
             <phase>initialize</phase>
             <goals>
               <goal>resolve</goal>
             </goals>
             <configuration>
               <classifier>javadoc</classifier>
+              <includeArtifactIds>atg-api</includeArtifactIds>
             </configuration>
           </execution>
         </executions>
