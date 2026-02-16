@@ -20,9 +20,9 @@ Alternatively, from the repo root: `mvn --file automation/pom.xml <phase>`
 
 Downloaded javadocs are stored in your local Maven repository: `~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/{version}/atg-api-{version}-javadoc.jar`
 
-To verify the download worked, check that the javadoc JAR exists:
+To verify the download worked, check that the javadoc JAR exists (replace `{version}` with the version from `automation/pom.xml`):
 ```bash
-ls -lh ~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/1.5.2/atg-api-1.5.2-javadoc.jar
+ls -lh ~/.m2/repository/io/github/brandeis-cosi-103a/atg-api/1.5.2/atg-api-{version}-javadoc.jar
 ```
 
 ## Benefits
