@@ -74,7 +74,7 @@ public class MutableCardStacks {
      * @param type The card type to check
      * @return The count of the specified card type, or 0 if it's not in the shop
      */
-    public int getCount(Type type) {
+    public int getNumAvailable(Type type) {
         return shop.getOrDefault(type, 0);
     }
 

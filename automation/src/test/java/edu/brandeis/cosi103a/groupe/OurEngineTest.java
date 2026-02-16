@@ -245,16 +245,16 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals("BITCOIN should have 60", 60, shop.getCount(Card.Type.BITCOIN));
-        assertEquals("ETHEREUM should have 40", 40, shop.getCount(Card.Type.ETHEREUM));
-        assertEquals("DOGECOIN should have 30", 30, shop.getCount(Card.Type.DOGECOIN));
-        assertEquals("METHOD should have 14", 14, shop.getCount(Card.Type.METHOD));
-        assertEquals("MODULE should have 8", 8, shop.getCount(Card.Type.MODULE));
-        assertEquals("FRAMEWORK should have 8", 8, shop.getCount(Card.Type.FRAMEWORK));
-        assertEquals("BUG should have 20 (2 players * 10)", 20, shop.getCount(Card.Type.BUG));
-        assertEquals("REFACTOR should have 10", 10, shop.getCount(Card.Type.REFACTOR));
-        assertEquals("CODE_REVIEW should have 10", 10, shop.getCount(Card.Type.CODE_REVIEW));
-        assertEquals("EVERGREEN_TEST should have 10", 10, shop.getCount(Card.Type.EVERGREEN_TEST));
+        assertEquals("BITCOIN should have 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("ETHEREUM should have 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("DOGECOIN should have 30", 30, shop.getNumAvailable(Card.Type.DOGECOIN));
+        assertEquals("METHOD should have 14", 14, shop.getNumAvailable(Card.Type.METHOD));
+        assertEquals("MODULE should have 8", 8, shop.getNumAvailable(Card.Type.MODULE));
+        assertEquals("FRAMEWORK should have 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("BUG should have 20 (2 players * 10)", 20, shop.getNumAvailable(Card.Type.BUG));
+        assertEquals("REFACTOR should have 10", 10, shop.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals("CODE_REVIEW should have 10", 10, shop.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals("EVERGREEN_TEST should have 10", 10, shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
@@ -262,7 +262,7 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(fourPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals("BUG should have 40 (4 players * 10)", 40, shop.getCount(Card.Type.BUG));
+        assertEquals("BUG should have 40 (4 players * 10)", 40, shop.getNumAvailable(Card.Type.BUG));
     }
 
     @Test
@@ -325,9 +325,9 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals("BITCOIN quantity should be 60", 60, shop.getCount(Card.Type.BITCOIN));
-        assertEquals("ETHEREUM quantity should be 40", 40, shop.getCount(Card.Type.ETHEREUM));
-        assertEquals("FRAMEWORK quantity should be 8", 8, shop.getCount(Card.Type.FRAMEWORK));
+        assertEquals("BITCOIN quantity should be 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("ETHEREUM quantity should be 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("FRAMEWORK quantity should be 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
@@ -339,7 +339,7 @@ public class OurEngineTest {
         shopMap.put(Card.Type.FRAMEWORK, 0);
 
         assertEquals("Should return 0 for card with 0 quantity", 0,
-                shop.getCount(Card.Type.FRAMEWORK));
+                shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
@@ -351,7 +351,7 @@ public class OurEngineTest {
         shopMap.remove(Card.Type.BITCOIN);
 
         assertEquals("Should return 0 for card not in shop", 0,
-                shop.getCount(Card.Type.BITCOIN));
+                shop.getNumAvailable(Card.Type.BITCOIN));
     }
 
     // ========== Game Mechanics Tests - drawCard ==========
@@ -651,7 +651,7 @@ public class OurEngineTest {
         // Modify shop quantity
         shopMap.put(Card.Type.BITCOIN, 25);
 
-        assertEquals("Should return modified quantity", 25, shop.getCount(Card.Type.BITCOIN));
+        assertEquals("Should return modified quantity", 25, shop.getNumAvailable(Card.Type.BITCOIN));
     }
 
     @Test
@@ -683,16 +683,16 @@ public class OurEngineTest {
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
         // Verify all card types have correct initial quantities
-        assertEquals(60, shop.getCount(Card.Type.BITCOIN));
-        assertEquals(40, shop.getCount(Card.Type.ETHEREUM));
-        assertEquals(30, shop.getCount(Card.Type.DOGECOIN));
-        assertEquals(14, shop.getCount(Card.Type.METHOD));
-        assertEquals(8, shop.getCount(Card.Type.MODULE));
-        assertEquals(8, shop.getCount(Card.Type.FRAMEWORK));
-        assertEquals(20, shop.getCount(Card.Type.BUG)); // 2 players * 10
-        assertEquals(10, shop.getCount(Card.Type.REFACTOR));
-        assertEquals(10, shop.getCount(Card.Type.CODE_REVIEW));
-        assertEquals(10, shop.getCount(Card.Type.EVERGREEN_TEST));
+        assertEquals(60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals(40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals(30, shop.getNumAvailable(Card.Type.DOGECOIN));
+        assertEquals(14, shop.getNumAvailable(Card.Type.METHOD));
+        assertEquals(8, shop.getNumAvailable(Card.Type.MODULE));
+        assertEquals(8, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals(20, shop.getNumAvailable(Card.Type.BUG)); // 2 players * 10
+        assertEquals(10, shop.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals(10, shop.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals(10, shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test

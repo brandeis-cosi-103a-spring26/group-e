@@ -501,7 +501,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
-        return shop.getCount(Type.FRAMEWORK) == 0;
+        return shop.getNumAvailable(Type.FRAMEWORK) == 0;
     }
 
     /**
