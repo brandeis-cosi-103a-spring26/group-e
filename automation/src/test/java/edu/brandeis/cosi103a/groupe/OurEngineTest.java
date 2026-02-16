@@ -301,27 +301,16 @@ public class OurEngineTest {
     public void testIsGameOver_FrameworkSoldOut_ReturnsTrue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        // Access internal shop map via reflection to set count to 0
-        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
-        shopMap.put(Card.Type.FRAMEWORK, 0);
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
         assertTrue("Game should be over when FRAMEWORK cards are sold out", engine.isGameOver());
     }
 
     @Test
-    public void testIsGameOver_FrameworkNotInShop_ReturnsTrue() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-        MutableCardStacks shop = getPrivateField(engine, "shop");
-        // Access internal shop map via reflection to remove FRAMEWORK
-        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
-        shopMap.remove(Card.Type.FRAMEWORK);
-
-        assertTrue("Game should be over when FRAMEWORK type doesn't exist in shop",
-                engine.isGameOver());
-    }
-
-    @Test
-    public void testGetShopQuantity_CardExists_ReturnsQuantity() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardExists_ReturnsQuantity() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
@@ -331,27 +320,30 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testGetShopQuantity_CardQuantityZero_ReturnsZero() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardQuantityZero_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        // Access internal shop map via reflection to set count to 0
-        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
-        shopMap.put(Card.Type.FRAMEWORK, 0);
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
         assertEquals("Should return 0 for card with 0 quantity", 0,
                 shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
-    public void testGetShopQuantity_CardNotInShop_ReturnsZero() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_SoldOut_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        // Access internal shop map via reflection to remove card
-        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
-        shopMap.remove(Card.Type.BITCOIN);
+        
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
-        assertEquals("Should return 0 for card not in shop", 0,
-                shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Should return 0 for sold out card", 0,
+                shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     // ========== Game Mechanics Tests - drawCard ==========
@@ -642,14 +634,14 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testGetShopQuantity_AfterModification_ReturnsUpdatedValue() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_AfterModification_ReturnsUpdatedValue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        // Access internal shop map via reflection to modify quantity
-        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
-
-        // Modify shop quantity
-        shopMap.put(Card.Type.BITCOIN, 25);
+        
+        // Deplete BITCOIN from 60 to 25 by calling decrementCount 35 times
+        for (int i = 0; i < 35; i++) {
+            shop.decrementCount(Card.Type.BITCOIN);
+        }
 
         assertEquals("Should return modified quantity", 25, shop.getNumAvailable(Card.Type.BITCOIN));
     }

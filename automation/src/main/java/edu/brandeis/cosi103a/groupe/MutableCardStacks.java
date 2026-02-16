@@ -11,8 +11,8 @@ import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.state.CardStacks;
 
 /**
- * Mutable version of CardStacks
- * Conver to CardStacks with `toCardStacks()`
+ * Mutable version of CardStacks.
+ * Convert to CardStacks with {@link #toCardStacks()}.
  */
 public class MutableCardStacks {
     
@@ -37,8 +37,16 @@ public class MutableCardStacks {
      * based on the number of players and the action cards included in the game.
      * @param numPlayers The number of players in the game, which affects the quantity of certain cards like BUG and FRAMEWORK
      * @param actionCardsForGame The list of action card types that will be included in the game
+     * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or contains null/invalid types
      */
     public MutableCardStacks(int numPlayers, ImmutableList<Type> actionCardsForGame) {
+        if (numPlayers < 2 || numPlayers > 4) {
+            throw new IllegalArgumentException("numPlayers must be between 2 and 4, got: " + numPlayers);
+        }
+        if (actionCardsForGame == null) {
+            throw new IllegalArgumentException("actionCardsForGame cannot be null");
+        }
+        
         shop = new HashMap<>();
 
         // Starting treasures
@@ -55,6 +63,15 @@ public class MutableCardStacks {
 
         // Starting actions
         for (Type actionType : actionCardsForGame) {
+            if (actionType == null) {
+                throw new IllegalArgumentException("actionCardsForGame cannot contain null types");
+            }
+            // Guard against overwriting base piles (treasures/victories)
+            //.category()
+            if (actionType == Type.BITCOIN || actionType == Type.ETHEREUM || actionType == Type.DOGECOIN ||
+                actionType == Type.METHOD || actionType == Type.MODULE || actionType == Type.FRAMEWORK || actionType == Type.BUG) {
+                throw new IllegalArgumentException("actionCardsForGame cannot contain non-action types: " + actionType);
+            }
             shop.put(actionType, ACTION_COUNT);
         }
         
