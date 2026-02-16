@@ -670,7 +670,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testShopGetNumAvailable_AllCardTypes_ReturnCorrectInitialValues() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_AllCardTypes_ReturnCorrectInitialValues() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 

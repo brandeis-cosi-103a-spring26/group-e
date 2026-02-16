@@ -92,6 +92,41 @@ public class MutableCardStacksTest {
         assertEquals("EVERGREEN_TEST should be 0", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_InvalidNumPlayers_TooLow() {
+        new MutableCardStacks(1, standardActionCards);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_InvalidNumPlayers_TooHigh() {
+        new MutableCardStacks(5, standardActionCards);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_NullActionCardsForGame() {
+        new MutableCardStacks(2, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_NullElementInActionCardsForGame() {
+        ImmutableList<Card.Type> invalidActionCards =
+                ImmutableList.of(Card.Type.CODE_REVIEW, null);
+        new MutableCardStacks(2, invalidActionCards);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_NonActionTypeInActionCardsForGame() {
+        ImmutableList<Card.Type> invalidActionCards =
+                ImmutableList.of(Card.Type.CODE_REVIEW, Card.Type.BITCOIN);
+        new MutableCardStacks(2, invalidActionCards);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_DuplicateActionCardsInActionCardsForGame() {
+        ImmutableList<Card.Type> duplicateActionCards =
+                ImmutableList.of(Card.Type.CODE_REVIEW, Card.Type.CODE_REVIEW);
+        new MutableCardStacks(2, duplicateActionCards);
+    }
     // ========== getCount Tests ==========
 
     @Test
@@ -278,38 +313,75 @@ public class MutableCardStacksTest {
     @Test
     public void testToCardStacks_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
-        
+
+        // Capture expected counts from the mutable stacks before snapshot
+        int expectedBitcoin = stacks.getNumAvailable(Card.Type.BITCOIN);
+        int expectedMethod = stacks.getNumAvailable(Card.Type.METHOD);
+
         CardStacks immutable = stacks.toCardStacks();
-        
+
         assertNotNull("Should return non-null CardStacks", immutable);
+
+        // Verify that the snapshot has the same counts as the mutable source
+        assertEquals("Snapshot should have same BITCOIN count as mutable stacks",
+                expectedBitcoin, immutable.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Snapshot should have same METHOD count as mutable stacks",
+                expectedMethod, immutable.getNumAvailable(Card.Type.METHOD));
     }
 
     @Test
     public void testToCardStacks_AfterModifications_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
-        
+
         // Modify some counts
         stacks.decrementCount(Card.Type.BITCOIN);
         stacks.decrementCount(Card.Type.BITCOIN);
         stacks.decrementCount(Card.Type.FRAMEWORK);
-        
+
+        // Capture expected counts after modifications
+        int expectedBitcoin = stacks.getNumAvailable(Card.Type.BITCOIN);
+        int expectedFramework = stacks.getNumAvailable(Card.Type.FRAMEWORK);
+
         CardStacks immutable = stacks.toCardStacks();
-        
+
         assertNotNull("Should return non-null CardStacks after modifications", immutable);
+
+        // Verify that the snapshot reflects the modified counts
+        assertEquals("Snapshot should have updated BITCOIN count",
+                expectedBitcoin, immutable.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Snapshot should have updated FRAMEWORK count",
+                expectedFramework, immutable.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
     public void testToCardStacks_MultipleCalls_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
-        
+
         CardStacks first = stacks.toCardStacks();
         assertNotNull("First call should return non-null", first);
-        
+
+        // Record a value from the first snapshot to verify immutability later
+        int firstBitcoin = first.getNumAvailable(Card.Type.BITCOIN);
+
         // Modify mutable stacks
         stacks.decrementCount(Card.Type.BITCOIN);
-        
+
         CardStacks second = stacks.toCardStacks();
         assertNotNull("Second call should return non-null", second);
+
+        // Second snapshot should match the current mutable state
+        assertEquals("Second snapshot should match mutable BITCOIN count",
+                stacks.getNumAvailable(Card.Type.BITCOIN),
+                second.getNumAvailable(Card.Type.BITCOIN));
+
+        // First snapshot should remain unchanged (immutability)
+        assertEquals("First snapshot should remain unchanged after mutable stacks are modified",
+                firstBitcoin, first.getNumAvailable(Card.Type.BITCOIN));
+
+        // And the two snapshots should differ when the underlying mutable stacks change
+        assertNotEquals("First and second snapshots should differ after a decrement",
+                first.getNumAvailable(Card.Type.BITCOIN),
+                second.getNumAvailable(Card.Type.BITCOIN));
     }
 
     // ========== Edge Cases and Integration Tests ==========
