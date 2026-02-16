@@ -3,7 +3,7 @@ package edu.brandeis.cosi103a.groupe;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableList;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -36,7 +36,7 @@ public class MutableCardStacks {
      * Initializes the mutable card stacks with the starting quantities for each card type
      * based on the number of players and the action cards included in the game.
      * @param numPlayers The number of players in the game, which affects the quantity of certain cards like BUG and FRAMEWORK
-     * @param actionCardsForGame The list of action card types that will be included in the game
+     * @param actionCardsForGame The set of action card types that will be included in the game
      * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or contains null/invalid types
      */
     public MutableCardStacks(int numPlayers, ImmutableSet<Type> actionCardsForGame) {
