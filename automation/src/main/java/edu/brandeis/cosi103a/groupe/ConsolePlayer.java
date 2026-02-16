@@ -1,7 +1,6 @@
 package edu.brandeis.cosi103a.groupe;
 
 import edu.brandeis.cosi.atg.decisions.Decision;
-import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.state.GameState;
 
 import com.google.common.collect.ImmutableList;

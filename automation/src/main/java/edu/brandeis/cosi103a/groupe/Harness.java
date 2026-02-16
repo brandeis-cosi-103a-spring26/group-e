@@ -10,9 +10,7 @@ import org.fusesource.jansi.AnsiConsole;
 import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
-import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 
 public class Harness {
 
@@ -122,7 +120,7 @@ public class Harness {
     /**
      * Prompts the user for a valid integer within the specified range.
      * Reprompts on invalid input (non-integers or out of range).
-     * 
+     *
      * @param scanner The Scanner to read input from
      * @param prompt  The message to display to the user
      * @param min     Minimum valid value (inclusive)
