@@ -484,7 +484,7 @@ public class EnginePlayCardTest {
 
         // Should draw 1 card (if available)
         int newSize = hand.size();
-        assertTrue("Hand should have same or more cards", newSize >= initialSize ||  newSize == initialSize);
+        assertTrue("Hand should have same or more cards", newSize >= initialSize);
     }
 
     @Test
@@ -911,4 +911,3 @@ public class EnginePlayCardTest {
         }
     }
 }
-
