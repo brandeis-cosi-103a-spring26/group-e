@@ -15,20 +15,20 @@ import static org.junit.Assert.*;
  */
 public class MutableCardStacksTest {
 
-    private ImmutableList<Card.Type> standardActionCards;
-    private ImmutableList<Card.Type> singleActionCard;
-    private ImmutableList<Card.Type> emptyActionCards;
+    private ImmutableSet<Card.Type> standardActionCards;
+    private ImmutableSet<Card.Type> singleActionCard;
+    private ImmutableSet<Card.Type> emptyActionCards;
 
     @Before
     public void setUp() {
-        standardActionCards = ImmutableList.of(
+        standardActionCards = ImmutableSet.of(
             Card.Type.CODE_REVIEW,
             Card.Type.REFACTOR,
             Card.Type.EVERGREEN_TEST
         );
         
-        singleActionCard = ImmutableList.of(Card.Type.CODE_REVIEW);
-        emptyActionCards = ImmutableList.of();
+        singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
+        emptyActionCards = ImmutableSet.of();
     }
 
     // ========== Constructor Tests ==========
@@ -107,26 +107,20 @@ public class MutableCardStacksTest {
         new MutableCardStacks(2, null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testConstructor_NullElementInActionCardsForGame() {
-        ImmutableList<Card.Type> invalidActionCards =
-                ImmutableList.of(Card.Type.CODE_REVIEW, null);
+        ImmutableSet<Card.Type> invalidActionCards =
+                ImmutableSet.of(Card.Type.CODE_REVIEW, null);
         new MutableCardStacks(2, invalidActionCards);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_NonActionTypeInActionCardsForGame() {
-        ImmutableList<Card.Type> invalidActionCards =
-                ImmutableList.of(Card.Type.CODE_REVIEW, Card.Type.BITCOIN);
+        ImmutableSet<Card.Type> invalidActionCards =
+                ImmutableSet.of(Card.Type.CODE_REVIEW, Card.Type.BITCOIN);
         new MutableCardStacks(2, invalidActionCards);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructor_DuplicateActionCardsInActionCardsForGame() {
-        ImmutableList<Card.Type> duplicateActionCards =
-                ImmutableList.of(Card.Type.CODE_REVIEW, Card.Type.CODE_REVIEW);
-        new MutableCardStacks(2, duplicateActionCards);
-    }
     // ========== getCount Tests ==========
 
     @Test
@@ -427,9 +421,9 @@ public class MutableCardStacksTest {
     @Test
     public void testDifferentActionCardSets_OnlyIncludeSpecified() {
         MutableCardStacks withCodeReview = new MutableCardStacks(2, 
-            ImmutableList.of(Card.Type.CODE_REVIEW));
+            ImmutableSet.of(Card.Type.CODE_REVIEW));
         MutableCardStacks withRefactor = new MutableCardStacks(2, 
-            ImmutableList.of(Card.Type.REFACTOR));
+            ImmutableSet.of(Card.Type.REFACTOR));
         
         assertEquals("CODE_REVIEW should be 10 in first", 10, 
                     withCodeReview.getNumAvailable(Card.Type.CODE_REVIEW));

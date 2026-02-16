@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
@@ -102,7 +103,7 @@ public class OurEngine implements Engine {
             }
         }
 
-        ImmutableList<Type> actionCardsForGame = ImmutableList.of(
+        ImmutableSet<Type> actionCardsForGame = ImmutableSet.of(
             Type.CODE_REVIEW,
             Type.REFACTOR,
             Type.EVERGREEN_TEST

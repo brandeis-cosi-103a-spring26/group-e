@@ -39,7 +39,7 @@ public class MutableCardStacks {
      * @param actionCardsForGame The list of action card types that will be included in the game
      * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or contains null/invalid types
      */
-    public MutableCardStacks(int numPlayers, ImmutableList<Type> actionCardsForGame) {
+    public MutableCardStacks(int numPlayers, ImmutableSet<Type> actionCardsForGame) {
         if (numPlayers < 2 || numPlayers > 4) {
             throw new IllegalArgumentException("numPlayers must be between 2 and 4, got: " + numPlayers);
         }
