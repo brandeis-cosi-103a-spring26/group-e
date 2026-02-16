@@ -274,9 +274,12 @@ public class OurEngine implements Engine {
      */
     private void processPlayActionCard(Card.Type type) {
 
-        // Note: There is no check here to see if the player has any actions remaining
-        // This is intentional, as if a PARALLELIZATION (Throne Room) is played, this method will be hit twice regardless of actions remaining.
-        // Thus it is up to decision builders not to allow this method to be run with no actions
+        // Note: under current implementation, when PARALLELIZATION (Throne Room) is immplemented,
+        // it must add 1 to numActions before calling this method again,
+        // to avoid the thrown error and to keep numActions correct.
+        if (numActions <= 0) {
+            throw new IllegalStateException("No actions remaining for active player");
+        }
 
         switch (type) {
             case CODE_REVIEW -> executeActionCodeReview();
