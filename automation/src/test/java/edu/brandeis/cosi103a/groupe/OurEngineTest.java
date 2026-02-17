@@ -1275,6 +1275,8 @@ public class OurEngineTest {
         java.lang.reflect.Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return (T) method.invoke(obj, args);
+    }
+        
     // ========== processTrashCardDecision Tests ==========
 
     @Test
