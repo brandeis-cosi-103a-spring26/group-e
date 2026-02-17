@@ -12,6 +12,6 @@ excludeAgent: "coding-agent"
 - **Verify suggestions work**: Only suggest changes you're confident will compile and function correctly
 
 ## Ignore
-- Purely aesthetic changes (spacing, formatting, naming) unless code is very unreadable
+- Purely aesthetic changes (spacing, formatting, naming) unless naming of variables/methods is misleading or non-descriptive
 - Minor style preferences that don't affect maintainability
 - Non-critical optimizations

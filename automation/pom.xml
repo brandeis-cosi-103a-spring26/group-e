@@ -10,8 +10,6 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>automation</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -88,7 +86,54 @@
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.6.1</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <!-- Automatically downloads ATG API sources/javadocs in local development, but skips in CI -->
+    <profile>
+      <id>local-dev-docs</id>
+      <activation>
+        <property>
+          <name>!env.CI</name> <!-- Activated when CI environment variable is NOT set -->
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>download-atg-sources</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>sources</goal>
+                </goals>
+                <configuration>
+                  <includeArtifactIds>atg-api</includeArtifactIds>
+                </configuration>
+              </execution>
+              <execution>
+                <id>download-atg-javadocs</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>resolve</goal>
+                </goals>
+                <configuration>
+                  <classifier>javadoc</classifier>
+                  <includeArtifactIds>atg-api</includeArtifactIds>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
