@@ -1053,11 +1053,11 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int cardIdCounter = getPrivateField(engine, "cardIdCounter");
         
-        int initialShopCount = shop.get(Card.Type.ETHEREUM);
+        int initialShopCount = shop.getNumAvailable(Card.Type.ETHEREUM);
         int initialDiscardSize = discards.get(player).size();
 
         // Gain an ETHEREUM card
@@ -1066,7 +1066,7 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.ETHEREUM, player);
 
         // Verify shop count decremented
-        assertEquals("Shop count should decrease by 1", initialShopCount - 1, (int) shop.get(Card.Type.ETHEREUM));
+        assertEquals("Shop count should decrease by 1", initialShopCount - 1, shop.getNumAvailable(Card.Type.ETHEREUM));
         
         // Verify card added to discard
         assertEquals("Discard size should increase by 1", initialDiscardSize + 1, discards.get(player).size());
@@ -1086,11 +1086,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         
-        // Set shop to have only 1 REFACTOR card
-        shop.put(Card.Type.REFACTOR, 1);
+        // Deplete REFACTOR to have only 1 card (starts at 10)
+        for (int i = 0; i < 9; i++) {
+            shop.decrementCount(Card.Type.REFACTOR);
+        }
 
         // Gain the last REFACTOR
         java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
@@ -1098,7 +1100,7 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.REFACTOR, player);
 
         // Verify shop count is now 0
-        assertEquals("Shop count should be 0", 0, (int) shop.get(Card.Type.REFACTOR));
+        assertEquals("Shop count should be 0", 0, shop.getNumAvailable(Card.Type.REFACTOR));
         
         // Verify card was still added to discard
         boolean foundRefactor = false;
@@ -1178,11 +1180,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         
-        // Set CODE_REVIEW count to 0
-        shop.put(Card.Type.CODE_REVIEW, 0);
+        // Deplete all CODE_REVIEW cards (starts at 10)
+        for (int i = 0; i < 10; i++) {
+            shop.decrementCount(Card.Type.CODE_REVIEW);
+        }
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain CODE_REVIEW (should be silent no-op)
@@ -1191,7 +1195,7 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.CODE_REVIEW, player);
 
         // Verify nothing changed
-        assertEquals("Shop count should remain 0", 0, (int) shop.get(Card.Type.CODE_REVIEW));
+        assertEquals("Shop count should remain 0", 0, shop.getNumAvailable(Card.Type.CODE_REVIEW));
         assertEquals("Discard should not change", initialDiscardSize, discards.get(player).size());
     }
 
@@ -1200,11 +1204,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         
-        // Remove FRAMEWORK from shop entirely
-        shop.remove(Card.Type.FRAMEWORK);
+        // Deplete all FRAMEWORK cards (starts at 8 for 2 players)
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain FRAMEWORK (should be silent no-op)

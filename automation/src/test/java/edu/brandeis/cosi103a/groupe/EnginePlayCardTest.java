@@ -635,8 +635,11 @@ public class EnginePlayCardTest {
         setPrivateField(engine, "activePlayer", activePlayer);
 
         // Set BUG count to 1 (insufficient for 3 opponents)
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.BUG, 1);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        // Deplete BUGs to 1 (starts at 40 for 4 players)
+        for (int i = 0; i < 39; i++) {
+            shop.decrementCount(Card.Type.BUG);
+        }
 
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
 
@@ -659,7 +662,7 @@ public class EnginePlayCardTest {
         
         // At least 1 BUG should be distributed (up to shop limit)
         assertTrue("At least 1 BUG should be distributed", bugsDistributed >= 1);
-        assertEquals("BUG count should be 0", 0, (int) shop.get(Card.Type.BUG));
+        assertEquals("BUG count should be 0", 0, shop.getNumAvailable(Card.Type.BUG));
     }
 
     @Test
@@ -670,8 +673,11 @@ public class EnginePlayCardTest {
         setPrivateField(engine, "activePlayer", player1);
 
         // Set BUG count to 0
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.BUG, 0);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        // Deplete all BUGs (starts at 20 for 2 players)
+        for (int i = 0; i < 20; i++) {
+            shop.decrementCount(Card.Type.BUG);
+        }
 
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int initialDiscard2 = discards.get(player2).size();
@@ -691,15 +697,18 @@ public class EnginePlayCardTest {
         setPrivateField(engine, "activePlayer", activePlayer);
 
         // Set BUG count to exactly 2 (for 2 opponents)
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.BUG, 2);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        // Deplete BUGs to 2 (starts at 30 for 3 players)
+        for (int i = 0; i < 28; i++) {
+            shop.decrementCount(Card.Type.BUG);
+        }
 
         Method method = engine.getClass().getDeclaredMethod("executeActionEvergreenTest");
         method.setAccessible(true);
         method.invoke(engine);
 
         // All BUGs should be distributed
-        assertEquals("All BUGs should be distributed", 0, (int) shop.get(Card.Type.BUG));
+        assertEquals("All BUGs should be distributed", 0, shop.getNumAvailable(Card.Type.BUG));
     }
 
     @Test
