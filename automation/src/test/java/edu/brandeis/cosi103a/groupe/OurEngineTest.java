@@ -871,7 +871,8 @@ public class OurEngineTest {
 
         // Create and process decision
         TrashCardDecision decision = new TrashCardDecision(cardToTrash);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -888,7 +889,7 @@ public class OurEngineTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         // Add specific cards
         Card card1 = new Card(Card.Type.BITCOIN, 2001);
         Card card2 = new Card(Card.Type.ETHEREUM, 2002);
@@ -899,7 +900,8 @@ public class OurEngineTest {
 
         // Trash the middle card
         TrashCardDecision decision = new TrashCardDecision(card2);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -918,13 +920,14 @@ public class OurEngineTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand(); // Start with empty hand
         hands.put(player, hand);
-        
+
         Card onlyCard = new Card(Card.Type.BITCOIN, 3001);
         hand.addToUnplayed(onlyCard);
 
         // Trash the only card
         TrashCardDecision decision = new TrashCardDecision(onlyCard);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -941,22 +944,23 @@ public class OurEngineTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         // Create a card that's not in the hand
         Card cardNotInHand = new Card(Card.Type.BITCOIN, 4001);
 
         // Attempt to trash it - should throw IllegalStateException
         TrashCardDecision decision = new TrashCardDecision(cardNotInHand);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
             // Verify it's the right exception
             assertTrue("Should throw IllegalStateException", e.getCause() instanceof IllegalStateException);
-            assertTrue("Error message should mention card not found", 
-                e.getCause().getMessage().contains("not found"));
+            assertTrue("Error message should mention card not found",
+                    e.getCause().getMessage().contains("not found"));
             throw e;
         }
     }
@@ -969,7 +973,7 @@ public class OurEngineTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         // Add card to unplayed, then play it
         Card card = new Card(Card.Type.CODE_REVIEW, 5001);
         hand.addToUnplayed(card);
@@ -977,9 +981,10 @@ public class OurEngineTest {
 
         // Attempt to trash it - should fail since it's in played, not unplayed
         TrashCardDecision decision = new TrashCardDecision(card);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
@@ -997,14 +1002,15 @@ public class OurEngineTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand(); // Empty hand
         hands.put(player, hand);
-        
+
         Card card = new Card(Card.Type.BITCOIN, 6001);
 
         // Attempt to trash from empty hand
         TrashCardDecision decision = new TrashCardDecision(card);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
@@ -1023,7 +1029,7 @@ public class OurEngineTest {
         // Replace with empty hand for controlled testing
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         // Add two BITCOIN cards with different IDs
         Card bitcoin1 = new Card(Card.Type.BITCOIN, 7001);
         Card bitcoin2 = new Card(Card.Type.BITCOIN, 7002);
@@ -1032,7 +1038,8 @@ public class OurEngineTest {
 
         // Trash bitcoin1 specifically
         TrashCardDecision decision = new TrashCardDecision(bitcoin1);
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -1052,26 +1059,27 @@ public class OurEngineTest {
         Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int cardIdCounter = getPrivateField(engine, "cardIdCounter");
-        
+
         int initialShopCount = shop.get(Card.Type.ETHEREUM);
         int initialDiscardSize = discards.get(player).size();
 
         // Gain an ETHEREUM card
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.ETHEREUM, player);
 
         // Verify shop count decremented
         assertEquals("Shop count should decrease by 1", initialShopCount - 1, (int) shop.get(Card.Type.ETHEREUM));
-        
+
         // Verify card added to discard
         assertEquals("Discard size should increase by 1", initialDiscardSize + 1, discards.get(player).size());
-        
+
         // Verify card is ETHEREUM and has unique ID
         Card gainedCard = discards.get(player).get(discards.get(player).size() - 1);
         assertEquals("Gained card should be ETHEREUM", Card.Type.ETHEREUM, gainedCard.type());
         assertEquals("Card should have correct ID", cardIdCounter, gainedCard.id());
-        
+
         // Verify cardIdCounter was incremented
         int newCardIdCounter = getPrivateField(engine, "cardIdCounter");
         assertEquals("Card ID counter should increment", cardIdCounter + 1, newCardIdCounter);
@@ -1084,18 +1092,19 @@ public class OurEngineTest {
 
         Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Set shop to have only 1 REFACTOR card
         shop.put(Card.Type.REFACTOR, 1);
 
         // Gain the last REFACTOR
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.REFACTOR, player);
 
         // Verify shop count is now 0
         assertEquals("Shop count should be 0", 0, (int) shop.get(Card.Type.REFACTOR));
-        
+
         // Verify card was still added to discard
         boolean foundRefactor = false;
         for (Card card : discards.get(player)) {
@@ -1115,9 +1124,10 @@ public class OurEngineTest {
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int initialDiscardSize = discards.get(player).size();
 
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
-        
+
         // Gain 3 BITCOIN cards
         method.invoke(engine, Card.Type.BITCOIN, player);
         method.invoke(engine, Card.Type.BITCOIN, player);
@@ -1125,7 +1135,7 @@ public class OurEngineTest {
 
         // Verify 3 cards added
         assertEquals("Three cards should be added", initialDiscardSize + 3, discards.get(player).size());
-        
+
         // Verify all have unique IDs
         List<Integer> ids = new ArrayList<>();
         int bitcoinCount = 0;
@@ -1135,8 +1145,9 @@ public class OurEngineTest {
                 bitcoinCount++;
             }
         }
-        
-        // Check that we have unique IDs for the gained BITCOINs (may have started with some)
+
+        // Check that we have unique IDs for the gained BITCOINs (may have started with
+        // some)
         long uniqueIdCount = ids.stream().distinct().count();
         assertEquals("All BITCOIN cards should have unique IDs", ids.size(), uniqueIdCount);
     }
@@ -1151,9 +1162,10 @@ public class OurEngineTest {
         int initialDiscard1 = discards.get(player1).size();
         int initialDiscard2 = discards.get(player2).size();
 
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
-        
+
         // Player 1 gains METHOD, Player 2 gains MODULE
         method.invoke(engine, Card.Type.METHOD, player1);
         method.invoke(engine, Card.Type.MODULE, player2);
@@ -1161,7 +1173,7 @@ public class OurEngineTest {
         // Verify correct discard piles were modified
         assertEquals("Player 1 discard should increase by 1", initialDiscard1 + 1, discards.get(player1).size());
         assertEquals("Player 2 discard should increase by 1", initialDiscard2 + 1, discards.get(player2).size());
-        
+
         // Verify correct card types
         Card player1LastCard = discards.get(player1).get(discards.get(player1).size() - 1);
         Card player2LastCard = discards.get(player2).get(discards.get(player2).size() - 1);
@@ -1176,13 +1188,14 @@ public class OurEngineTest {
 
         Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Set CODE_REVIEW count to 0
         shop.put(Card.Type.CODE_REVIEW, 0);
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain CODE_REVIEW (should be silent no-op)
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.CODE_REVIEW, player);
 
@@ -1198,13 +1211,14 @@ public class OurEngineTest {
 
         Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Remove FRAMEWORK from shop entirely
         shop.remove(Card.Type.FRAMEWORK);
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain FRAMEWORK (should be silent no-op)
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.FRAMEWORK, player);
 
@@ -1220,16 +1234,17 @@ public class OurEngineTest {
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int initialDiscardSize = discards.get(player).size();
 
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
-        
+
         // Test all card types
         Card.Type[] allTypes = {
-            Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN,
-            Card.Type.METHOD, Card.Type.MODULE, Card.Type.FRAMEWORK,
-            Card.Type.BUG, Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST
+                Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN,
+                Card.Type.METHOD, Card.Type.MODULE, Card.Type.FRAMEWORK,
+                Card.Type.BUG, Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST
         };
-        
+
         for (Card.Type type : allTypes) {
             method.invoke(engine, type, player);
         }
@@ -1238,6 +1253,436 @@ public class OurEngineTest {
         assertEquals("Should gain 10 cards", initialDiscardSize + 10, discards.get(player).size());
     }
 
+    // ========== executeCleanupPhase Tests ==========
+
+    @Test
+    public void testExecuteCleanupPhase_DiscardsAllCardsAndDrawsFive() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = twoPlayers.get(0);
+
+        // Set up engine state
+        setPrivateField(engine, "activePlayer", testPlayer);
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+
+        MutableHand hand = hands.get(testPlayer);
+        List<Card> deck = decks.get(testPlayer);
+        List<Card> discard = discards.get(testPlayer);
+
+        // Capture initial state
+        int initialHandSize = hand.size();
+        int initialDeckSize = deck.size();
+        int initialDiscardSize = discard.size();
+        List<Card> cardsInHandBefore = new ArrayList<>(hand.getUnplayedCards());
+
+        // Invoke executeCleanupPhase using reflection
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        method.setAccessible(true);
+        method.invoke(engine);
+
+        // Verify all cards were discarded and new hand drawn
+        assertEquals("Hand should have exactly 5 cards after cleanup", 5, hand.size());
+        assertEquals("Discard should contain previous hand cards",
+                initialDiscardSize + initialHandSize, discard.size());
+        assertEquals("Deck should have 5 fewer cards",
+                initialDeckSize - 5, deck.size());
+
+        // Verify the old cards are in discard
+        for (Card card : cardsInHandBefore) {
+            assertTrue("Old hand card should be in discard pile", discard.contains(card));
+        }
+
+        // Verify the new cards are from the deck (not the old hand)
+        List<Card> cardsInHandAfter = hand.getUnplayedCards();
+        for (Card card : cardsInHandAfter) {
+            assertFalse("New hand should not contain old cards", cardsInHandBefore.contains(card));
+        }
+    }
+
+    @Test
+    public void testExecuteCleanupPhase_WithEmptyDeck_ShufflesDiscardIntoDeck() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = twoPlayers.get(0);
+
+        setPrivateField(engine, "activePlayer", testPlayer);
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+
+        MutableHand hand = hands.get(testPlayer);
+        List<Card> deck = decks.get(testPlayer);
+        List<Card> discard = discards.get(testPlayer);
+
+        // Clear deck and put many cards in discard to simulate mid-game state
+        Card extraCard1 = new Card(Card.Type.METHOD, 9001);
+        Card extraCard2 = new Card(Card.Type.BITCOIN, 9002);
+        Card extraCard3 = new Card(Card.Type.ETHEREUM, 9003);
+        discard.addAll(deck);
+        deck.clear();
+        discard.add(extraCard1);
+        discard.add(extraCard2);
+        discard.add(extraCard3);
+
+        int totalCardsBeforeCleanup = hand.size() + discard.size();
+
+        // Invoke executeCleanupPhase
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        method.setAccessible(true);
+        method.invoke(engine);
+
+        // Verify hand has 5 cards
+        assertEquals("Hand should have exactly 5 cards", 5, hand.size());
+
+        // Verify total cards preserved (some in hand, rest in deck or discard)
+        int totalCardsAfterCleanup = hand.size() + deck.size() + discard.size();
+        assertEquals("Total cards should be preserved", totalCardsBeforeCleanup, totalCardsAfterCleanup);
+    }
+
+    @Test
+    public void testExecuteCleanupPhase_WithPlayedCards_DiscardsAll() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player testPlayer = twoPlayers.get(0);
+
+        setPrivateField(engine, "activePlayer", testPlayer);
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+
+        MutableHand hand = hands.get(testPlayer);
+        List<Card> discard = discards.get(testPlayer);
+
+        // Simulate playing some cards during the turn
+        List<Card> unplayedCards = new ArrayList<>(hand.getUnplayedCards());
+        if (!unplayedCards.isEmpty()) {
+            Card cardToPlay = unplayedCards.get(0);
+            hand.playCard(cardToPlay);
+        }
+
+        int totalCardsInHand = hand.size(); // Both played and unplayed
+        int initialDiscardSize = discard.size();
+
+        // Invoke executeCleanupPhase
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        method.setAccessible(true);
+        method.invoke(engine);
+
+        // Verify all cards (played and unplayed) were discarded
+        assertEquals("All cards should be discarded including played ones",
+                initialDiscardSize + totalCardsInHand, discard.size());
+        assertEquals("Hand should have exactly 5 new cards", 5, hand.size());
+    }
+
+    // ========== processEndPhaseDecision Tests ==========
+
+    @Test
+    public void testProcessEndPhaseDecision_ActionToMoney_TransitionsCorrectly() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+        method.invoke(engine, decision);
+
+        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
+        assertEquals("Should transition from ACTION to MONEY",
+                GameState.TurnPhase.MONEY, newPhase);
+    }
+
+    @Test
+    public void testProcessEndPhaseDecision_MoneyToBuy_TransitionsCorrectly() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
+
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+        method.invoke(engine, decision);
+
+        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
+        assertEquals("Should transition from MONEY to BUY",
+                GameState.TurnPhase.BUY, newPhase);
+    }
+
+    @Test
+    public void testProcessEndPhaseDecision_BuyToCleanup_TransitionsCorrectly() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.BUY);
+
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+        method.invoke(engine, decision);
+
+        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
+        assertEquals("Should transition from BUY to CLEANUP",
+                GameState.TurnPhase.CLEANUP, newPhase);
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessEndPhaseDecision_PhaseMismatch_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+
+        // Try to end MONEY phase while in ACTION phase
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw IllegalArgumentException for phase mismatch");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw IllegalArgumentException",
+                    e.getCause() instanceof IllegalArgumentException);
+            assertTrue("Error message should mention phase mismatch",
+                    e.getCause().getMessage().contains("does not match"));
+            throw e;
+        }
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessEndPhaseDecision_CleanupPhase_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.CLEANUP);
+
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.CLEANUP);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw UnsupportedOperationException for CLEANUP phase");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
+            assertTrue("Error message should mention cannot end phase",
+                    e.getCause().getMessage().contains("Cannot end phase"));
+            throw e;
+        }
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessEndPhaseDecision_GainPhase_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "phase", GameState.TurnPhase.GAIN);
+
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.GAIN);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw UnsupportedOperationException for GAIN phase");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
+            throw e;
+        }
+    }
+
+    // ========== processBuyDecision Tests ==========
+
+    // Note: The valid purchase test is commented out because it relies on
+    // processGainingCard being fully implemented to verify the shop and discard
+    // updates. Once processGainingCard is complete, we can uncomment this test and
+    // verify those state changes as well.
+
+    // @Test
+    // public void testProcessBuyDecision_ValidPurchase_UpdatesStateCorrectly()
+    // throws Exception {
+    // OurEngine engine = new OurEngine(twoPlayers);
+    // Player testPlayer = twoPlayers.get(0);
+
+    // setPrivateField(engine, "activePlayer", testPlayer);
+    // setPrivateField(engine, "numMoney", 5);
+    // setPrivateField(engine, "numBuys", 1);
+
+    // Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+    // Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+
+    // int initialDiscardSize = discards.get(testPlayer).size();
+    // int initialShopQuantity = shop.get(Card.Type.MODULE);
+    // int initialMoney = 5;
+    // int initialBuys = 1;
+
+    // // MODULE costs 4
+    // BuyDecision decision = new BuyDecision(Card.Type.MODULE);
+
+    // java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+    // "processBuyDecision", BuyDecision.class);
+    // method.setAccessible(true);
+    // method.invoke(engine, decision);
+
+    // // Verify state updates
+    // int newMoney = getPrivateField(engine, "numMoney");
+    // int newBuys = getPrivateField(engine, "numBuys");
+
+    // assertEquals("Money should be reduced by card cost",
+    // initialMoney - Card.Type.MODULE.cost(), newMoney);
+    // assertEquals("Buys should be decremented by 1", initialBuys - 1, newBuys);
+
+    // // Note: Can't verify shop/discard directly since processGainingCard is not
+    // yet
+    // // implemented
+    // // These assertions would fail until processGainingCard is complete
+    // // assertEquals("Shop quantity should decrease", initialShopQuantity - 1,
+    // (int)
+    // // shop.get(Card.Type.MODULE));
+    // // assertEquals("Card should be added to discard", initialDiscardSize + 1,
+    // // discards.get(testPlayer).size());
+    // }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessBuyDecision_InsufficientMoney_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        setPrivateField(engine, "activePlayer", twoPlayers.get(0));
+        setPrivateField(engine, "numMoney", 2); // Not enough for MODULE (costs 5)
+        setPrivateField(engine, "numBuys", 1);
+
+        BuyDecision decision = new BuyDecision(Card.Type.MODULE);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw IllegalStateException for insufficient money");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw IllegalStateException",
+                    e.getCause() instanceof IllegalStateException);
+            assertTrue("Error message should mention not enough money",
+                    e.getCause().getMessage().toLowerCase().contains("not enough money"));
+            throw e;
+        }
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessBuyDecision_NoBuysRemaining_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        setPrivateField(engine, "activePlayer", twoPlayers.get(0));
+        setPrivateField(engine, "numMoney", 10);
+        setPrivateField(engine, "numBuys", 0); // No buys remaining
+
+        BuyDecision decision = new BuyDecision(Card.Type.BITCOIN);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw IllegalStateException for no buys remaining");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw IllegalStateException",
+                    e.getCause() instanceof IllegalStateException);
+            assertTrue("Error message should mention no buys",
+                    e.getCause().getMessage().toLowerCase().contains("no buys"));
+            throw e;
+        }
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testProcessBuyDecision_CardOutOfStock_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        setPrivateField(engine, "activePlayer", twoPlayers.get(0));
+        setPrivateField(engine, "numMoney", 10);
+        setPrivateField(engine, "numBuys", 1);
+
+        // Set MODULE to out of stock
+        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        shop.put(Card.Type.MODULE, 0);
+
+        BuyDecision decision = new BuyDecision(Card.Type.MODULE);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, decision);
+            fail("Should throw IllegalStateException for out of stock card");
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            assertTrue("Should throw IllegalStateException",
+                    e.getCause() instanceof IllegalStateException);
+            assertTrue("Error message should mention out of stock",
+                    e.getCause().getMessage().toLowerCase().contains("out of stock"));
+            throw e;
+        }
+    }
+
+    // NOTE: The following test is commented out because it relies on
+    // processGainingCard being fully implemented to verify the shop and discard
+    // updates. Once processGainingCard is complete, we can uncomment this test and
+    // verify those state changes as well.
+
+    // @Test
+    // public void testProcessBuyDecision_BuyingMultipleCards_DecrementsCorrectly()
+    // throws Exception {
+    // OurEngine engine = new OurEngine(twoPlayers);
+
+    // setPrivateField(engine, "activePlayer", twoPlayers.get(0));
+    // setPrivateField(engine, "numMoney", 10);
+    // setPrivateField(engine, "numBuys", 3);
+
+    // // First purchase: BITCOIN (costs 0)
+    // BuyDecision decision1 = new BuyDecision(Card.Type.BITCOIN);
+    // java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+    // "processBuyDecision", BuyDecision.class);
+    // method.setAccessible(true);
+    // method.invoke(engine, decision1);
+
+    // int money1 = getPrivateField(engine, "numMoney");
+    // int buys1 = getPrivateField(engine, "numBuys");
+    // assertEquals("Money should be 10 after buying BITCOIN", 10, money1);
+    // assertEquals("Buys should be 2 after first purchase", 2, buys1);
+
+    // // Second purchase: ETHEREUM (costs 3)
+    // BuyDecision decision2 = new BuyDecision(Card.Type.ETHEREUM);
+    // method.invoke(engine, decision2);
+
+    // int money2 = getPrivateField(engine, "numMoney");
+    // int buys2 = getPrivateField(engine, "numBuys");
+    // assertEquals("Money should be 7 after buying ETHEREUM", 7, money2);
+    // assertEquals("Buys should be 1 after second purchase", 1, buys2);
+    // }
+
+    // @Test
+    // public void testProcessBuyDecision_ExactMoney_SucceedsWithZeroRemaining()
+    // throws Exception {
+    // OurEngine engine = new OurEngine(twoPlayers);
+
+    // setPrivateField(engine, "activePlayer", twoPlayers.get(0));
+    // setPrivateField(engine, "numMoney", 5); // Exactly MODULE cost
+    // setPrivateField(engine, "numBuys", 1);
+
+    // BuyDecision decision = new BuyDecision(Card.Type.MODULE);
+
+    // java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+    // "processBuyDecision", BuyDecision.class);
+    // method.setAccessible(true);
+    // method.invoke(engine, decision);
+
+    // int newMoney = getPrivateField(engine, "numMoney");
+    // assertEquals("Should have 0 money after exact purchase", 0, newMoney);
+    // }
+
     // ========== makeValidDecision Tests ==========
 
     /**
@@ -1245,16 +1690,16 @@ public class OurEngineTest {
      */
     private static class MockPlayer implements Player {
         private Decision decisionToReturn;
-        
+
         public MockPlayer(Decision decision) {
             this.decisionToReturn = decision;
         }
-        
+
         @Override
         public Decision makeDecision(GameState state, ImmutableList<Decision> validDecisions) {
             return decisionToReturn;
         }
-        
+
         @Override
         public String getName() {
             return "MockPlayer";
@@ -1263,118 +1708,128 @@ public class OurEngineTest {
 
     // Uncomment after implementation of validateDecision
 
-    // @Test
-    // public void testMakeValidDecision_ValidSingleDecision() throws Exception {
-    //     OurEngine engine = new OurEngine(twoPlayers);
-        
-    //     EndPhaseDecision validDecision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-    //     ImmutableList<Decision> validDecisions = ImmutableList.of(validDecision);
-        
-    //     MockPlayer mockPlayer = new MockPlayer(validDecision);
-        
-    //     java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
-    //     method.setAccessible(true);
-    //     Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
-        
-    //     assertEquals("Should return the valid decision", validDecision, result);
-    // }
+    @Test
+    public void testMakeValidDecision_ValidSingleDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
 
-    // @Test
-    // public void testMakeValidDecision_ValidFromMultiple() throws Exception {
-    //     OurEngine engine = new OurEngine(twoPlayers);
-        
-    //     Card card1 = new Card(Card.Type.BITCOIN, 10001);
-    //     Card card2 = new Card(Card.Type.ETHEREUM, 10002);
-    //     Card card3 = new Card(Card.Type.METHOD, 10003);
-        
-    //     PlayCardDecision decision1 = new PlayCardDecision(card1);
-    //     PlayCardDecision decision2 = new PlayCardDecision(card2);
-    //     PlayCardDecision decision3 = new PlayCardDecision(card3);
-    //     EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-        
-    //     ImmutableList<Decision> validDecisions = ImmutableList.of(decision1, decision2, decision3, endPhase);
-        
-    //     // Mock player chooses decision2
-    //     MockPlayer mockPlayer = new MockPlayer(decision2);
-        
-    //     java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
-    //     method.setAccessible(true);
-    //     Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
-        
-    //     assertEquals("Should return the selected decision", decision2, result);
-    // }
+        EndPhaseDecision validDecision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        ImmutableList<Decision> validDecisions = ImmutableList.of(validDecision);
 
-    // @Test
-    // public void testMakeValidDecision_EndPhaseDecision() throws Exception {
-    //     OurEngine engine = new OurEngine(twoPlayers);
-        
-    //     Card card = new Card(Card.Type.BITCOIN, 11001);
-    //     PlayCardDecision decision = new PlayCardDecision(card);
-    //     EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
-        
-    //     ImmutableList<Decision> validDecisions = ImmutableList.of(decision, endPhase);
-        
-    //     // Mock player chooses to end phase
-    //     MockPlayer mockPlayer = new MockPlayer(endPhase);
-        
-    //     java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
-    //     method.setAccessible(true);
-    //     Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
-        
-    //     assertEquals("Should return EndPhaseDecision", endPhase, result);
-    // }
+        MockPlayer mockPlayer = new MockPlayer(validDecision);
 
-    // @Test(expected = java.lang.reflect.InvocationTargetException.class)
-    // public void testMakeValidDecision_InvalidDecision() throws Exception {
-    //     OurEngine engine = new OurEngine(twoPlayers);
-        
-    //     Card validCard = new Card(Card.Type.BITCOIN, 12001);
-    //     Card invalidCard = new Card(Card.Type.ETHEREUM, 12002);
-        
-    //     PlayCardDecision validDecision = new PlayCardDecision(validCard);
-    //     PlayCardDecision invalidDecision = new PlayCardDecision(invalidCard);
-        
-    //     ImmutableList<Decision> validDecisions = ImmutableList.of(validDecision);
-        
-    //     // Mock player returns invalid decision
-    //     MockPlayer mockPlayer = new MockPlayer(invalidDecision);
-        
-    //     java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
-    //     method.setAccessible(true);
-        
-    //     try {
-    //         method.invoke(engine, mockPlayer, validDecisions);
-    //     } catch (java.lang.reflect.InvocationTargetException e) {
-    //         // Should throw UnsupportedOperationException from handleCheating
-    //         assertTrue("Should throw UnsupportedOperationException", 
-    //             e.getCause() instanceof UnsupportedOperationException);
-    //         assertTrue("Error message should mention unimplemented handleCheating", 
-    //             e.getCause().getMessage().contains("Unimplemented method 'handleCheating'"));
-    //         throw e;
-    //     }
-    // }
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
+        method.setAccessible(true);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
+
+        assertEquals("Should return the valid decision", validDecision, result);
+    }
+
+    @Test
+    public void testMakeValidDecision_ValidFromMultiple() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        Card card1 = new Card(Card.Type.BITCOIN, 10001);
+        Card card2 = new Card(Card.Type.ETHEREUM, 10002);
+        Card card3 = new Card(Card.Type.METHOD, 10003);
+
+        PlayCardDecision decision1 = new PlayCardDecision(card1);
+        PlayCardDecision decision2 = new PlayCardDecision(card2);
+        PlayCardDecision decision3 = new PlayCardDecision(card3);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+
+        ImmutableList<Decision> validDecisions = ImmutableList.of(decision1,
+                decision2, decision3, endPhase);
+
+        // Mock player chooses decision2
+        MockPlayer mockPlayer = new MockPlayer(decision2);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
+        method.setAccessible(true);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
+
+        assertEquals("Should return the selected decision", decision2, result);
+    }
+
+    @Test
+    public void testMakeValidDecision_EndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        Card card = new Card(Card.Type.BITCOIN, 11001);
+        PlayCardDecision decision = new PlayCardDecision(card);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
+
+        ImmutableList<Decision> validDecisions = ImmutableList.of(decision,
+                endPhase);
+
+        // Mock player chooses to end phase
+        MockPlayer mockPlayer = new MockPlayer(endPhase);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
+        method.setAccessible(true);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
+
+        assertEquals("Should return EndPhaseDecision", endPhase, result);
+    }
+
+    @Test(expected = java.lang.reflect.InvocationTargetException.class)
+    public void testMakeValidDecision_InvalidDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        Card validCard = new Card(Card.Type.BITCOIN, 12001);
+        Card invalidCard = new Card(Card.Type.ETHEREUM, 12002);
+
+        PlayCardDecision validDecision = new PlayCardDecision(validCard);
+        PlayCardDecision invalidDecision = new PlayCardDecision(invalidCard);
+
+        ImmutableList<Decision> validDecisions = ImmutableList.of(validDecision);
+
+        // Mock player returns invalid decision
+        MockPlayer mockPlayer = new MockPlayer(invalidDecision);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
+        method.setAccessible(true);
+
+        try {
+            method.invoke(engine, mockPlayer, validDecisions);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            // Should throw UnsupportedOperationException from handleCheating
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
+            assertTrue("Error message should mention unimplemented handleCheating",
+                    e.getCause().getMessage().contains("Unimplemented method 'handleCheating'"));
+            throw e;
+        }
+    }
 
     @Test(expected = java.lang.reflect.InvocationTargetException.class)
     public void testMakeValidDecision_NullDecision() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        
+
         Card card = new Card(Card.Type.BITCOIN, 13001);
         PlayCardDecision validDecision = new PlayCardDecision(card);
         ImmutableList<Decision> validDecisions = ImmutableList.of(validDecision);
-        
+
         // Mock player returns null
         MockPlayer mockPlayer = new MockPlayer(null);
-        
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, mockPlayer, validDecisions);
         } catch (java.lang.reflect.InvocationTargetException e) {
             // null is not in validDecisions, so should trigger handleCheating
-            assertTrue("Should throw UnsupportedOperationException or NullPointerException", 
-                e.getCause() instanceof UnsupportedOperationException || 
-                e.getCause() instanceof NullPointerException);
+            assertTrue("Should throw UnsupportedOperationException or NullPointerException",
+                    e.getCause() instanceof UnsupportedOperationException ||
+                            e.getCause() instanceof NullPointerException);
             throw e;
         }
     }
@@ -1382,15 +1837,16 @@ public class OurEngineTest {
     @Test
     public void testMakeValidDecision_EmptyValidList() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        
+
         ImmutableList<Decision> emptyDecisions = ImmutableList.of();
-        
+
         // Mock player returns null (can't make valid decision from empty list)
         MockPlayer mockPlayer = new MockPlayer(null);
-        
-        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
-        
+
         // This edge case documents current behavior - likely triggers handleCheating
         try {
             method.invoke(engine, mockPlayer, emptyDecisions);

@@ -198,7 +198,7 @@ public class OurEngine implements Engine {
 
         // Draw new hand of 5 cards
         for (int i = 0; i < HAND_SIZE; i++) {
-            drawCard(hand, deck, discard);
+            drawCard(activePlayer);
         }
     }
 
