@@ -482,7 +482,7 @@ public class OurEngine implements Engine {
 
         // Validate that the card is available in the shop, and that the player has
         // enough money and buys to purchase it
-        if (getShopQuantity(type) <= 0) {
+        if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
         }
         if (numMoney < type.cost()) {
