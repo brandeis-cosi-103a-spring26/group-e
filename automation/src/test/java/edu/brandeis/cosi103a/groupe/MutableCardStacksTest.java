@@ -109,7 +109,7 @@ public class MutableCardStacksTest {
 
     @Test(expected = NullPointerException.class)
     public void testConstructor_NullElementInActionCardsForGame() {
-        // ImmutableSet.of() reiases the NullPointerException if null is included, so we expect that instead of IllegalArgumentException
+        // ImmutableSet.of() raises the NullPointerException if null is included, so we expect that instead of IllegalArgumentException
         ImmutableSet<Card.Type> invalidActionCards =
                 ImmutableSet.of(Card.Type.CODE_REVIEW, null);
         new MutableCardStacks(2, invalidActionCards);

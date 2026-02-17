@@ -1165,10 +1165,12 @@ public class OurEngineTest {
     @Test
     public void testBuildBuyDecisions_OnlyIncludesCardsInStock() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         
-        // Set BITCOIN out of stock
-        shop.put(Card.Type.BITCOIN, 0);
+        // Deplete BITCOIN stock completely (from 60 to 0)
+        for (int i = 0; i < 60; i++) {
+            shop.decrementCount(Card.Type.BITCOIN);
+        }
         
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 10); // Can afford anything
