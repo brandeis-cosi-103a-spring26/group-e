@@ -858,6 +858,429 @@ public class OurEngineTest {
         assertTrue("Discard should remain empty", discard.isEmpty());
     }
 
+    // ========== Decision Building Tests - buildActionDecisions ==========
+
+    @Test
+    public void testBuildActionDecisions_NoActionsAvailable_OnlyEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numActions", 0);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildActionDecisions");
+        
+        assertEquals("Should have exactly 1 decision", 1, decisions.size());
+        assertTrue("Should be EndPhaseDecision", 
+            decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = 
+            (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        assertEquals("Should end ACTION phase", GameState.TurnPhase.ACTION, endDecision.phase());
+    }
+
+    @Test
+    public void testBuildActionDecisions_HasActionsButNoActionCards_OnlyEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player activePlayer = getPrivateField(engine, "activePlayer");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Clear hand and add only money cards
+        MutableHand hand = hands.get(activePlayer);
+        hand.clear();
+        hand.addToUnplayed(new Card(Card.Type.BITCOIN, 1));
+        hand.addToUnplayed(new Card(Card.Type.ETHEREUM, 2));
+        
+        setPrivateField(engine, "numActions", 1);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildActionDecisions");
+        
+        assertEquals("Should have exactly 1 decision", 1, decisions.size());
+        assertTrue("Should be EndPhaseDecision", 
+            decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+    }
+
+    @Test
+    public void testBuildActionDecisions_HasActionsAndActionCards_IncludesPlayCardDecisions() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        
+        // Get the first actual player from the players list
+        List<Player> players = getPrivateField(engine, "players");
+        Player firstPlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", firstPlayer);
+        
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Clear hand and add action cards (REFACTOR and CODE_REVIEW are ACTION category)
+        MutableHand hand = hands.get(firstPlayer);
+        hand.clear();
+        Card refactor = new Card(Card.Type.REFACTOR, 1);
+        Card codeReview = new Card(Card.Type.CODE_REVIEW, 2);
+        hand.addToUnplayed(refactor);
+        hand.addToUnplayed(codeReview);
+        hand.addToUnplayed(new Card(Card.Type.BITCOIN, 3)); // Add a money card too
+        
+        setPrivateField(engine, "numActions", 2);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildActionDecisions");
+        
+        // Should have 2 PlayCardDecisions + 1 EndPhaseDecision = 3
+        assertEquals("Should have 3 decisions (2 play + 1 end)", 3, decisions.size());
+        
+        // Count decision types
+        int playCount = 0;
+        int endCount = 0;
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.PlayCardDecision) {
+                playCount++;
+            } else if (d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision) {
+                endCount++;
+            }
+        }
+        
+        assertEquals("Should have 2 PlayCardDecisions", 2, playCount);
+        assertEquals("Should have 1 EndPhaseDecision", 1, endCount);
+    }
+
+    @Test
+    public void testBuildActionDecisions_AlwaysIncludesEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        
+        // Get the first actual player from the players list
+        List<Player> players = getPrivateField(engine, "players");
+        Player firstPlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", firstPlayer);
+        
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Setup with multiple action cards (REFACTOR and CODE_REVIEW are ACTION category)
+        MutableHand hand = hands.get(firstPlayer);
+        hand.clear();
+        for (int i = 0; i < 3; i++) {
+            hand.addToUnplayed(new Card(Card.Type.REFACTOR, i));
+        }
+        
+        setPrivateField(engine, "numActions", 5);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildActionDecisions");
+        
+        // Verify EndPhaseDecision is present
+        boolean hasEndPhase = decisions.stream()
+            .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        assertTrue("Should always include EndPhaseDecision", hasEndPhase);
+    }
+
+    // ========== Decision Building Tests - buildMoneyDecisions ==========
+
+    @Test
+    public void testBuildMoneyDecisions_NoMoneyCards_OnlyEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player activePlayer = getPrivateField(engine, "activePlayer");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Clear hand and add only action cards
+        MutableHand hand = hands.get(activePlayer);
+        hand.clear();
+        hand.addToUnplayed(new Card(Card.Type.METHOD, 1));
+        hand.addToUnplayed(new Card(Card.Type.MODULE, 2));
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildMoneyDecisions");
+        
+        assertEquals("Should have exactly 1 decision", 1, decisions.size());
+        assertTrue("Should be EndPhaseDecision", 
+            decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = 
+            (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        assertEquals("Should end MONEY phase", GameState.TurnPhase.MONEY, endDecision.phase());
+    }
+
+    @Test
+    public void testBuildMoneyDecisions_HasMoneyCards_IncludesPlayCardDecisions() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player activePlayer = getPrivateField(engine, "activePlayer");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Clear hand and add money cards
+        MutableHand hand = hands.get(activePlayer);
+        hand.clear();
+        Card bitcoin = new Card(Card.Type.BITCOIN, 1);
+        Card ethereum = new Card(Card.Type.ETHEREUM, 2);
+        Card dogecoin = new Card(Card.Type.DOGECOIN, 3);
+        hand.addToUnplayed(bitcoin);
+        hand.addToUnplayed(ethereum);
+        hand.addToUnplayed(dogecoin);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildMoneyDecisions");
+        
+        // Should have 3 PlayCardDecisions + 1 EndPhaseDecision = 4
+        assertEquals("Should have 4 decisions (3 play + 1 end)", 4, decisions.size());
+        
+        // Count decision types
+        int playCount = 0;
+        int endCount = 0;
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.PlayCardDecision) {
+                playCount++;
+            } else if (d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision) {
+                endCount++;
+            }
+        }
+        
+        assertEquals("Should have 3 PlayCardDecisions", 3, playCount);
+        assertEquals("Should have 1 EndPhaseDecision", 1, endCount);
+    }
+
+    @Test
+    public void testBuildMoneyDecisions_MixedCards_OnlyIncludesMoneyCards() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player activePlayer = getPrivateField(engine, "activePlayer");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Add mix of money and non-money cards
+        MutableHand hand = hands.get(activePlayer);
+        hand.clear();
+        hand.addToUnplayed(new Card(Card.Type.BITCOIN, 1));
+        hand.addToUnplayed(new Card(Card.Type.METHOD, 2));  // Action, not money
+        hand.addToUnplayed(new Card(Card.Type.ETHEREUM, 3));
+        hand.addToUnplayed(new Card(Card.Type.BUG, 4));     // Victory, not money
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildMoneyDecisions");
+        
+        // Should have 2 PlayCardDecisions (for BITCOIN and ETHEREUM) + 1 EndPhaseDecision = 3
+        assertEquals("Should have 3 decisions (2 play + 1 end)", 3, decisions.size());
+        
+        // Verify only money cards are included
+        int playCount = 0;
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.PlayCardDecision) {
+                playCount++;
+                edu.brandeis.cosi.atg.decisions.PlayCardDecision playDecision = 
+                    (edu.brandeis.cosi.atg.decisions.PlayCardDecision) d;
+                assertEquals("PlayCard should be for money category", 
+                    Card.Type.Category.MONEY, playDecision.card().getCategory());
+            }
+        }
+        assertEquals("Should have exactly 2 PlayCardDecisions", 2, playCount);
+    }
+
+    @Test
+    public void testBuildMoneyDecisions_AlwaysIncludesEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player activePlayer = getPrivateField(engine, "activePlayer");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+        
+        // Add money cards
+        MutableHand hand = hands.get(activePlayer);
+        hand.clear();
+        hand.addToUnplayed(new Card(Card.Type.BITCOIN, 1));
+        hand.addToUnplayed(new Card(Card.Type.ETHEREUM, 2));
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildMoneyDecisions");
+        
+        // Verify EndPhaseDecision is present
+        boolean hasEndPhase = decisions.stream()
+            .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        assertTrue("Should always include EndPhaseDecision", hasEndPhase);
+    }
+
+    // ========== Decision Building Tests - buildBuyDecisions ==========
+
+    @Test
+    public void testBuildBuyDecisions_NoBuysAvailable_OnlyEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 0);
+        setPrivateField(engine, "numMoney", 10);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        assertEquals("Should have exactly 1 decision", 1, decisions.size());
+        assertTrue("Should be EndPhaseDecision", 
+            decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = 
+            (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        assertEquals("Should end BUY phase", GameState.TurnPhase.BUY, endDecision.phase());
+    }
+
+    @Test
+    public void testBuildBuyDecisions_HasBuysButNoMoney_OnlyEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 0);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // With 0 money, can still buy BITCOIN (cost 0), ETHEREUM (cost 3), and DOGECOIN (cost 6) are too expensive
+        // So expect: BuyDecision for BITCOIN + EndPhaseDecision
+        assertTrue("Should have at least EndPhaseDecision", decisions.size() >= 1);
+        
+        // Verify BITCOIN is affordable and included
+        boolean hasBitcoin = false;
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = 
+                    (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertTrue("All buy options should be affordable with 0 money", 
+                    buyDecision.cardType().cost() <= 0);
+                if (buyDecision.cardType() == Card.Type.BITCOIN) {
+                    hasBitcoin = true;
+                }
+            }
+        }
+        assertTrue("Should include BITCOIN (cost 0) when numMoney is 0", hasBitcoin);
+    }
+
+    @Test
+    public void testBuildBuyDecisions_HasBuysAndMoney_IncludesAffordableCards() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 3); // Can afford cards costing 0-3
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Verify we have BuyDecisions for affordable cards
+        boolean hasBuyDecisions = decisions.stream()
+            .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision);
+        assertTrue("Should include BuyDecisions for affordable cards", hasBuyDecisions);
+        
+        // Verify all BuyDecisions are for cards we can afford
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = 
+                    (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertTrue("Card should be affordable", buyDecision.cardType().cost() <= 3);
+            }
+        }
+    }
+
+    @Test
+    public void testBuildBuyDecisions_OnlyIncludesCardsInStock() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        
+        // Set BITCOIN out of stock
+        shop.put(Card.Type.BITCOIN, 0);
+        
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 10); // Can afford anything
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Verify no BuyDecision for BITCOIN
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = 
+                    (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertNotEquals("Should not include out-of-stock BITCOIN", 
+                    Card.Type.BITCOIN, buyDecision.cardType());
+            }
+        }
+    }
+
+    @Test
+    public void testBuildBuyDecisions_ExcludesExpensiveCards() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 2); // Can only afford cards costing 0-2
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Verify no BuyDecision for expensive cards
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = 
+                    (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertTrue("Should not include cards more expensive than available money", 
+                    buyDecision.cardType().cost() <= 2);
+            }
+        }
+    }
+
+    @Test
+    public void testBuildBuyDecisions_AlwaysIncludesEndPhaseDecision() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 2);
+        setPrivateField(engine, "numMoney", 5);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Verify EndPhaseDecision is present
+        boolean hasEndPhase = decisions.stream()
+            .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        assertTrue("Should always include EndPhaseDecision", hasEndPhase);
+    }
+
+    @Test
+    public void testBuildBuyDecisions_WithZeroMoney_OnlyEndPhase() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 0);
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Can only afford cards with cost 0, but those might not exist or be in stock
+        // At minimum should have EndPhaseDecision
+        assertTrue("Should have at least 1 decision (EndPhase)", decisions.size() >= 1);
+        
+        boolean hasEndPhase = decisions.stream()
+            .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        assertTrue("Should include EndPhaseDecision", hasEndPhase);
+    }
+
+    @Test
+    public void testBuildBuyDecisions_VerifyBitcoinInDecisionsWhenAffordable() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        setPrivateField(engine, "numBuys", 1);
+        setPrivateField(engine, "numMoney", 1); // BITCOIN costs 0, so affordable
+        
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = 
+            invokePrivateMethod(engine, "buildBuyDecisions");
+        
+        // Verify BITCOIN is included (cost 0)
+        boolean hasBitcoin = false;
+        for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
+            if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = 
+                    (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                if (buyDecision.cardType() == Card.Type.BITCOIN) {
+                    hasBitcoin = true;
+                    break;
+                }
+            }
+        }
+        assertTrue("Should include BITCOIN when affordable", hasBitcoin);
+    }
+
+    // ========== Helper Method for Reflection ==========
+    
+    /**
+     * Invokes a private method using reflection.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T invokePrivateMethod(Object obj, String methodName, Object... args) throws Exception {
+        Class<?>[] paramTypes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            paramTypes[i] = args[i].getClass();
+        }
+        
+        java.lang.reflect.Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
+        method.setAccessible(true);
+        return (T) method.invoke(obj, args);
+    }
+        
     // ========== processTrashCardDecision Tests ==========
 
     @Test
