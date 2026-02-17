@@ -31,7 +31,7 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toCardStacks()`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
 
 
@@ -568,7 +568,7 @@ public class OurEngine implements Engine {
             numActions,
             numMoney,
             numBuys,
-            shop.toCardStacks()
+            shop.toImmutableCardStacks()
         );
         return gamestate;
     }

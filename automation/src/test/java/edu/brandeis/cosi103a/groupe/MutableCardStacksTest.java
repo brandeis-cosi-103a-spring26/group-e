@@ -303,17 +303,17 @@ public class MutableCardStacksTest {
         assertFalse("Should not include depleted MODULE", afterDepletion.contains(Card.Type.MODULE));
     }
 
-    // ========== toCardStacks Tests ==========
+    // ========== toImmutableCardStacks Tests ==========
 
     @Test
-    public void testToCardStacks_ReturnsNonNull() {
+    public void testToImmutableCardStacks_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
 
         // Capture expected counts from the mutable stacks before snapshot
         int expectedBitcoin = stacks.getNumAvailable(Card.Type.BITCOIN);
         int expectedMethod = stacks.getNumAvailable(Card.Type.METHOD);
 
-        CardStacks immutable = stacks.toCardStacks();
+        CardStacks immutable = stacks.toImmutableCardStacks();
 
         assertNotNull("Should return non-null CardStacks", immutable);
 
@@ -325,7 +325,7 @@ public class MutableCardStacksTest {
     }
 
     @Test
-    public void testToCardStacks_AfterModifications_ReturnsNonNull() {
+    public void testToImmutableCardStacks_AfterModifications_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
 
         // Modify some counts
@@ -337,7 +337,7 @@ public class MutableCardStacksTest {
         int expectedBitcoin = stacks.getNumAvailable(Card.Type.BITCOIN);
         int expectedFramework = stacks.getNumAvailable(Card.Type.FRAMEWORK);
 
-        CardStacks immutable = stacks.toCardStacks();
+        CardStacks immutable = stacks.toImmutableCardStacks();
 
         assertNotNull("Should return non-null CardStacks after modifications", immutable);
 
@@ -349,10 +349,10 @@ public class MutableCardStacksTest {
     }
 
     @Test
-    public void testToCardStacks_MultipleCalls_ReturnsNonNull() {
+    public void testToImmutableCardStacks_MultipleCalls_ReturnsNonNull() {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
 
-        CardStacks first = stacks.toCardStacks();
+        CardStacks first = stacks.toImmutableCardStacks();
         assertNotNull("First call should return non-null", first);
 
         // Record a value from the first snapshot to verify immutability later
@@ -361,7 +361,7 @@ public class MutableCardStacksTest {
         // Modify mutable stacks
         stacks.decrementCount(Card.Type.BITCOIN);
 
-        CardStacks second = stacks.toCardStacks();
+        CardStacks second = stacks.toImmutableCardStacks();
         assertNotNull("Second call should return non-null", second);
 
         // Second snapshot should match the current mutable state

@@ -1,8 +1,9 @@
 package edu.brandeis.cosi103a.groupe;
 
+import javax.annotation.Nonnull;
+
 import java.util.HashMap;
 import java.util.Map;
-
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -12,7 +13,7 @@ import edu.brandeis.cosi.atg.state.CardStacks;
 
 /**
  * Mutable version of CardStacks.
- * Convert to CardStacks with {@link #toCardStacks()}.
+ * Convert to CardStacks with {@link #toImmutableCardStacks()}.
  */
 public class MutableCardStacks {
     
@@ -39,12 +40,9 @@ public class MutableCardStacks {
      * @param actionCardsForGame The set of action card types that will be included in the game
      * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or contains null/invalid types
      */
-    public MutableCardStacks(int numPlayers, ImmutableSet<Type> actionCardsForGame) {
+    public MutableCardStacks(int numPlayers, @Nonnull ImmutableSet<Type> actionCardsForGame) {
         if (numPlayers < 2 || numPlayers > 4) {
             throw new IllegalArgumentException("numPlayers must be between 2 and 4, got: " + numPlayers);
-        }
-        if (actionCardsForGame == null) {
-            throw new IllegalArgumentException("actionCardsForGame cannot be null");
         }
         
         shop = new HashMap<>();
@@ -63,9 +61,6 @@ public class MutableCardStacks {
 
         // Starting actions
         for (Type actionType : actionCardsForGame) {
-            if (actionType == null) {
-                throw new IllegalArgumentException("actionCardsForGame cannot contain null types");
-            }
             // Guard against non-action cards
             if (actionType.category() != Type.Category.ACTION) {
                 throw new IllegalArgumentException("actionCardsForGame must only contain ACTION cards, got: " + actionType + " (category: " + actionType.category() + ")");
@@ -79,7 +74,7 @@ public class MutableCardStacks {
      * Converts this mutable card stacks to an immutable CardStacks instance for use in the game state.
      * @return Immutable CardStacks instance representing the current shop state
      */
-    public CardStacks toCardStacks() {
+    public CardStacks toImmutableCardStacks() {
         return new CardStacks(ImmutableMap.copyOf(shop));
     }
 
