@@ -2023,8 +2023,10 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
 
         // Set MODULE to out of stock
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.MODULE, 0);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.MODULE);
+        }
 
         BuyDecision decision = new BuyDecision(Card.Type.MODULE);
 
