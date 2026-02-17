@@ -102,7 +102,7 @@ public class MutableCardStacksTest {
         new MutableCardStacks(5, standardActionCards);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testConstructor_NullActionCardsForGame() {
         new MutableCardStacks(2, null);
     }
