@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
@@ -17,6 +18,7 @@ import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -534,8 +536,15 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the MONEY phase.
      */
     private ImmutableList<Decision> buildMoneyDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> currencyDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.MONEY) {
+                currencyDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        currencyDecisions.add(new EndPhaseDecision(TurnPhase.MONEY));
+        return ImmutableList.copyOf(currencyDecisions);
     }
 
     /**
@@ -556,8 +565,21 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> spendyDecisions = new ArrayList<>();
+        if (numBuys <= 0) {
+            spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+            return ImmutableList.copyOf(spendyDecisions);
+        }
+        CardStacks shopStack = new CardStacks(ImmutableMap.copyOf(shop));
+        ImmutableSet<Card.Type> cardTypes = shopStack.getCardTypes();
+        for (Card.Type cardType : cardTypes) {
+            int stock = shopStack.getNumAvailable(cardType);
+            if (stock > 0 && cardType.cost() <= numMoney) {
+                spendyDecisions.add(new BuyDecision(cardType));
+            }
+        }
+        spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+        return ImmutableList.copyOf(spendyDecisions);
     }
 
     /**
@@ -566,8 +588,19 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the ACTION phase.
      */
     private ImmutableList<Decision> buildActionDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> actDecisions = new ArrayList<>();
+        if (numActions <= 0) {
+            actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+            return ImmutableList.copyOf(actDecisions);
+        }
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.ACTION) {
+                actDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+        return ImmutableList.copyOf(actDecisions);
     }
 
     /**
