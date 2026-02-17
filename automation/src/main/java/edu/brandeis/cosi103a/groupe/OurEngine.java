@@ -333,13 +333,14 @@ public class OurEngine implements Engine {
         ImmutableList.Builder<Decision> gainDecisionsBuilder = ImmutableList.builder();
 
         ImmutableSet<Type> availableCardTypes = shop.availableCardsForCost(maxGainCost);
+
+        if (availableCardTypes.isEmpty()) {
+            // If there are no possible cards to gain (unlikely) give a end phase decision
+            gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
+        }
+        
         for (Type cardType : availableCardTypes) {
             gainDecisionsBuilder.add(new GainCardDecision(cardType));
-        }
-
-        // If there are no possible cards to gain (unlikely) give a end phase decision
-        if (gainDecisionsBuilder.build().isEmpty()) {
-            gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
         }
 
         // Build the final list of gain decisions
