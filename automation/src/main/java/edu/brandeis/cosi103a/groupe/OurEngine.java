@@ -179,7 +179,7 @@ public class OurEngine implements Engine {
      * Handles when a player makes an invalid decision or violates game rules.
      *
      * @param cheater The player who violated the rules
-     * @param e The exception detailing the violation
+     * @param e       The exception detailing the violation
      */
     private void handleCheating(Player cheater, PlayerViolationException e) {
         // TODO future week
@@ -230,11 +230,14 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes trashing a card, permanently removing it from the active player's hand.
-     * The trashed card is removed from the game entirely, not returned to the supply.
+     * Processes trashing a card, permanently removing it from the active player's
+     * hand.
+     * The trashed card is removed from the game entirely, not returned to the
+     * supply.
      *
      * @param decision Decision specifying which card to trash
-     * @throws IllegalStateException if the card is not found in the player's unplayed cards
+     * @throws IllegalStateException if the card is not found in the player's
+     *                               unplayed cards
      */
     private void processTrashCardDecision(TrashCardDecision decision) {
         Card cardToTrash = decision.card();
@@ -297,14 +300,16 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes an action card by executing its effect and decrementing the player's action count.
+     * Processes an action card by executing its effect and decrementing the
+     * player's action count.
      * Delegates to specific execute methods based on card type.
      *
      * @param type The type of action card being played
      */
     private void processPlayActionCard(Card.Type type) {
 
-        // Note: under current implementation, when PARALLELIZATION (Throne Room) is immplemented,
+        // Note: under current implementation, when PARALLELIZATION (Throne Room) is
+        // immplemented,
         // it must add 1 to numActions before calling this method again,
         // to avoid the thrown error and to keep numActions correct.
         if (numActions <= 0) {
@@ -324,9 +329,11 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes a money card, adding its value to the player's spendable money for this turn.
+     * Processes a money card, adding its value to the player's spendable money for
+     * this turn.
      *
-     * @param type The type of money card being played (BITCOIN adds 1, ETHEREUM adds 2, DOGECOIN adds 3)
+     * @param type The type of money card being played (BITCOIN adds 1, ETHEREUM
+     *             adds 2, DOGECOIN adds 3)
      */
     private void processPlayMoneyCard(Card.Type type) {
         switch (type) {
@@ -366,9 +373,12 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() {
 
-        // Creates trashCardDecision for each card in players hand and prompts them. Not optional unless no cards in hand.
+        // Creates trashCardDecision for each card in players hand and prompts them. Not
+        // optional unless no cards in hand.
         // (If they did not trash a card, action ends here)
-        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikely, as there are many bitcoins)
+        // After card is trashed, prompt for gain card up to 2 more. This is required
+        // unless there are no valid cards to gain (highly unlikely, as there are many
+        // bitcoins)
 
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -384,7 +394,8 @@ public class OurEngine implements Engine {
         drawCard(activePlayer);
         drawCard(activePlayer);
 
-        // For each other player, add a BUG card to their discard pile in turn order starting from the next player
+        // For each other player, add a BUG card to their discard pile in turn order
+        // starting from the next player
         for (int i = 1; i < players.size(); i++) {
             int playerIndex = (players.indexOf(activePlayer) + i) % players.size();
             Player p = players.get(playerIndex);
@@ -392,12 +403,14 @@ public class OurEngine implements Engine {
         }
     }
 
-
     /**
-     * Builds decision options for trashing cards from the active player's current hand.
-     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is empty.
+     * Builds decision options for trashing cards from the active player's current
+     * hand.
+     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
+     * empty.
      *
-     * @return List of trash decisions, or a single EndPhaseDecision if no cards available
+     * @return List of trash decisions, or a single EndPhaseDecision if no cards
+     *         available
      */
     private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
         ArrayList<Decision> trashyDecisions = new ArrayList<>();
@@ -413,27 +426,30 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes a card gain by decrementing shop supply and adding the card to a player's discard pile.
+     * Processes a card gain by decrementing shop supply and adding the card to a
+     * player's discard pile.
      * Returns false if the card type is unavailable in the shop.
      *
-     * @param type The card type to be gained
+     * @param type   The card type to be gained
      * @param player The player receiving the card
-     * @return true if the card was successfully gained, false if unavailable in shop
+     * @return true if the card was successfully gained, false if unavailable in
+     *         shop
      */
     private boolean processGainingCard(Card.Type type, Player player) {
+        int numCardsRemaining = shop.getOrDefault(type, 0);
+        if (numCardsRemaining <= 0) {
+            // There are no cards to gain
+            // Note – this does not necessarily signify an illegal state. For example, this
+            // will happen if Evergreen Test attempts to give a player a Bug, but there are
+            // none left in the supply
+            return false;
+        }
 
-        // Ensure the card is available in the shop
-        // Reduces shop count of the card by 1
-        // Creates instance of Card and adds the card to the player's discard pile
-
-        /*
-        Uses:
-        - Buying a card
-        - Gaining a card from a gainDecision (refactor)
-        - Gaining a card from an action (evergreen test)
-        */
-        throw new UnsupportedOperationException("Not yet implemented");
-
+        shop.put(type, numCardsRemaining - 1);
+        // Create new card instance and add to player's discard pile
+        Card gainedCard = new Card(type, cardIdCounter++);
+        discards.get(player).add(gainedCard);
+        return true;
     }
 
     /**
@@ -483,11 +499,14 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Prompts a player to make a decision and validates it against the list of valid options.
+     * Prompts a player to make a decision and validates it against the list of
+     * valid options.
      *
-     * @param player The player making the decision
-     * @param validDecisions List of valid decision options for the current game state
-     * @return A validated decision that is guaranteed to be in the validDecisions list
+     * @param player         The player making the decision
+     * @param validDecisions List of valid decision options for the current game
+     *                       state
+     * @return A validated decision that is guaranteed to be in the validDecisions
+     *         list
      */
     private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
         Decision decision = player.makeDecision(buildGameState(), validDecisions);
@@ -497,9 +516,6 @@ public class OurEngine implements Engine {
         }
         return decision;
     }
-
-
-
 
     /**
      * Gets the next player in turn order.
@@ -617,14 +633,13 @@ public class OurEngine implements Engine {
      */
     private GameState buildGameState() {
         GameState gamestate = new GameState(
-            activePlayer.getName(),
-            hands.get(activePlayer).toImmutableHand(),
-            phase,
-            numActions,
-            numMoney,
-            numBuys,
-            new CardStacks(ImmutableMap.copyOf(shop))
-        );
+                activePlayer.getName(),
+                hands.get(activePlayer).toImmutableHand(),
+                phase,
+                numActions,
+                numMoney,
+                numBuys,
+                new CardStacks(ImmutableMap.copyOf(shop)));
         return gamestate;
     }
 
