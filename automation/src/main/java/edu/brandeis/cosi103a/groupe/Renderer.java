@@ -4,6 +4,7 @@ import static org.fusesource.jansi.Ansi.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -12,6 +13,7 @@ import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
+import edu.brandeis.cosi.atg.player.Player;
 
 
 public class Renderer {
@@ -293,6 +295,33 @@ public class Renderer {
         System.out.println("\n");
 
 
+    }
+
+    /**
+     * Renders the current game state to console with additional debug information showing player decks and discards.
+     * 
+     * @param debugState Container with game state and internal player deck/discard information
+     */
+    public static void renderGameDebugMode(DebugGameState debugState) {
+        renderGame(debugState.state());
+        System.out.println("=== DEBUG MODE: Player Decks ===");
+        for (Map.Entry<Player, List<Card>> entry : debugState.decks().entrySet()) {
+            Player player = entry.getKey();
+            List<Card> deck = entry.getValue();
+            System.out.println(player.getName() + "'s deck:");
+            for (Card card : deck) {
+                System.out.println("  - " + displayName(card.type()));
+            }
+        }
+        System.out.println("=== DEBUG MODE: Player Discards ===");
+        for (Map.Entry<Player, List<Card>> entry : debugState.discards().entrySet()) {
+            Player player = entry.getKey();
+            List<Card> discard = entry.getValue();
+            System.out.println(player.getName() + "'s discard pile:");
+            for (Card card : discard) {
+                System.out.println("  - " + displayName(card.type()));
+            }
+        }
     }
 
     /**

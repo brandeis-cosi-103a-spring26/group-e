@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
@@ -14,6 +15,7 @@ import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -27,9 +29,9 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private Map<Card.Type, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
-    // CardStacks(ImmutableMap.copyOf(shop))`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
+
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -38,18 +40,6 @@ public class OurEngine implements Engine {
     private static final int PLAYER_STARTING_METHODS = 3;
     private static final int HAND_SIZE = 5;
 
-    // Starting shop quantities
-    private static final int SHOP_BITCOIN_COUNT = 60;
-    private static final int SHOP_ETHEREUM_COUNT = 40;
-    private static final int SHOP_DOGECOIN_COUNT = 30;
-    private static final int SHOP_METHOD_COUNT = 14;
-    private static final int SHOP_MODULE_COUNT = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_TWO_PLAYERS = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS = 12;
-    private static final int SHOP_BUG_COUNT_PER_PLAYER = 10; // Multiplied by number of players
-    private static final int SHOP_REFACTOR_COUNT = 10;
-    private static final int SHOP_CODE_REVIEW_COUNT = 10;
-    private static final int SHOP_EVERGREEN_TEST_COUNT = 10;
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -81,7 +71,8 @@ public class OurEngine implements Engine {
         // Initialize fields
         phase = GameState.TurnPhase.ACTION;
         this.players = new ArrayList<>(players);
-        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns players[0]
+        activePlayer = this.players.get(this.players.size() - 1); // So that the first call to getNextPlayer() returns
+                                                                  // players[0]
 
         // Create empty hands, decks, and discards for each player
         decks = new HashMap<>();
@@ -106,27 +97,20 @@ public class OurEngine implements Engine {
 
         for (Player p : this.players) {
             // Draw initial hands of 5 cards
-            var hand = hands.get(p);
-            var deck = decks.get(p);
-            var discard = discards.get(p);
             for (int i = 0; i < HAND_SIZE; i++) {
-                drawCard(hand, deck, discard);
+                drawCard(p);
             }
         }
 
-        // Initialize shop
-        shop = new HashMap<>();
-        shop.put(Type.BITCOIN, SHOP_BITCOIN_COUNT);
-        shop.put(Type.ETHEREUM, SHOP_ETHEREUM_COUNT);
-        shop.put(Type.DOGECOIN, SHOP_DOGECOIN_COUNT);
-        shop.put(Type.METHOD, SHOP_METHOD_COUNT);
-        shop.put(Type.MODULE, SHOP_MODULE_COUNT);
-        shop.put(Type.BUG, this.players.size() * SHOP_BUG_COUNT_PER_PLAYER);
-        shop.put(Type.REFACTOR, SHOP_REFACTOR_COUNT);
-        shop.put(Type.CODE_REVIEW, SHOP_CODE_REVIEW_COUNT);
-        shop.put(Type.EVERGREEN_TEST, SHOP_EVERGREEN_TEST_COUNT);
-        // Set FRAMEWORK count based on the number of players.
-        shop.put(Type.FRAMEWORK, (this.players.size() == 2) ? SHOP_FRAMEWORK_COUNT_TWO_PLAYERS : SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
+        ImmutableSet<Type> actionCardsForGame = ImmutableSet.of(
+            Type.CODE_REVIEW,
+            Type.REFACTOR,
+            Type.EVERGREEN_TEST
+        );
+
+        // Set up shop with starting card quantities
+        shop = new MutableCardStacks(this.players.size(), actionCardsForGame);
+
     }
 
     /**
@@ -171,6 +155,12 @@ public class OurEngine implements Engine {
         return endGame();
     }
 
+    /**
+     * Handles when a player makes an invalid decision or violates game rules.
+     *
+     * @param cheater The player who violated the rules
+     * @param e       The exception detailing the violation
+     */
     private void handleCheating(Player cheater, PlayerViolationException e) {
         // TODO future week
         throw new UnsupportedOperationException("Unimplemented method 'handleCheating'");
@@ -181,8 +171,17 @@ public class OurEngine implements Engine {
      * new hand of five cards.
      */
     private void executeCleanupPhase() {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        MutableHand hand = hands.get(activePlayer);
+        List<Card> discard = discards.get(activePlayer);
+        List<Card> deck = decks.get(activePlayer);
+
+        // Discard all cards in hand
+        hand.moveAllCardsTo(discard);
+
+        // Draw new hand of 5 cards
+        for (int i = 0; i < HAND_SIZE; i++) {
+            drawCard(activePlayer);
+        }
     }
 
     /**
@@ -204,7 +203,6 @@ public class OurEngine implements Engine {
         switch (decision) {
             case BuyDecision buy -> processBuyDecision(buy);
             case EndPhaseDecision endPhase -> processEndPhaseDecision(endPhase);
-            case GainCardDecision gain -> processGainCardDecision(gain);
             case PlayCardDecision play -> processPlayCardDecision(play);
             case TrashCardDecision trash -> processTrashCardDecision(trash);
             default -> throw new UnsupportedOperationException("Decision type not supported");
@@ -212,26 +210,53 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Removes a card from the game based on the TrashCardDecision. Trashing a card
-     * removes it from the player's deck entirely, and does not return it to the
-     * supply pile.
+     * Processes trashing a card, permanently removing it from the active player's
+     * hand.
+     * The trashed card is removed from the game entirely, not returned to the
+     * supply.
      *
-     * @param decision The TrashCardDecision containing the card to be trashed.
+     * @param decision Decision specifying which card to trash
+     * @throws IllegalStateException if the card is not found in the player's
+     *                               unplayed cards
      */
     private void processTrashCardDecision(TrashCardDecision decision) {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        Card cardToTrash = decision.card();
+        if (hands.getOrDefault(activePlayer, null) == null) {
+            throw new IllegalStateException("Active player does not have a hand");
+        }
+        boolean wasRemoved = hands.get(activePlayer).removeFromUnplayed(cardToTrash);
+        if (!wasRemoved) {
+            throw new IllegalStateException("Card to trash was not found in active player's hand's unplayed cards");
+        }
     }
 
     /**
      * Processes the EndPhaseDecision made by the active player, transitioning to
-     * the next phase of the turn.
+     * the next phase of the turn. Throws an IllegalArgumentException if the phase
+     * specified in the EndPhaseDecision does not match the current phase, and
+     * throws an UnsupportedOperationException if the current phase cannot be ended
+     * (CLEANUP or GAIN).
      *
      * @param decision The EndPhaseDecision made by the active player.
+     * @throws IllegalArgumentException      if the phase in the EndPhaseDecision
+     *                                       does not match the current phase.
+     * @throws UnsupportedOperationException if the current phase cannot be ended
+     *                                       (CLEANUP or GAIN).
      */
-    private void processEndPhaseDecision(EndPhaseDecision decision) {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void processEndPhaseDecision(EndPhaseDecision decision)
+            throws IllegalArgumentException, UnsupportedOperationException {
+        // Validate that the phase in the EndPhaseDecision matches the current phase
+        if (decision.phase() != phase) {
+            throw new IllegalArgumentException("EndPhaseDecision phase does not match current phase");
+        }
+
+        // Go to the next phase based on the current phase
+        switch (decision.phase()) {
+            case ACTION -> phase = GameState.TurnPhase.MONEY;
+            case MONEY -> phase = GameState.TurnPhase.BUY;
+            case BUY -> phase = GameState.TurnPhase.CLEANUP;
+            default -> throw new UnsupportedOperationException("Cannot end phase from current phase");
+        }
     }
 
     /**
@@ -246,7 +271,7 @@ public class OurEngine implements Engine {
 
         // Move card to played cards in hand
         hands.get(activePlayer).playCard(card);
-        
+
         switch (card.getCategory()) {
             case ACTION -> processPlayActionCard(card.type());
             case MONEY -> processPlayMoneyCard(card.type());
@@ -255,16 +280,20 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Plays an action card
-     * Calls the appropriate execute action method based on card type
-     * Subtracts one action from player
-     * @param type
+     * Processes an action card by executing its effect and decrementing the
+     * player's action count.
+     * Delegates to specific execute methods based on card type.
+     *
+     * @param type The type of action card being played
      */
     private void processPlayActionCard(Card.Type type) {
 
-        // This should never be possible as Player shouldn't be offered to play action card if no remaining actions
+        // Note: under current implementation, when PARALLELIZATION (Throne Room) is
+        // immplemented,
+        // it must add 1 to numActions before calling this method again,
+        // to avoid the thrown error and to keep numActions correct.
         if (numActions <= 0) {
-            throw new IllegalStateException("No actions remaining to play an action card");
+            throw new IllegalStateException("No actions remaining for active player");
         }
 
         switch (type) {
@@ -280,8 +309,11 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Updates numMoney based on the type of money card played
-     * @param type
+     * Processes a money card, adding its value to the player's spendable money for
+     * this turn.
+     *
+     * @param type The type of money card being played (BITCOIN adds 1, ETHEREUM
+     *             adds 2, DOGECOIN adds 3)
      */
     private void processPlayMoneyCard(Card.Type type) {
         switch (type) {
@@ -296,76 +328,146 @@ public class OurEngine implements Engine {
 
     /**
      * +1 Card, +2 Actions.
-     * When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.
+     * When this card is played, the player immediately draws a card, and is granted
+     * two additional actions for this turn.
      */
     private void executeActionCodeReview() {
-        // Calls Draw card for current player
-        // Adds 2 to numActions
-        throw new UnsupportedOperationException("Not yet implemented");
+        drawCard(activePlayer);
+        numActions += 2;
     }
 
     /**
-     * Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.
-     * 
+     * Trash a card from your hand; Gain a card costing up to 2 more than the
+     * trashed card.
+     *
      * Trashing a card removes it from the player's deck entirely
-     * When this card is played, the player will be prompted with TrashCardDecisions for each card in their hand. 
-     * Trashing is not optional, so the list of decisions will not include an EndPhaseDecision. 
-     * After the player makes a trash decision, they will be prompted with GainCardDecisions representing the cards they can possibly gain - every card that costs up to 2 more than the trashed card.
-     * Gaining a card is also not optional. Gained cards are placed into the player's discard pile.
+     * When this card is played, the player will be prompted with TrashCardDecisions
+     * for each card in their hand.
+     * Trashing is not optional, so the list of decisions will not include an
+     * EndPhaseDecision.
+     * After the player makes a trash decision, they will be prompted with
+     * GainCardDecisions representing the cards they can possibly gain - every card
+     * that costs up to 2 more than the trashed card.
+     * Gaining a card is also not optional. Gained cards are placed into the
+     * player's discard pile.
      */
     private void executeActionRefactor() {
-        
-        // Creates trashCardDecision for each card in players hand and prompts them. Not optional unless no cards in hand.
-        // (If they did not trash a card, action ends here)
-        // After card is trashed, prompt for gain card up to 2 more. This is required unless there are no valid cards to gain (highly unlikely, as there are many bitcoins)
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
+        Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
+
+        if (playerChoice instanceof EndPhaseDecision) {
+            // Player had no cards in hand to trash. End action execution here
+            return;
+        }
+
+        // Cast to TrashCardDecision and process the trashing of the card
+        TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
+        processTrashCardDecision(trashCardDecision);
+
+        int cardCost = trashCardDecision.card().cost();
+        int maxGainCost = cardCost + 2;
+
+        // Create list of gain decisions based on all cards available to gain in the cardstacks that cost <= max cost
+        ImmutableList.Builder<Decision> gainDecisionsBuilder = ImmutableList.builder();
+
+        ImmutableSet<Type> availableCardTypes = shop.availableCardsForCost(maxGainCost);
+
+        if (availableCardTypes.isEmpty()) {
+            // If there are no possible cards to gain (unlikely) give a end phase decision
+            gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
+        }
+        
+        for (Type cardType : availableCardTypes) {
+            gainDecisionsBuilder.add(new GainCardDecision(cardType));
+        }
+
+        // Build the final list of gain decisions
+        ImmutableList<Decision> gainDecisions = gainDecisionsBuilder.build();
+
+        // Set phase to GAIN
+        phase = TurnPhase.GAIN;
+        Decision gainDecisionOrEndPhase = makeValidDecision(activePlayer, gainDecisions);
+        if (gainDecisionOrEndPhase instanceof EndPhaseDecision) {
+            // Player had no cards available to gain. End action execution here
+            phase = TurnPhase.ACTION; // Reset phase to Action
+            return;
+        }
+
+        GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
+        processGainingCard(gainCardDecision.cardType(), activePlayer);
+        phase = TurnPhase.ACTION; // Reset phase to action
+      
     }
 
     /**
      * (Attack card) +2 Cards; Each other player gains a Bug.
-     * When this card is played, the engine immediately adds a BUG to the discard pile of each other player.
+     * When this card is played, the engine immediately adds a BUG to the discard
+     * pile of each other player.
      */
     private void executeActionEvergreenTest() {
 
         // Draws 2 cards for current player
-        // For each other player, add a BUG card to their discard pile
-        throw new UnsupportedOperationException("Not yet implemented");
+        drawCard(activePlayer);
+        drawCard(activePlayer);
 
-    }
-
-
-    /**
-     * Helper method to process gaining a card, used for when a player buys a card, or gains a card from an action effect.
-     * This method should reduce the shop count of the gained card by 1, and add a newly instantiated card to the player's discard pile.
-     * @param type the Card Type to be gained
-     * @param player the Player gaining the card
-     */
-    private void processGainingCard(Card.Type type, Player player) {
-
-        // Ensure the card is available in the shop
-        // Reduces shop count of the card by 1
-        // Creates instance of Card and adds the card to the player's discard pile 
-
-        /*
-        Uses:
-        - Buying a card
-        - Gaining a card from a gainDecision (refactor)
-        - Gaining a card from an action (evergreen test) 
-        */
-        throw new UnsupportedOperationException("Not yet implemented");
-
+        // For each other player, add a BUG card to their discard pile in turn order
+        // starting from the next player
+        for (int i = 1; i < players.size(); i++) {
+            int playerIndex = (players.indexOf(activePlayer) + i) % players.size();
+            Player p = players.get(playerIndex);
+            processGainingCard(Type.BUG, p);
+        }
     }
 
     /**
-     * Adds the card specified in the GainCardDecision to the active player's
-     * discard pile by calling processGainingCard
+     * Builds decision options for trashing cards from the active player's current
+     * hand.
+     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
+     * empty.
      *
-     * @param decision The GainCardDecision containing the card to be gained.
+     * @return List of trash decisions, or a single EndPhaseDecision if no cards
+     *         available
      */
-    private void processGainCardDecision(GainCardDecision decision) {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+    private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
+        ArrayList<Decision> trashyDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        if (unplayedCards.isEmpty()) {
+            trashyDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+        } else {
+            for (Card card : unplayedCards) {
+                trashyDecisions.add(new TrashCardDecision(card));
+            }
+        }
+        return ImmutableList.copyOf(trashyDecisions);
+    }
+
+    /**
+     * Processes a card gain by decrementing shop supply and adding the card to a
+     * player's discard pile.
+     * Returns false if the card type is unavailable in the shop.
+     *
+     * @param type   The card type to be gained
+     * @param player The player receiving the card
+     * @return true if the card was successfully gained, false if unavailable in
+     *         shop
+     */
+    private boolean processGainingCard(Card.Type type, Player player) {
+
+        if (shop.getNumAvailable(type) <= 0) {
+            // There are no cards to gain
+            // Note – this does not necessarily signify an illegal state. For example, this
+            // will happen if Evergreen Test attempts to give a player a Bug, but there are
+            // none left in the supply
+            return false;
+        }
+        
+        shop.decrementCount(type);
+
+        // Create new card instance and add to player's discard pile
+        Card gainedCard = new Card(type, cardIdCounter++);
+        discards.get(player).add(gainedCard);
+        return true;
     }
 
     /**
@@ -376,8 +478,26 @@ public class OurEngine implements Engine {
      * @param decision The BuyDecision made by the active player.
      */
     private void processBuyDecision(BuyDecision decision) {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        Type type = decision.cardType();
+
+        // Validate that the card is available in the shop, and that the player has
+        // enough money and buys to purchase it
+        if (shop.getNumAvailable(type) <= 0) {
+            throw new IllegalStateException("Cannot buy card that is out of stock");
+        }
+        if (numMoney < type.cost()) {
+            throw new IllegalStateException("Not enough money to buy this card");
+        }
+        if (numBuys <= 0) {
+            throw new IllegalStateException("No buys remaining to buy a card");
+        }
+
+        // Update money and buys
+        numMoney -= type.cost();
+        numBuys--;
+
+        // Update shop and add card to player's discard pile
+        processGainingCard(type, activePlayer);
     }
 
     /**
@@ -386,15 +506,34 @@ public class OurEngine implements Engine {
      *
      * @param decision       The decision made by the active player.
      * @param validDecisions The list of valid decisions for the current game state.
-     * @return true if the decision is valid, false otherwise.
+     * @return true if the decision is valid, false otherwise or if either argument
+     *         is null.
      */
     private boolean validateDecision(Decision decision, ImmutableList<Decision> validDecisions) {
-        // TODO: Ana or Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (decision == null || validDecisions == null) {
+            return false;
+        }
+        return validDecisions.contains(decision);
     }
 
-
-
+    /**
+     * Prompts a player to make a decision and validates it against the list of
+     * valid options.
+     *
+     * @param player         The player making the decision
+     * @param validDecisions List of valid decision options for the current game
+     *                       state
+     * @return A validated decision that is guaranteed to be in the validDecisions
+     *         list
+     */
+    private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
+        Decision decision = player.makeDecision(buildGameState(), validDecisions);
+        if (!validateDecision(decision, validDecisions)) {
+            throw new UnsupportedOperationException("Invalid decisions not yet handled");
+            // throw new PlayerViolationException("Invalid decision made");
+        }
+        return decision;
+    }
 
     /**
      * Gets the next player in turn order.
@@ -433,38 +572,20 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Executes a temporary GAIN phase triggered by an action card.
-     *
-     * @param triggeredBy The Type of card that triggered the GAIN phase.
-     * @throws PlayerViolationException if the active player makes an invalid
-     *                                  decision during the GAIN phase.
-     * @throws IllegalStateException    if the current phase is not ACTION.
-     */
-    private void executeGainPhase(Type triggeredBy) throws PlayerViolationException, IllegalStateException {
-        if (phase != GameState.TurnPhase.ACTION) {
-            throw new IllegalStateException("Can only execute temporary GAIN phase from ACTION phase");
-        }
-        // Swaps to GAIN and builds decisions and gameState
-        phase = GameState.TurnPhase.GAIN;
-        ImmutableList<Decision> options = buildGainDecisions(triggeredBy);
-        GameState gs = buildGameState();
-
-        Decision decision = activePlayer.makeDecision(gs, options);
-
-        processDecision(decision, options);
-
-        // Returns to the previous phase.
-        phase = GameState.TurnPhase.ACTION;
-    }
-
-    /**
      * Builds the list of all valid decisions for the MONEY phase.
      *
      * @return An ImmutableList of Decision objects for the MONEY phase.
      */
     private ImmutableList<Decision> buildMoneyDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> currencyDecisions = new ArrayList<>();
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.MONEY) {
+                currencyDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        currencyDecisions.add(new EndPhaseDecision(TurnPhase.MONEY));
+        return ImmutableList.copyOf(currencyDecisions);
     }
 
     /**
@@ -485,8 +606,21 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        // TODO: Oneg
-        throw new UnsupportedOperationException("Not yet implemented");
+        
+        ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
+
+        if (numBuys <= 0) {
+            buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+            return buyDecisions.build();
+        }
+
+        ImmutableSet<Card.Type> availableCards = shop.availableCardsForCost(numMoney);
+        for (Card.Type cardType : availableCards) {
+            buyDecisions.add(new BuyDecision(cardType));
+        }
+
+        buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+        return buyDecisions.build();
     }
 
     /**
@@ -495,8 +629,19 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the ACTION phase.
      */
     private ImmutableList<Decision> buildActionDecisions() {
-        // TODO: Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        ArrayList<Decision> actDecisions = new ArrayList<>();
+        if (numActions <= 0) {
+            actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+            return ImmutableList.copyOf(actDecisions);
+        }
+        List<Card> unplayedCards = hands.get(activePlayer).getUnplayedCards();
+        for (Card card : unplayedCards) {
+            if (card.getCategory() == Card.Type.Category.ACTION) {
+                actDecisions.add(new PlayCardDecision(card));
+            }
+        }
+        actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
+        return ImmutableList.copyOf(actDecisions);
     }
 
     /**
@@ -505,8 +650,16 @@ public class OurEngine implements Engine {
      * @return The current GameState object.
      */
     private GameState buildGameState() {
-        // TODO: Oneg or Ana
-        throw new UnsupportedOperationException("Not yet implemented");
+        GameState gamestate = new GameState(
+            activePlayer.getName(),
+            hands.get(activePlayer).toImmutableHand(),
+            phase,
+            numActions,
+            numMoney,
+            numBuys,
+            shop.toImmutableCardStacks()
+        );
+        return gamestate;
     }
 
     /**
@@ -517,7 +670,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
-        return getShopQuantity(Type.FRAMEWORK) == 0;
+        return shop.getNumAvailable(Type.FRAMEWORK) == 0;
     }
 
     /**
@@ -534,12 +687,13 @@ public class OurEngine implements Engine {
      * Draws a card from the deck into the hand. If the deck is empty, shuffles the
      * discard pile into the deck first.
      *
-     * @param hand    The MutableHand representing the player's hand.
-     * @param deck    The list representing the player's deck.
-     * @param discard The list representing the player's discard pile.
+     * @param player The player drawing a card
      */
-    @VisibleForTesting
-    void drawCard(MutableHand hand, List<Card> deck, List<Card> discard) {
+    private void drawCard(Player player) {
+        MutableHand hand = hands.get(player);
+        List<Card> deck = decks.get(player);
+        List<Card> discard = discards.get(player);
+
         if (deck.isEmpty()) {
             // Shuffle discard into deck
             deck.addAll(discard);
@@ -551,8 +705,4 @@ public class OurEngine implements Engine {
         }
     }
 
-    @VisibleForTesting
-    int getShopQuantity(Type type) {
-        return shop.getOrDefault(type, 0);
-    }
 }
