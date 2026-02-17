@@ -8,7 +8,8 @@ import com.google.common.collect.ImmutableList;
 public class ConsolePlayer extends AbstractPlayer {
     /**
      * Makes a decision based on user input from the console.
-     * @param state The current game state.
+     * 
+     * @param state   The current game state.
      * @param options The list of available decisions.
      * @return The chosen decision.
      */

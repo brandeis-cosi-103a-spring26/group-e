@@ -241,8 +241,13 @@ public class OurEngine implements Engine {
      * (CLEANUP or GAIN).
      *
      * @param decision The EndPhaseDecision made by the active player.
+     * @throws IllegalArgumentException      if the phase in the EndPhaseDecision
+     *                                       does not match the current phase.
+     * @throws UnsupportedOperationException if the current phase cannot be ended
+     *                                       (CLEANUP or GAIN).
      */
-    private void processEndPhaseDecision(EndPhaseDecision decision) {
+    private void processEndPhaseDecision(EndPhaseDecision decision)
+            throws IllegalArgumentException, UnsupportedOperationException {
         // Validate that the phase in the EndPhaseDecision matches the current phase
         if (decision.phase() != phase) {
             throw new IllegalArgumentException("EndPhaseDecision phase does not match current phase");
