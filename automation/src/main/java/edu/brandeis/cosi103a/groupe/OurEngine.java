@@ -7,18 +7,15 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.Engine;
-import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
-import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -32,9 +29,9 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private Map<Card.Type, Integer> shop; // Mutable version of CardStacks. You can convert to CardStacks with `new
-    // CardStacks(ImmutableMap.copyOf(shop))`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
+
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -43,18 +40,6 @@ public class OurEngine implements Engine {
     private static final int PLAYER_STARTING_METHODS = 3;
     private static final int HAND_SIZE = 5;
 
-    // Starting shop quantities
-    private static final int SHOP_BITCOIN_COUNT = 60;
-    private static final int SHOP_ETHEREUM_COUNT = 40;
-    private static final int SHOP_DOGECOIN_COUNT = 30;
-    private static final int SHOP_METHOD_COUNT = 14;
-    private static final int SHOP_MODULE_COUNT = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_TWO_PLAYERS = 8;
-    private static final int SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS = 12;
-    private static final int SHOP_BUG_COUNT_PER_PLAYER = 10; // Multiplied by number of players
-    private static final int SHOP_REFACTOR_COUNT = 10;
-    private static final int SHOP_CODE_REVIEW_COUNT = 10;
-    private static final int SHOP_EVERGREEN_TEST_COUNT = 10;
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -117,20 +102,15 @@ public class OurEngine implements Engine {
             }
         }
 
-        // Initialize shop
-        shop = new HashMap<>();
-        shop.put(Type.BITCOIN, SHOP_BITCOIN_COUNT);
-        shop.put(Type.ETHEREUM, SHOP_ETHEREUM_COUNT);
-        shop.put(Type.DOGECOIN, SHOP_DOGECOIN_COUNT);
-        shop.put(Type.METHOD, SHOP_METHOD_COUNT);
-        shop.put(Type.MODULE, SHOP_MODULE_COUNT);
-        shop.put(Type.BUG, this.players.size() * SHOP_BUG_COUNT_PER_PLAYER);
-        shop.put(Type.REFACTOR, SHOP_REFACTOR_COUNT);
-        shop.put(Type.CODE_REVIEW, SHOP_CODE_REVIEW_COUNT);
-        shop.put(Type.EVERGREEN_TEST, SHOP_EVERGREEN_TEST_COUNT);
-        // Set FRAMEWORK count based on the number of players.
-        shop.put(Type.FRAMEWORK, (this.players.size() == 2) ? SHOP_FRAMEWORK_COUNT_TWO_PLAYERS
-                : SHOP_FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
+        ImmutableSet<Type> actionCardsForGame = ImmutableSet.of(
+            Type.CODE_REVIEW,
+            Type.REFACTOR,
+            Type.EVERGREEN_TEST
+        );
+
+        // Set up shop with starting card quantities
+        shop = new MutableCardStacks(this.players.size(), actionCardsForGame);
+
     }
 
     /**
@@ -373,14 +353,51 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() {
 
-        // Creates trashCardDecision for each card in players hand and prompts them. Not
-        // optional unless no cards in hand.
-        // (If they did not trash a card, action ends here)
-        // After card is trashed, prompt for gain card up to 2 more. This is required
-        // unless there are no valid cards to gain (highly unlikely, as there are many
-        // bitcoins)
+        ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
+        Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (playerChoice instanceof EndPhaseDecision) {
+            // Player had no cards in hand to trash. End action execution here
+            return;
+        }
+
+        // Cast to TrashCardDecision and process the trashing of the card
+        TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
+        processTrashCardDecision(trashCardDecision);
+
+        int cardCost = trashCardDecision.card().cost();
+        int maxGainCost = cardCost + 2;
+
+        // Create list of gain decisions based on all cards available to gain in the cardstacks that cost <= max cost
+        ImmutableList.Builder<Decision> gainDecisionsBuilder = ImmutableList.builder();
+
+        ImmutableSet<Type> availableCardTypes = shop.availableCardsForCost(maxGainCost);
+
+        if (availableCardTypes.isEmpty()) {
+            // If there are no possible cards to gain (unlikely) give a end phase decision
+            gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
+        }
+        
+        for (Type cardType : availableCardTypes) {
+            gainDecisionsBuilder.add(new GainCardDecision(cardType));
+        }
+
+        // Build the final list of gain decisions
+        ImmutableList<Decision> gainDecisions = gainDecisionsBuilder.build();
+
+        // Set phase to GAIN
+        phase = TurnPhase.GAIN;
+        Decision gainDecisionOrEndPhase = makeValidDecision(activePlayer, gainDecisions);
+        if (gainDecisionOrEndPhase instanceof EndPhaseDecision) {
+            // Player had no cards available to gain. End action execution here
+            phase = TurnPhase.ACTION; // Reset phase to Action
+            return;
+        }
+
+        GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
+        processGainingCard(gainCardDecision.cardType(), activePlayer);
+        phase = TurnPhase.ACTION; // Reset phase to action
+      
     }
 
     /**
@@ -436,16 +453,17 @@ public class OurEngine implements Engine {
      *         shop
      */
     private boolean processGainingCard(Card.Type type, Player player) {
-        int numCardsRemaining = shop.getOrDefault(type, 0);
-        if (numCardsRemaining <= 0) {
+
+        if (shop.getNumAvailable(type) <= 0) {
             // There are no cards to gain
             // Note – this does not necessarily signify an illegal state. For example, this
             // will happen if Evergreen Test attempts to give a player a Bug, but there are
             // none left in the supply
             return false;
         }
+        
+        shop.decrementCount(type);
 
-        shop.put(type, numCardsRemaining - 1);
         // Create new card instance and add to player's discard pile
         Card gainedCard = new Card(type, cardIdCounter++);
         discards.get(player).add(gainedCard);
@@ -464,7 +482,7 @@ public class OurEngine implements Engine {
 
         // Validate that the card is available in the shop, and that the player has
         // enough money and buys to purchase it
-        if (getShopQuantity(type) <= 0) {
+        if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
         }
         if (numMoney < type.cost()) {
@@ -588,21 +606,21 @@ public class OurEngine implements Engine {
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        ArrayList<Decision> spendyDecisions = new ArrayList<>();
+        
+        ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
+
         if (numBuys <= 0) {
-            spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-            return ImmutableList.copyOf(spendyDecisions);
+            buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+            return buyDecisions.build();
         }
-        CardStacks shopStack = new CardStacks(ImmutableMap.copyOf(shop));
-        ImmutableSet<Card.Type> cardTypes = shopStack.getCardTypes();
-        for (Card.Type cardType : cardTypes) {
-            int stock = shopStack.getNumAvailable(cardType);
-            if (stock > 0 && cardType.cost() <= numMoney) {
-                spendyDecisions.add(new BuyDecision(cardType));
-            }
+
+        ImmutableSet<Card.Type> availableCards = shop.availableCardsForCost(numMoney);
+        for (Card.Type cardType : availableCards) {
+            buyDecisions.add(new BuyDecision(cardType));
         }
-        spendyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-        return ImmutableList.copyOf(spendyDecisions);
+
+        buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+        return buyDecisions.build();
     }
 
     /**
@@ -633,13 +651,14 @@ public class OurEngine implements Engine {
      */
     private GameState buildGameState() {
         GameState gamestate = new GameState(
-                activePlayer.getName(),
-                hands.get(activePlayer).toImmutableHand(),
-                phase,
-                numActions,
-                numMoney,
-                numBuys,
-                new CardStacks(ImmutableMap.copyOf(shop)));
+            activePlayer.getName(),
+            hands.get(activePlayer).toImmutableHand(),
+            phase,
+            numActions,
+            numMoney,
+            numBuys,
+            shop.toImmutableCardStacks()
+        );
         return gamestate;
     }
 
@@ -651,7 +670,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
-        return getShopQuantity(Type.FRAMEWORK) == 0;
+        return shop.getNumAvailable(Type.FRAMEWORK) == 0;
     }
 
     /**
@@ -686,8 +705,4 @@ public class OurEngine implements Engine {
         }
     }
 
-    @VisibleForTesting
-    int getShopQuantity(Type type) {
-        return shop.getOrDefault(type, 0);
-    }
 }

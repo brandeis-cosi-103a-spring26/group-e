@@ -245,26 +245,26 @@ public class OurEngineTest {
     @Test
     public void testConstructor_InitializesShopWithCorrectQuantities_TwoPlayers() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals("BITCOIN should have 60", 60, (int) shop.get(Card.Type.BITCOIN));
-        assertEquals("ETHEREUM should have 40", 40, (int) shop.get(Card.Type.ETHEREUM));
-        assertEquals("DOGECOIN should have 30", 30, (int) shop.get(Card.Type.DOGECOIN));
-        assertEquals("METHOD should have 14", 14, (int) shop.get(Card.Type.METHOD));
-        assertEquals("MODULE should have 8", 8, (int) shop.get(Card.Type.MODULE));
-        assertEquals("FRAMEWORK should have 8", 8, (int) shop.get(Card.Type.FRAMEWORK));
-        assertEquals("BUG should have 20 (2 players * 10)", 20, (int) shop.get(Card.Type.BUG));
-        assertEquals("REFACTOR should have 10", 10, (int) shop.get(Card.Type.REFACTOR));
-        assertEquals("CODE_REVIEW should have 10", 10, (int) shop.get(Card.Type.CODE_REVIEW));
-        assertEquals("EVERGREEN_TEST should have 10", 10, (int) shop.get(Card.Type.EVERGREEN_TEST));
+        assertEquals("BITCOIN should have 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("ETHEREUM should have 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("DOGECOIN should have 30", 30, shop.getNumAvailable(Card.Type.DOGECOIN));
+        assertEquals("METHOD should have 14", 14, shop.getNumAvailable(Card.Type.METHOD));
+        assertEquals("MODULE should have 8", 8, shop.getNumAvailable(Card.Type.MODULE));
+        assertEquals("FRAMEWORK should have 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("BUG should have 20 (2 players * 10)", 20, shop.getNumAvailable(Card.Type.BUG));
+        assertEquals("REFACTOR should have 10", 10, shop.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals("CODE_REVIEW should have 10", 10, shop.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals("EVERGREEN_TEST should have 10", 10, shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
     public void testConstructor_InitializesShopWithCorrectQuantities_FourPlayers() throws Exception {
         OurEngine engine = new OurEngine(fourPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals("BUG should have 40 (4 players * 10)", 40, (int) shop.get(Card.Type.BUG));
+        assertEquals("BUG should have 40 (4 players * 10)", 40, shop.getNumAvailable(Card.Type.BUG));
     }
 
     @Test
@@ -302,49 +302,50 @@ public class OurEngineTest {
     @Test
     public void testIsGameOver_FrameworkSoldOut_ReturnsTrue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.FRAMEWORK, 0);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
         assertTrue("Game should be over when FRAMEWORK cards are sold out", engine.isGameOver());
     }
 
     @Test
-    public void testIsGameOver_FrameworkNotInShop_ReturnsTrue() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardExists_ReturnsQuantity() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.remove(Card.Type.FRAMEWORK);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertTrue("Game should be over when FRAMEWORK type doesn't exist in shop",
-                engine.isGameOver());
+        assertEquals("BITCOIN quantity should be 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("ETHEREUM quantity should be 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("FRAMEWORK quantity should be 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
-    public void testGetShopQuantity_CardExists_ReturnsQuantity() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardQuantityZero_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-
-        assertEquals("BITCOIN quantity should be 60", 60, engine.getShopQuantity(Card.Type.BITCOIN));
-        assertEquals("ETHEREUM quantity should be 40", 40, engine.getShopQuantity(Card.Type.ETHEREUM));
-        assertEquals("FRAMEWORK quantity should be 8", 8, engine.getShopQuantity(Card.Type.FRAMEWORK));
-    }
-
-    @Test
-    public void testGetShopQuantity_CardQuantityZero_ReturnsZero() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.FRAMEWORK, 0);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
         assertEquals("Should return 0 for card with 0 quantity", 0,
-                engine.getShopQuantity(Card.Type.FRAMEWORK));
+                shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
-    public void testGetShopQuantity_CardNotInShop_ReturnsZero() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_SoldOut_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.remove(Card.Type.BITCOIN);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        
+        // Deplete FRAMEWORK by repeatedly calling decrementCount
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
 
-        assertEquals("Should return 0 for card not in shop", 0,
-                engine.getShopQuantity(Card.Type.BITCOIN));
+        assertEquals("Should return 0 for sold out card", 0,
+                shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     // ========== Game Mechanics Tests - drawCard ==========
@@ -743,14 +744,16 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testGetShopQuantity_AfterModification_ReturnsUpdatedValue() throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_AfterModification_ReturnsUpdatedValue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        
+        // Deplete BITCOIN from 60 to 25 by calling decrementCount 35 times
+        for (int i = 0; i < 35; i++) {
+            shop.decrementCount(Card.Type.BITCOIN);
+        }
 
-        // Modify shop quantity
-        shop.put(Card.Type.BITCOIN, 25);
-
-        assertEquals("Should return modified quantity", 25, engine.getShopQuantity(Card.Type.BITCOIN));
+        assertEquals("Should return modified quantity", 25, shop.getNumAvailable(Card.Type.BITCOIN));
     }
 
     @Test
@@ -777,20 +780,21 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testGetShopQuantity_AllCardTypes_ReturnCorrectInitialValues() {
+    public void testMutableCardStacks_GetNumAvailable_AllCardTypes_ReturnCorrectInitialValues() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
 
         // Verify all card types have correct initial quantities
-        assertEquals(60, engine.getShopQuantity(Card.Type.BITCOIN));
-        assertEquals(40, engine.getShopQuantity(Card.Type.ETHEREUM));
-        assertEquals(30, engine.getShopQuantity(Card.Type.DOGECOIN));
-        assertEquals(14, engine.getShopQuantity(Card.Type.METHOD));
-        assertEquals(8, engine.getShopQuantity(Card.Type.MODULE));
-        assertEquals(8, engine.getShopQuantity(Card.Type.FRAMEWORK));
-        assertEquals(20, engine.getShopQuantity(Card.Type.BUG)); // 2 players * 10
-        assertEquals(10, engine.getShopQuantity(Card.Type.REFACTOR));
-        assertEquals(10, engine.getShopQuantity(Card.Type.CODE_REVIEW));
-        assertEquals(10, engine.getShopQuantity(Card.Type.EVERGREEN_TEST));
+        assertEquals(60, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals(40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals(30, shop.getNumAvailable(Card.Type.DOGECOIN));
+        assertEquals(14, shop.getNumAvailable(Card.Type.METHOD));
+        assertEquals(8, shop.getNumAvailable(Card.Type.MODULE));
+        assertEquals(8, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals(20, shop.getNumAvailable(Card.Type.BUG)); // 2 players * 10
+        assertEquals(10, shop.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals(10, shop.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals(10, shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
@@ -1151,11 +1155,13 @@ public class OurEngineTest {
     @Test
     public void testBuildBuyDecisions_OnlyIncludesCardsInStock() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-
-        // Set BITCOIN out of stock
-        shop.put(Card.Type.BITCOIN, 0);
-
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        
+        // Deplete BITCOIN stock completely (from 60 to 0)
+        for (int i = 0; i < 60; i++) {
+            shop.decrementCount(Card.Type.BITCOIN);
+        }
+        
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 10); // Can afford anything
 
@@ -1461,11 +1467,11 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int cardIdCounter = getPrivateField(engine, "cardIdCounter");
-
-        int initialShopCount = shop.get(Card.Type.ETHEREUM);
+        
+        int initialShopCount = shop.getNumAvailable(Card.Type.ETHEREUM);
         int initialDiscardSize = discards.get(player).size();
 
         // Gain an ETHEREUM card
@@ -1475,8 +1481,8 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.ETHEREUM, player);
 
         // Verify shop count decremented
-        assertEquals("Shop count should decrease by 1", initialShopCount - 1, (int) shop.get(Card.Type.ETHEREUM));
-
+        assertEquals("Shop count should decrease by 1", initialShopCount - 1, shop.getNumAvailable(Card.Type.ETHEREUM));
+        
         // Verify card added to discard
         assertEquals("Discard size should increase by 1", initialDiscardSize + 1, discards.get(player).size());
 
@@ -1495,11 +1501,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-
-        // Set shop to have only 1 REFACTOR card
-        shop.put(Card.Type.REFACTOR, 1);
+        
+        // Deplete REFACTOR to have only 1 card (starts at 10)
+        for (int i = 0; i < 9; i++) {
+            shop.decrementCount(Card.Type.REFACTOR);
+        }
 
         // Gain the last REFACTOR
         java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
@@ -1508,8 +1516,8 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.REFACTOR, player);
 
         // Verify shop count is now 0
-        assertEquals("Shop count should be 0", 0, (int) shop.get(Card.Type.REFACTOR));
-
+        assertEquals("Shop count should be 0", 0, shop.getNumAvailable(Card.Type.REFACTOR));
+        
         // Verify card was still added to discard
         boolean foundRefactor = false;
         for (Card card : discards.get(player)) {
@@ -1591,11 +1599,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-
-        // Set CODE_REVIEW count to 0
-        shop.put(Card.Type.CODE_REVIEW, 0);
+        
+        // Deplete all CODE_REVIEW cards (starts at 10)
+        for (int i = 0; i < 10; i++) {
+            shop.decrementCount(Card.Type.CODE_REVIEW);
+        }
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain CODE_REVIEW (should be silent no-op)
@@ -1605,7 +1615,7 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.CODE_REVIEW, player);
 
         // Verify nothing changed
-        assertEquals("Shop count should remain 0", 0, (int) shop.get(Card.Type.CODE_REVIEW));
+        assertEquals("Shop count should remain 0", 0, shop.getNumAvailable(Card.Type.CODE_REVIEW));
         assertEquals("Discard should not change", initialDiscardSize, discards.get(player).size());
     }
 
@@ -1614,11 +1624,13 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
 
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-
-        // Remove FRAMEWORK from shop entirely
-        shop.remove(Card.Type.FRAMEWORK);
+        
+        // Deplete all FRAMEWORK cards (starts at 8 for 2 players)
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain FRAMEWORK (should be silent no-op)
@@ -2011,8 +2023,10 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
 
         // Set MODULE to out of stock
-        Map<Card.Type, Integer> shop = getPrivateField(engine, "shop");
-        shop.put(Card.Type.MODULE, 0);
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        for (int i = 0; i < 8; i++) {
+            shop.decrementCount(Card.Type.MODULE);
+        }
 
         BuyDecision decision = new BuyDecision(Card.Type.MODULE);
 
