@@ -98,7 +98,7 @@ public class AIPlayer extends AbstractPlayer {
     private Decision makeMoneyDecision(GameState state, ImmutableList<Decision> options) {
         // Find and return first PlayCardDecision
         return options.stream()
-            .filter(option -> (option instanceof PlayCardDecision))
+            .filter(option -> option instanceof PlayCardDecision)
             .findFirst()
             .orElse(options.get(0));
     }

@@ -460,7 +460,7 @@ public class AIPlayerTest {
 
     @Test
     public void testMakeDecision_ActionPhase_FollowsBigMoneyStrategy() {
-        // Big Money strategy: don't play action cards, just end phase
+        // Big Money strategy: actions are not important, just return first option
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         PlayCardDecision playMethod = new PlayCardDecision(methodCard);
         PlayCardDecision playModule = new PlayCardDecision(moduleCard);
