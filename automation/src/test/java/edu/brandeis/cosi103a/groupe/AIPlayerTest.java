@@ -228,7 +228,7 @@ public class AIPlayerTest {
         
         Decision result = player.makeDecision(state, options);
         
-        assertSame("Should return first option when no preferred cards available", buyMethod, result);
+        assertSame("Should end phase when no preferred cards available", endPhase, result);
     }
 
     @Test
