@@ -74,8 +74,11 @@ public class AIPlayer extends AbstractPlayer {
             }
         }
         
-        // If none of the preferred cards are available, return first option
-        return options.get(0);
+        // If none of the preferred cards are available, end phase
+        return options.stream()
+            .filter(option -> option instanceof EndPhaseDecision)
+            .findFirst()
+            .orElse(options.get(0));
     }
 
     /**
