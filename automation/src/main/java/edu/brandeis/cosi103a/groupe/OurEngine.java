@@ -573,6 +573,14 @@ public class OurEngine implements Engine {
 
     /**
      * Builds the list of all valid decisions for the MONEY phase.
+     * <p>
+     * Iterates over the active player's unplayed hand cards and adds a
+     * {@link PlayCardDecision} for every MONEY (treasure) card found, giving the
+     * player the option to put each treasure into play to increase their available
+     * coin total. An {@link EndPhaseDecision} is always appended at the end so the
+     * player can choose to stop playing treasures and advance to the BUY phase at
+     * any time.
+     * </p>
      *
      * @return An ImmutableList of Decision objects for the MONEY phase.
      */
@@ -602,6 +610,15 @@ public class OurEngine implements Engine {
 
     /**
      * Builds the list of all valid decisions for the BUY phase.
+     * <p>
+     * First checks whether the active player has any remaining buys. If
+     * {@code numBuys} is zero or less, only an {@link EndPhaseDecision} is
+     * returned, since no purchases can be made. Otherwise, the shop is queried for
+     * every card type whose cost is at most the player's current coin total
+     * ({@code numMoney}), and a {@link BuyDecision} is added for each affordable
+     * card. An {@link EndPhaseDecision} is always included at the end so the
+     * player can opt to stop buying before exhausting all available buys.
+     * </p>
      *
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
@@ -625,6 +642,15 @@ public class OurEngine implements Engine {
 
     /**
      * Builds the list of all valid decisions for the ACTION phase.
+     * <p>
+     * First checks whether the active player has any remaining action plays. If
+     * {@code numActions} is zero or less, only an {@link EndPhaseDecision} is
+     * returned immediately, since no action cards can be played. Otherwise, the
+     * method iterates over the active player's unplayed hand cards and adds a
+     * {@link PlayCardDecision} for every ACTION card found. An
+     * {@link EndPhaseDecision} is always appended at the end so the player can
+     * choose to skip playing further action cards and advance to the MONEY phase.
+     * </p>
      *
      * @return An ImmutableList of Decision objects for the ACTION phase.
      */
