@@ -682,6 +682,13 @@ public class OurEngine implements Engine {
         return result;
     }
 
+    /**
+     * Prints the final game results in a readable format, showing each player's
+     * score
+     * and the cards in their discard pile at the end of the game.
+     *
+     * @param result
+     */
     private void printGameResult(GameResult result) {
         System.out.println("\n═══════════════════════════════════════════════");
         System.out.println("                 Game Over!                  ");
