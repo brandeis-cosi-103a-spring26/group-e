@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
@@ -16,6 +17,7 @@ import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
@@ -29,9 +31,9 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with
+                                    // `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
-
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -39,7 +41,6 @@ public class OurEngine implements Engine {
     private static final int PLAYER_STARTING_BITCOINS = 7;
     private static final int PLAYER_STARTING_METHODS = 3;
     private static final int HAND_SIZE = 5;
-
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -103,10 +104,9 @@ public class OurEngine implements Engine {
         }
 
         ImmutableSet<Type> actionCardsForGame = ImmutableSet.of(
-            Type.CODE_REVIEW,
-            Type.REFACTOR,
-            Type.EVERGREEN_TEST
-        );
+                Type.CODE_REVIEW,
+                Type.REFACTOR,
+                Type.EVERGREEN_TEST);
 
         // Set up shop with starting card quantities
         shop = new MutableCardStacks(this.players.size(), actionCardsForGame);
@@ -173,7 +173,6 @@ public class OurEngine implements Engine {
     private void executeCleanupPhase() {
         MutableHand hand = hands.get(activePlayer);
         List<Card> discard = discards.get(activePlayer);
-        List<Card> deck = decks.get(activePlayer);
 
         // Discard all cards in hand
         hand.moveAllCardsTo(discard);
@@ -368,7 +367,8 @@ public class OurEngine implements Engine {
         int cardCost = trashCardDecision.card().cost();
         int maxGainCost = cardCost + 2;
 
-        // Create list of gain decisions based on all cards available to gain in the cardstacks that cost <= max cost
+        // Create list of gain decisions based on all cards available to gain in the
+        // cardstacks that cost <= max cost
         ImmutableList.Builder<Decision> gainDecisionsBuilder = ImmutableList.builder();
 
         ImmutableSet<Type> availableCardTypes = shop.availableCardsForCost(maxGainCost);
@@ -377,7 +377,7 @@ public class OurEngine implements Engine {
             // If there are no possible cards to gain (unlikely) give a end phase decision
             gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
         }
-        
+
         for (Type cardType : availableCardTypes) {
             gainDecisionsBuilder.add(new GainCardDecision(cardType));
         }
@@ -397,7 +397,7 @@ public class OurEngine implements Engine {
         GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
         processGainingCard(gainCardDecision.cardType(), activePlayer);
         phase = TurnPhase.ACTION; // Reset phase to action
-      
+
     }
 
     /**
@@ -461,7 +461,7 @@ public class OurEngine implements Engine {
             // none left in the supply
             return false;
         }
-        
+
         shop.decrementCount(type);
 
         // Create new card instance and add to player's discard pile
@@ -589,24 +589,12 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Builds the list of all valid decisions for the GAIN phase, based on the card
-     * that triggered the gain.
-     *
-     * @return An ImmutableList of Decision objects for the GAIN phase.
-     */
-    private ImmutableList<Decision> buildGainDecisions(Type triggeredBy) {
-        // TODO: Oneg: Likely a future week issue since it's related to action
-        // functionality
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
      * Builds the list of all valid decisions for the BUY phase.
      *
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        
+
         ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
 
         if (numBuys <= 0) {
@@ -651,14 +639,13 @@ public class OurEngine implements Engine {
      */
     private GameState buildGameState() {
         GameState gamestate = new GameState(
-            activePlayer.getName(),
-            hands.get(activePlayer).toImmutableHand(),
-            phase,
-            numActions,
-            numMoney,
-            numBuys,
-            shop.toImmutableCardStacks()
-        );
+                activePlayer.getName(),
+                hands.get(activePlayer).toImmutableHand(),
+                phase,
+                numActions,
+                numMoney,
+                numBuys,
+                shop.toImmutableCardStacks());
         return gamestate;
     }
 
@@ -679,8 +666,61 @@ public class OurEngine implements Engine {
      * @return The final GameResult object.
      */
     private GameResult endGame() {
-        // TODO: Future Week
-        throw new UnsupportedOperationException("Not yet implemented");
+        ImmutableList.Builder<PlayerResult> playerResultsBuilder = ImmutableList.builder();
+        // Sort players by score in descending order for nicer end game results display
+        players.sort((p1, p2) -> Integer.compare(calculatePlayerScore(p2), calculatePlayerScore(p1)));
+        for (Player p : players) {
+            // Don't love that we're calculating the score twice but I don't see a better
+            // way to do it
+            int score = calculatePlayerScore(p);
+            // Since calculatePlayerScore moves all cards to the discard pile, we can just
+            // copy the discard pile for the final deck
+            playerResultsBuilder.add(new PlayerResult(p.getName(), score, ImmutableList.copyOf(discards.get(p))));
+        }
+        GameResult result = new GameResult(playerResultsBuilder.build());
+        printGameResult(result);
+        return result;
+    }
+
+    private void printGameResult(GameResult result) {
+        System.out.println("\n═══════════════════════════════════════════════");
+        System.out.println("                 Game Over!                  ");
+        System.out.println("═══════════════════════════════════════════════\n");
+        for (PlayerResult pr : result.playerResults()) {
+            System.out.println(pr.playerName() + " scored " + pr.score()
+                    + " points with the following cards in their discard pile:");
+            for (Card card : pr.endingDeck()) {
+                System.out.println("  - " + card);
+            }
+            System.out.println();
+        }
+    }
+
+    /**
+     * Calculates the final score for a player by counting the victory points in
+     * their discard pile, hand, and deck. This method is called at the end of the
+     * game. All cards from the player's hand and deck are moved to their discard
+     * pile, and the score is calculated based on the total victory points in the
+     * discard pile.
+     *
+     * @param p The player whose score is being calculated
+     * @return The final score for the player
+     */
+    private int calculatePlayerScore(Player p) {
+        MutableHand hand = hands.get(p);
+        List<Card> deck = decks.get(p);
+        List<Card> discard = discards.get(p);
+        int score = 0;
+        // move cards to discard from hand and deck
+        hand.moveAllCardsTo(discard);
+        deck.forEach(discard::add);
+        deck.clear();
+        for (Card card : discard) {
+            if (card.getCategory() == Card.Type.Category.VICTORY) {
+                score += card.value();
+            }
+        }
+        return score;
     }
 
     /**
