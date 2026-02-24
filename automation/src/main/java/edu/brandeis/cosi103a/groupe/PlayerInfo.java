@@ -40,6 +40,14 @@ public class PlayerInfo {
         }
     }
 
+    public String getName() { // does it make more sense to just have a getPlayer() method instead of these two?
+        return player.getName();
+    }
+
+    public void makeDecision(GameState gameState, com.google.common.collect.ImmutableList<Decision> options) {
+        player.makeDecision(gameState, options);
+    }
+
     public void drawCard() {
         if (deck.isEmpty()) {
             // Shuffle discard into deck
@@ -52,12 +60,15 @@ public class PlayerInfo {
         }
     }
 
-    public String getName() { // does it make more sense to just have a getPlayer() method instead of these two?
-        return player.getName();
+    public void playCard(Card card) {
+        hand.playCard(card);
     }
 
-    public void makeDecision(GameState gameState, com.google.common.collect.ImmutableList<Decision> options) {
-        player.makeDecision(gameState, options);
+    public void cleanup() {
+        hand.moveAllCardsTo(discard); // Discard all cards in hand
+        for (int i = 0; i < HAND_SIZE; i++) {
+            drawCard(); // Draw new hand of 5 cards
+        }
     }
 
     // more methods to come
