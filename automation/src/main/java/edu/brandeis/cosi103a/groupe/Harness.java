@@ -125,7 +125,7 @@ public class Harness {
      * @param max     Maximum valid value (inclusive)
      * @return A valid integer within the specified range
      */
-    private static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
+    static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
         int value = -1;
         boolean valid = false;
 
@@ -160,6 +160,19 @@ public class Harness {
      * @return the {@link Decision} chosen by the user from the provided options
      */
     public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
+        return getDecisionFromConsole(options, scanner);
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options using the specified Scanner.
+     * If the only available option is an {@link EndPhaseDecision}, the user is
+     * prompted to press enter to continue and that decision is returned.
+     *
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @param inputScanner the Scanner to use for reading user input
+     * @return the {@link Decision} chosen by the user from the provided options
+     */
+    static Decision getDecisionFromConsole(ImmutableList<Decision> options, Scanner inputScanner) {
 
         // Defensively ensure we have at least one option; otherwise, we could loop
         // forever.
@@ -171,7 +184,7 @@ public class Harness {
         // continue
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
             System.out.print(ansi().fg(WHITE).a("No choices available. Press enter to continue...").reset());
-            scanner.nextLine(); // Wait for enter key
+            inputScanner.nextLine(); // Wait for enter key
             return options.get(0);
         }
 
@@ -185,9 +198,9 @@ public class Harness {
         System.out.print(ansi().fg(GREEN).a("Enter the number of your chosen option: ").reset());
         int choice = -1;
         while (choice < 1 || choice > options.size()) {
-            if (scanner.hasNextInt()) {
-                choice = scanner.nextInt();
-                scanner.nextLine(); // Consume the leftover newline character
+            if (inputScanner.hasNextInt()) {
+                choice = inputScanner.nextInt();
+                inputScanner.nextLine(); // Consume the leftover newline character
                 if (choice < 1 || choice > options.size()) {
                     System.out.print(ansi().fg(RED)
                             .a("✗ Invalid choice. Please enter a number between 1 and " + options.size() + ": ")
@@ -195,7 +208,7 @@ public class Harness {
                 }
             } else {
                 System.out.print(ansi().fg(RED).a("✗ Invalid input. Please enter a number: ").reset());
-                scanner.nextLine(); // Consume the invalid input
+                inputScanner.nextLine(); // Consume the invalid input
             }
         }
 
