@@ -125,10 +125,6 @@ public class OurEngine implements Engine {
         while (!isGameOver()) {
             // get next player, sets phase to ACTION, and resets actions, money, and buys
             activePlayer = getNextPlayer();
-            if (activePlayer == null) {
-                // Game ended due to all but one player being disqualified
-                break;
-            }
             phase = GameState.TurnPhase.ACTION;
             numActions = 1;
             numMoney = 0;
@@ -570,7 +566,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     Player getNextPlayer() throws IllegalStateException {
-        if (disqualifiedPlayers.values().stream().filter(disqualified -> !disqualified).count() >= players.size() - 1) {
+        if (disqualifiedPlayers.values().stream().filter(disqualified -> disqualified).count() >= players.size() - 1) {
             // If all but one player are disqualified, return null to signal end of game
             throw new IllegalStateException("All but one player is disqualified, game should be over");
         }
