@@ -125,7 +125,7 @@ public class OurEngine implements Engine {
         while (!isGameOver()) {
             // get next player, sets phase to ACTION, and resets actions, money, and buys
             activePlayer = getNextPlayer();
-            if (getNextPlayer() == null) {
+            if (activePlayer == null) {
                 // Game ended due to all but one player being disqualified
                 break;
             }
@@ -564,14 +564,15 @@ public class OurEngine implements Engine {
      * Gets the next player in turn order.
      *
      * @return The next player in turn order.
+     * @throws IllegalStateException if all but one player are disqualified, which
+     *                               should signal the end of the game and that no
+     *                               next player is available.
      */
     @VisibleForTesting
-    Player getNextPlayer() {
-        long disqualifiedPlayerCount = disqualifiedPlayers.values().stream().filter(disqualified -> !disqualified)
-                .count();
-        if (disqualifiedPlayerCount >= players.size() - 1) {
-            endGame();
-            return null;
+    Player getNextPlayer() throws IllegalStateException {
+        if (disqualifiedPlayers.values().stream().filter(disqualified -> !disqualified).count() >= players.size() - 1) {
+            // If all but one player are disqualified, return null to signal end of game
+            throw new IllegalStateException("All but one player is disqualified, game should be over");
         }
         Player nextPlayer = players.get((players.indexOf(activePlayer) + 1) % players.size());
         while (disqualifiedPlayers.get(nextPlayer)) {
@@ -705,7 +706,7 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
-        long disqualifiedPlayerCount = disqualifiedPlayers.values().stream().filter(disqualified -> !disqualified)
+        long disqualifiedPlayerCount = disqualifiedPlayers.values().stream().filter(disqualified -> disqualified)
                 .count();
         if (disqualifiedPlayerCount >= players.size() - 1) {
             return true;
