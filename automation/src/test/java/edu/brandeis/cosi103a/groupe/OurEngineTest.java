@@ -2458,7 +2458,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testIsGameOver_FrameworkSoldOutTakesPrecedence() throws Exception {
+    public void testIsGameOver_StillTrueWhenBothConditionsActive() throws Exception {
         OurEngine engine = new OurEngine(threePlayers);
         List<Player> players = getPrivateField(engine, "players");
         Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
