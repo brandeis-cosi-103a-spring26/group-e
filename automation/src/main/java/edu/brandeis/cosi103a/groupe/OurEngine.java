@@ -551,7 +551,8 @@ public class OurEngine implements Engine {
             throws PlayerViolationException {
         Decision decision = player.makeDecision(buildGameState(), validDecisions);
         if (!validateDecision(decision, validDecisions)) {
-            throw new PlayerViolationException("Player made an invalid decision: " + decision.toString());
+            String decisionStr = (decision == null) ? "null" : decision.toString();
+            throw new PlayerViolationException("Player made an invalid decision: " + decisionStr);
         }
         return decision;
     }
