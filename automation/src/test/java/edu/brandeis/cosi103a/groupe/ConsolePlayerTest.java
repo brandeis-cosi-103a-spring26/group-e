@@ -1,32 +1,23 @@
 package edu.brandeis.cosi103a.groupe;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi.atg.state.Hand;
-import edu.brandeis.cosi.atg.state.CardStacks;
 
 /**
- * Integration tests for the ConsolePlayer class.
+ * Unit tests for the ConsolePlayer class.
  * 
  * Since Renderer.renderGame() and Harness.getDecisionFromConsole() are tested
  * separately in their own unit test files, these tests focus on verifying that
- * ConsolePlayer correctly implements the Player interface, properly extends
- * AbstractPlayer, and that the integration points are correctly structured.
+ * ConsolePlayer correctly implements the Player interface and that properly extends
+ * AbstractPlayer.
  * 
  * Note: Full end-to-end integration tests requiring live console input are
  * better suited for manual testing or system-level tests since ConsolePlayer
@@ -34,64 +25,11 @@ import edu.brandeis.cosi.atg.state.CardStacks;
  */
 public class ConsolePlayerTest {
     
-    private final InputStream originalIn = System.in;
-    private final PrintStream originalOut = System.out;
-    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    
     private ConsolePlayer player;
-    private Card bitcoinCard;
-    private Card methodCard;
-    private Card frameworkCard;
     
     @Before
     public void setUp() {
-        // Ensure output stream is clean before each test
-        outputStream.reset();
-
-        // Redirect System.out to capture console output
-        System.setOut(new PrintStream(outputStream));
-        
         player = new ConsolePlayer();
-        
-        // Create sample cards for testing
-        bitcoinCard = new Card(Card.Type.BITCOIN, 1);
-        methodCard = new Card(Card.Type.METHOD, 2);
-        frameworkCard = new Card(Card.Type.FRAMEWORK, 3);
-    }
-    
-    @After
-    public void tearDown() {
-        // Restore original System.in and System.out
-        System.setIn(originalIn);
-        System.setOut(originalOut);
-    }
-    
-    // ========== Helper Methods ==========
-    
-    /**
-     * Creates a mock GameState for testing.
-     */
-    private GameState createMockGameState(String playerName, GameState.TurnPhase phase) {
-        Hand mockHand = new Hand(
-            ImmutableList.of(), // played cards
-            ImmutableList.of(bitcoinCard, methodCard) // unplayed cards
-        );
-        
-        CardStacks mockShop = new CardStacks(ImmutableMap.of(
-            Card.Type.BITCOIN, 50,
-            Card.Type.FRAMEWORK, 8,
-            Card.Type.METHOD, 10
-        ));
-        
-        return new GameState(
-            playerName,
-            mockHand,
-            phase,
-            1, // numActions
-            3, // spendableMoney
-            1, // numBuys
-            mockShop
-        );
     }
     
     // ========== Player Interface Implementation Tests ==========
