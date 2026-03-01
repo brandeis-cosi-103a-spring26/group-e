@@ -9,7 +9,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 
 import com.google.common.collect.ImmutableList;
 
-public class AIPlayer extends AbstractPlayer {
+public class BigMoneyPlayer extends AbstractPlayer {
 
     /**
      * Makes a decision based on the current game state and available options. The AI Player

@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  */
 public class AIPlayerTest {
 
-    private AIPlayer player;
+    private BigMoneyPlayer player;
     private Card bitcoinCard;
     private Card ethereumCard;
     private Card dogecoinCard;
@@ -27,7 +27,7 @@ public class AIPlayerTest {
 
     @Before
     public void setUp() {
-        player = new AIPlayer();
+        player = new BigMoneyPlayer();
         
         // Create sample cards for testing
         bitcoinCard = new Card(Card.Type.BITCOIN, 1);
@@ -64,7 +64,7 @@ public class AIPlayerTest {
 
     @Test
     public void testConstructor_CreatesPlayerSuccessfully() {
-        AIPlayer newPlayer = new AIPlayer();
+        BigMoneyPlayer newPlayer = new BigMoneyPlayer();
         assertNotNull("AIPlayer should be created", newPlayer);
     }
 
@@ -77,9 +77,9 @@ public class AIPlayerTest {
 
     @Test
     public void testConstructor_GeneratesUniqueNames() {
-        AIPlayer player1 = new AIPlayer();
-        AIPlayer player2 = new AIPlayer();
-        AIPlayer player3 = new AIPlayer();
+        BigMoneyPlayer player1 = new BigMoneyPlayer();
+        BigMoneyPlayer player2 = new BigMoneyPlayer();
+        BigMoneyPlayer player3 = new BigMoneyPlayer();
         
         String name1 = player1.getName();
         String name2 = player2.getName();
