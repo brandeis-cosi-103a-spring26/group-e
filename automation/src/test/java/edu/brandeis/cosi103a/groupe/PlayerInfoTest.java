@@ -595,6 +595,105 @@ public class PlayerInfoTest {
         assertFalse("PlayerInfo should not equal a string", playerInfo.equals("not a PlayerInfo"));
     }
 
+    @Test
+    public void testEquals_ConsistentAfterStateChanges() {
+        PlayerInfo other = new PlayerInfo(mockPlayer, new AtomicInteger(100));
+        
+        // Initially equal
+        assertTrue("Should be equal initially", playerInfo.equals(other));
+        
+        // Modify state (TurnInfo, hand, etc.)
+        playerInfo.incrementActions(5);
+        playerInfo.incrementMoney(10);
+        playerInfo.incrementBuys();
+        
+        // Still equal because equality is based only on Player
+        assertTrue("Should still be equal after state changes", playerInfo.equals(other));
+    }
+
+    // ========== HashCode Tests ==========
+
+    @Test
+    public void testHashCode_Consistency() {
+        int hash1 = playerInfo.hashCode();
+        int hash2 = playerInfo.hashCode();
+        assertEquals("hashCode should be consistent across multiple calls", hash1, hash2);
+    }
+
+    @Test
+    public void testHashCode_EqualObjectsHaveSameHashCode() {
+        PlayerInfo other = new PlayerInfo(mockPlayer, new AtomicInteger(100));
+        
+        assertTrue("Objects should be equal", playerInfo.equals(other));
+        assertEquals("Equal objects must have the same hashCode", 
+                     playerInfo.hashCode(), other.hashCode());
+    }
+
+    @Test
+    public void testHashCode_ConsistentAfterStateChanges() {
+        int initialHash = playerInfo.hashCode();
+        
+        // Modify state (TurnInfo, hand, etc.)
+        playerInfo.incrementActions(5);
+        playerInfo.incrementMoney(10);
+        playerInfo.incrementBuys();
+        
+        int hashAfterChanges = playerInfo.hashCode();
+        assertEquals("hashCode should remain consistent after state changes", 
+                     initialHash, hashAfterChanges);
+    }
+
+    @Test
+    public void testHashCode_WorksInHashSet() {
+        java.util.Set<PlayerInfo> set = new java.util.HashSet<>();
+        
+        set.add(playerInfo);
+        assertTrue("Set should contain playerInfo", set.contains(playerInfo));
+        
+        // Create another PlayerInfo with same player
+        PlayerInfo duplicate = new PlayerInfo(mockPlayer, new AtomicInteger(200));
+        assertTrue("Set should contain duplicate (same player)", set.contains(duplicate));
+        
+        // Adding duplicate should not increase size
+        set.add(duplicate);
+        assertEquals("Set should still have 1 element (duplicates not added)", 1, set.size());
+    }
+
+    @Test
+    public void testHashCode_WorksInHashMap() {
+        java.util.Map<PlayerInfo, String> map = new java.util.HashMap<>();
+        
+        map.put(playerInfo, "Original");
+        assertEquals("Map should contain the value", "Original", map.get(playerInfo));
+        
+        // Create another PlayerInfo with same player
+        PlayerInfo duplicate = new PlayerInfo(mockPlayer, new AtomicInteger(200));
+        assertEquals("Map should find value using duplicate key", "Original", map.get(duplicate));
+        
+        // Overwriting with duplicate should replace, not add
+        map.put(duplicate, "Replaced");
+        assertEquals("Map should still have 1 entry", 1, map.size());
+        assertEquals("Value should be replaced", "Replaced", map.get(playerInfo));
+    }
+
+    @Test
+    public void testHashCode_DifferentPlayersInHashSet() {
+        java.util.Set<PlayerInfo> set = new java.util.HashSet<>();
+        
+        MockPlayer player1 = new MockPlayer("Player1");
+        MockPlayer player2 = new MockPlayer("Player2");
+        
+        PlayerInfo info1 = new PlayerInfo(player1, new AtomicInteger(0));
+        PlayerInfo info2 = new PlayerInfo(player2, new AtomicInteger(100));
+        
+        set.add(info1);
+        set.add(info2);
+        
+        assertEquals("Set should contain 2 different PlayerInfo objects", 2, set.size());
+        assertTrue("Set should contain info1", set.contains(info1));
+        assertTrue("Set should contain info2", set.contains(info2));
+    }
+
     // ========== Integration Tests ==========
 
     @Test

@@ -139,10 +139,11 @@ public class PlayerInfo {
 
     /**
      * Trashes a card from the player's hand.
-     * Removes the card permanently from the game (not just from hand).
+     * Removes the card from the unplayed cards in hand. Once removed,
+     * the card is no longer in the game.
      * 
-     * @param card The card to trash
-     * @return true if the card was successfully removed, false otherwise
+     * @param card The card to trash (must be in unplayed cards)
+     * @return true if the card was successfully removed, false if not found in hand
      */
     public boolean trashCard(Card card) {
         return hand.removeFromUnplayed(card);
@@ -310,11 +311,25 @@ public class PlayerInfo {
      * @param o The object to compare with
      * @return true if both PlayerInfo objects wrap the same Player, false otherwise
      */
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof PlayerInfo)) return false;
         PlayerInfo that = (PlayerInfo) o;
         return player.equals(that.player);
+    }
+
+    /**
+     * Returns a hash code value for this PlayerInfo.
+     * Consistent with equals() - PlayerInfo objects wrapping the same Player
+     * will have the same hash code, ensuring proper behavior in hash-based
+     * collections (HashMap, HashSet, etc.).
+     * 
+     * @return The hash code of the underlying Player
+     */
+    @Override
+    public int hashCode() {
+        return player.hashCode();
     }
 
 }
