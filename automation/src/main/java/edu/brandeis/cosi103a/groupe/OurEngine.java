@@ -148,6 +148,7 @@ public class OurEngine implements Engine {
 
                 } catch (PlayerViolationException e) {
                     handleCheating(activePlayer, e);
+                    phase = GameState.TurnPhase.CLEANUP;
                 }
             }
             // Cleanup phase
@@ -568,7 +569,7 @@ public class OurEngine implements Engine {
     @VisibleForTesting
     Player getNextPlayer() throws IllegalStateException {
         if (disqualifiedPlayers.values().stream().filter(disqualified -> disqualified).count() >= players.size() - 1) {
-            // If all but one player are disqualified, return null to signal end of game
+            // If all but one player are disqualified, throw IllegalStateException
             throw new IllegalStateException("All but one player is disqualified, game should be over");
         }
         Player nextPlayer = players.get((players.indexOf(activePlayer) + 1) % players.size());
