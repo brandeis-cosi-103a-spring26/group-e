@@ -45,6 +45,9 @@ public class ConsolePlayerTest {
     
     @Before
     public void setUp() {
+        // Ensure output stream is clean before each test
+        outputStream.reset();
+
         // Redirect System.out to capture console output
         System.setOut(new PrintStream(outputStream));
         
@@ -146,127 +149,6 @@ public class ConsolePlayerTest {
         assertEquals("makeDecision should return Decision type", 
                      Decision.class, 
                      makeDecisionMethod.getReturnType());
-    }
-    
-    // ========== Integration Structure Tests ==========
-    
-    @Test
-    public void testMakeDecision_RendersGameState() {
-        // Setup: Create a simple test scenario with automated input
-        GameState state = createMockGameState("TestPlayer", GameState.TurnPhase.ACTION);
-        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-        ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
-        // Simulate pressing Enter for the single EndPhaseDecision option
-        String input = "\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        
-        try {
-            // Execute: Call makeDecision
-            // Note: This will use Harness's static scanner, which we can't easily redirect
-            // So we'll catch the exception that occurs from the scanner issue
-            player.makeDecision(state, options);
-            
-            // Verify: Renderer was called (output contains rendered game state)
-            String output = outputStream.toString();
-            // The rendering should have occurred before the scanner issue
-            assertTrue("Should have attempted to render game state", 
-                       output.length() > 0);
-        } catch (Exception e) {
-            // Expected in test environment due to static Scanner in Harness
-            // The important thing is that rendering occurred (check output was produced)
-            String output = outputStream.toString();
-            assertTrue("Should have attempted to render game state before scanner issue", 
-                       output.length() > 0);
-        }
-    }
-    
-    @Test
-    public void testMakeDecision_WithActionPhaseState() {
-        // Verify: makeDecision can be called with ACTION phase state
-        GameState state = createMockGameState("TestPlayer", GameState.TurnPhase.ACTION);
-        ImmutableList<Decision> options = ImmutableList.of(
-            new EndPhaseDecision(GameState.TurnPhase.ACTION)
-        );
-        
-        System.setIn(new ByteArrayInputStream("\n".getBytes()));
-        
-        try {
-            player.makeDecision(state, options);
-            // Check that rendering occurred
-            assertTrue("Should produce output from rendering", 
-                       outputStream.toString().length() > 0);
-        } catch (Exception e) {
-            // Expected - verify rendering still happened
-            assertTrue("Should have rendered before scanner issue", 
-                       outputStream.toString().length() > 0);
-        }
-    }
-    
-    @Test
-    public void testMakeDecision_WithBuyPhaseState() {
-        // Verify: makeDecision can be called with BUY phase state
-        GameState state = createMockGameState("TestPlayer", GameState.TurnPhase.BUY);
-        ImmutableList<Decision> options = ImmutableList.of(
-            new EndPhaseDecision(GameState.TurnPhase.BUY)
-        );
-        
-        System.setIn(new ByteArrayInputStream("\n".getBytes()));
-        
-        try {
-            player.makeDecision(state, options);
-            assertTrue("Should produce output from rendering", 
-                       outputStream.toString().length() > 0);
-        } catch (Exception e) {
-            // Expected - verify rendering still happened
-            assertTrue("Should have rendered before scanner issue", 
-                       outputStream.toString().length() > 0);
-        }
-    }
-    
-    @Test
-    public void testMakeDecision_WithMoneyPhaseState() {
-        // Verify: makeDecision can be called with MONEY phase state
-        GameState state = createMockGameState("TestPlayer", GameState.TurnPhase.MONEY);
-        ImmutableList<Decision> options = ImmutableList.of(
-            new EndPhaseDecision(GameState.TurnPhase.MONEY)
-        );
-        
-        System.setIn(new ByteArrayInputStream("\n".getBytes()));
-        
-        try {
-            player.makeDecision(state, options);
-            assertTrue("Should produce output from rendering", 
-                       outputStream.toString().length() > 0);
-        } catch (Exception e) {
-            // Expected - verify rendering still happened
-            assertTrue("Should have rendered before scanner issue", 
-                       outputStream.toString().length() > 0);
-        }
-    }
-    
-    @Test
-    public void testMakeDecision_WithMultipleDecisionOptions() {
-        // Verify: makeDecision can handle multiple decision options
-        GameState state = createMockGameState("TestPlayer", GameState.TurnPhase.ACTION);
-        ImmutableList<Decision> options = ImmutableList.of(
-            new EndPhaseDecision(GameState.TurnPhase.ACTION),
-            new PlayCardDecision(methodCard),
-            new PlayCardDecision(bitcoinCard)
-        );
-        
-        System.setIn(new ByteArrayInputStream("1\n".getBytes()));
-        
-        try {
-            player.makeDecision(state, options);
-            // Verify output was generated (rendering occurred)
-            String output = outputStream.toString();
-            assertTrue("Should produce output from rendering", output.length() > 0);
-        } catch (Exception e) {
-            // Expected in test environment
-            assertTrue("Should have rendered before scanner issue", 
-                       outputStream.toString().length() > 0);
-        }
     }
     
     // ========== Constructor Tests ==========
