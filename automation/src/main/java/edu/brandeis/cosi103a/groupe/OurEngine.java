@@ -152,7 +152,9 @@ public class OurEngine implements Engine {
             // Cleanup phase
             executeCleanupPhase();
         }
-        return endGame();
+        GameResult finalResult = endGame();
+        Renderer.printGameResult(finalResult);
+        return finalResult;
     }
 
     /**
@@ -678,10 +680,8 @@ public class OurEngine implements Engine {
             playerResultsBuilder.add(new PlayerResult(p.getName(), score, ImmutableList.copyOf(discards.get(p))));
         }
         GameResult result = new GameResult(playerResultsBuilder.build());
-        Renderer.printGameResult(result);
         return result;
     }
-
 
     /**
      * Calculates the final score for a player by counting the victory points in

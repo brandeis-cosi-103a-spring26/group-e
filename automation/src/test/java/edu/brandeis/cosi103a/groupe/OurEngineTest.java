@@ -2857,40 +2857,6 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testEndGame_CallsPrintGameResult() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
-        // Clear all piles for simplicity
-        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
-        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
-
-        for (Player p : twoPlayers) {
-            discards.get(p).clear();
-            decks.get(p).clear();
-            hands.get(p).clear();
-        }
-
-        // Capture System.out to verify printGameResult was called
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
-        System.setOut(new PrintStream(outputStream));
-
-        try {
-            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
-            method.setAccessible(true);
-            method.invoke(engine);
-
-            String output = outputStream.toString();
-            // Verify that printGameResult was called by checking for its output
-            assertTrue("Should display 'Game Over!' from printGameResult",
-                    output.contains("Game Over!"));
-        } finally {
-            System.setOut(originalOut);
-        }
-    }
-
-    @Test
     public void testEndGame_PlayerResultContainsCorrectDeck() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         Player player = twoPlayers.get(0);
