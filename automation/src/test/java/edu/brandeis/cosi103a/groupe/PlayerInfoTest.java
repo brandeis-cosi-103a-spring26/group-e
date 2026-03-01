@@ -1,0 +1,587 @@
+package edu.brandeis.cosi103a.groupe;
+
+import static org.junit.Assert.*;
+
+import java.lang.reflect.Field;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+
+import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.cards.Card.Type;
+import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.Hand;
+
+/**
+ * Comprehensive unit tests for the PlayerInfo class.
+ * Tests cover initialization, card management, hand operations,
+ * turn resource delegation, and equality.
+ */
+public class PlayerInfoTest {
+
+    private PlayerInfo playerInfo;
+    private MockPlayer mockPlayer;
+
+    /**
+     * Helper class - simple mock Player for testing
+     */
+    private static class MockPlayer implements Player {
+        private String name;
+        private Decision decisionToReturn;
+
+        public MockPlayer(String name) {
+            this.name = name;
+            this.decisionToReturn = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        }
+
+        public void setDecisionToReturn(Decision decision) {
+            this.decisionToReturn = decision;
+        }
+
+        @Override
+        public Decision makeDecision(GameState state, ImmutableList<Decision> validDecisions) {
+            return decisionToReturn;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+    }
+
+    /**
+     * Uses reflection to access a private field from an object.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
+        Field field = obj.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(obj);
+    }
+
+    /**
+     * Uses reflection to set a private field in an object.
+     */
+    @SuppressWarnings("unused")
+    private void setPrivateField(Object obj, String fieldName, Object value) throws Exception {
+        Field field = obj.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(obj, value);
+    }
+
+    @Before
+    public void setUp() {
+        mockPlayer = new MockPlayer("TestPlayer");
+        playerInfo = new PlayerInfo(mockPlayer, 0);
+    }
+
+    // ========== Constructor Tests ==========
+
+    @Test
+    public void testConstructor_InitializesDeckWithCorrectNumberOfCards() throws Exception {
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> hand = playerInfo.getUnplayedCards();
+        
+        // Total cards should be 10 (7 BITCOIN + 3 METHOD)
+        // 5 in hand, rest in deck
+        assertEquals("Should have 5 cards remaining in deck after drawing initial hand", 
+                     5, deck.size());
+        assertEquals("Should have 5 cards in initial hand", 5, hand.size());
+    }
+
+    @Test
+    public void testConstructor_InitializesDeckWithCorrectCardTypes() throws Exception {
+        // Need to count total BITCOINs and METHODs across deck and hand
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> hand = playerInfo.getUnplayedCards();
+        
+        int bitcoinCount = 0;
+        int methodCount = 0;
+        
+        for (Card card : deck) {
+            if (card.type() == Type.BITCOIN) bitcoinCount++;
+            if (card.type() == Type.METHOD) methodCount++;
+        }
+        
+        for (Card card : hand) {
+            if (card.type() == Type.BITCOIN) bitcoinCount++;
+            if (card.type() == Type.METHOD) methodCount++;
+        }
+        
+        assertEquals("Should have 7 BITCOIN cards total", 7, bitcoinCount);
+        assertEquals("Should have 3 METHOD cards total", 3, methodCount);
+    }
+
+    @Test
+    public void testConstructor_InitializesEmptyDiscard() throws Exception {
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        assertTrue("Discard pile should be empty initially", discard.isEmpty());
+    }
+
+    @Test
+    public void testConstructor_InitializesTurnInfoWithDefaults() {
+        assertEquals("Should start with 1 action", 1, playerInfo.numActions());
+        assertEquals("Should start with 0 money", 0, playerInfo.numMoney());
+        assertEquals("Should start with 1 buy", 1, playerInfo.numBuys());
+    }
+
+    // ========== Player Delegation Tests ==========
+
+    @Test
+    public void testGetName_DelegatesToPlayer() {
+        assertEquals("Should return player's name", "TestPlayer", playerInfo.getName());
+    }
+
+    @Test
+    public void testMakeDecision_DelegatesToPlayer() {
+        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        mockPlayer.setDecisionToReturn(decision);
+        
+        ImmutableList<Decision> options = ImmutableList.of(decision);
+        Decision result = playerInfo.makeDecision(null, options);
+        
+        assertEquals("Should return the decision from underlying player", decision, result);
+    }
+
+    // ========== Draw Card Tests ==========
+
+    @Test
+    public void testDrawCard_DrawsFromDeck() throws Exception {
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        int initialDeckSize = deck.size();
+        int initialHandSize = playerInfo.getUnplayedCards().size();
+        
+        playerInfo.drawCard();
+        
+        assertEquals("Deck should have one less card", initialDeckSize - 1, deck.size());
+        assertEquals("Hand should have one more card", initialHandSize + 1, playerInfo.getUnplayedCards().size());
+    }
+
+    @Test
+    public void testDrawCard_ReshufflesDiscardWhenDeckIsEmpty() throws Exception {
+        // Empty the deck
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        
+        // Move all deck cards to discard
+        while (!deck.isEmpty()) {
+            discard.add(deck.remove(deck.size() - 1));
+        }
+        
+        int discardSize = discard.size();
+        assertTrue("Deck should be empty", deck.isEmpty());
+        assertTrue("Discard should have cards", discardSize > 0);
+        
+        // Draw a card - should reshuffle discard into deck
+        playerInfo.drawCard();
+        
+        assertTrue("Discard should be empty after reshuffling", discard.isEmpty());
+        assertEquals("Deck should have discardSize - 1 cards", discardSize - 1, deck.size());
+    }
+
+    @Test
+    public void testDrawCard_NoOpWhenDeckAndDiscardEmpty() throws Exception {
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        
+        // Empty both deck and discard
+        deck.clear();
+        discard.clear();
+        
+        int handSize = playerInfo.getUnplayedCards().size();
+        
+        playerInfo.drawCard();
+        
+        // Hand size should remain the same
+        assertEquals("Hand size should not change when both deck and discard are empty", 
+                     handSize, playerInfo.getUnplayedCards().size());
+    }
+
+    // ========== Play Card Tests ==========
+
+    @Test
+    public void testPlayCard_RemovesFromUnplayed() {
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+        assertFalse("Should have cards in hand", unplayed.isEmpty());
+        
+        Card cardToPlay = unplayed.get(0);
+        int initialSize = unplayed.size();
+        
+        playerInfo.playCard(cardToPlay);
+        
+        List<Card> afterPlay = playerInfo.getUnplayedCards();
+        assertEquals("Should have one fewer unplayed card", initialSize - 1, afterPlay.size());
+        assertFalse("Played card should not be in unplayed list", afterPlay.contains(cardToPlay));
+    }
+
+    // ========== Cleanup Tests ==========
+
+    @Test
+    public void testCleanup_DiscardsAllCards() throws Exception {
+        int initialDiscardSize = 0; // Discard is empty initially
+        
+        // Play a card to have both played and unplayed cards
+        Card cardToPlay = playerInfo.getUnplayedCards().get(0);
+        playerInfo.playCard(cardToPlay);
+        
+        playerInfo.cleanup();
+        
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        // All 5 cards from hand should now be in discard
+        assertEquals("All 5 cards should be discarded", initialDiscardSize + 5, discard.size());
+    }
+
+    @Test
+    public void testCleanup_DrawsNewHandOfFive() {
+        playerInfo.cleanup();
+        
+        assertEquals("Should have 5 cards in new hand", 5, playerInfo.getUnplayedCards().size());
+    }
+
+    @Test
+    public void testCleanup_MultipleTurns() throws Exception {
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        
+        // First cleanup
+        playerInfo.cleanup();
+        assertEquals("Should have 5 cards after first cleanup", 5, playerInfo.getUnplayedCards().size());
+        
+        // Second cleanup - deck should be empty, reshuffle happens
+        assertTrue("Deck should be empty after drawing 10 cards", deck.isEmpty());
+        
+        playerInfo.cleanup();
+        assertEquals("Should have 5 cards after second cleanup", 5, playerInfo.getUnplayedCards().size());
+    }
+
+    // ========== Gain Card Tests ==========
+
+    @Test
+    public void testGainCard_AddsToDiscard() throws Exception {
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        int initialSize = discard.size();
+        
+        Card newCard = new Card(Type.ETHEREUM, 100);
+        playerInfo.gainCard(newCard);
+        
+        assertEquals("Discard should have one more card", initialSize + 1, discard.size());
+        assertTrue("New card should be in discard", discard.contains(newCard));
+    }
+
+    @Test
+    public void testGainCard_MultipleCards() throws Exception {
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        
+        Card card1 = new Card(Type.ETHEREUM, 101);
+        Card card2 = new Card(Type.DOGECOIN, 102);
+        
+        playerInfo.gainCard(card1);
+        playerInfo.gainCard(card2);
+        
+        assertTrue("First card should be in discard", discard.contains(card1));
+        assertTrue("Second card should be in discard", discard.contains(card2));
+    }
+
+    // ========== Trash Card Tests ==========
+
+    @Test
+    public void testTrashCard_RemovesFromGame() throws Exception {
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+        Card cardToTrash = unplayed.get(0);
+        int initialSize = unplayed.size();
+        
+        boolean result = playerInfo.trashCard(cardToTrash);
+        
+        assertTrue("Trash should succeed", result);
+        assertEquals("Hand should have one fewer card", initialSize - 1, playerInfo.getUnplayedCards().size());
+        assertFalse("Trashed card should not be in hand", playerInfo.getUnplayedCards().contains(cardToTrash));
+        
+        // Verify card is truly removed from the game - not in deck or discard
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        assertFalse("Trashed card should not be in deck", deck.contains(cardToTrash));
+        assertFalse("Trashed card should not be in discard", discard.contains(cardToTrash));
+    }
+
+    @Test
+    public void testTrashCard_ReturnsFalseForNonExistentCard() {
+        Card nonExistentCard = new Card(Type.ETHEREUM, 999);
+        
+        boolean result = playerInfo.trashCard(nonExistentCard);
+        
+        assertFalse("Trash should fail for card not in hand", result);
+    }
+
+    // ========== Get Cards in Hand Tests ==========
+
+    @Test
+    public void testGetUnplayedCards_ReturnsAllUnplayed() {
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+        assertEquals("Should have 5 unplayed cards initially", 5, unplayed.size());
+    }
+
+    @Test
+    public void testGetUnplayedCards_AfterPlayingCard() {
+        Card cardToPlay = playerInfo.getUnplayedCards().get(0);
+        playerInfo.playCard(cardToPlay);
+        
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+        assertEquals("Should have 4 unplayed cards after playing one", 4, unplayed.size());
+    }
+
+    @Test
+    public void testGetActionsInHand_FiltersActionCards() throws Exception {
+        // Clear hand and add specific cards
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        unplayedCards.clear();
+        
+        hand.addToUnplayed(new Card(Type.REFACTOR, 200));     // ACTION
+        hand.addToUnplayed(new Card(Type.CODE_REVIEW, 201));  // ACTION
+        hand.addToUnplayed(new Card(Type.BITCOIN, 202));      // MONEY
+        hand.addToUnplayed(new Card(Type.METHOD, 203));       // VICTORY
+        
+        List<Card> actions = playerInfo.getActionsInHand();
+        
+        assertEquals("Should have 2 action cards", 2, actions.size());
+        for (Card card : actions) {
+            assertEquals("All cards should be ACTION category", 
+                        Card.Type.Category.ACTION, card.getCategory());
+        }
+    }
+
+    @Test
+    public void testGetActionsInHand_EmptyWhenNoActions() throws Exception {
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        unplayedCards.clear();
+        
+        hand.addToUnplayed(new Card(Type.BITCOIN, 300));
+        hand.addToUnplayed(new Card(Type.METHOD, 301));
+        
+        List<Card> actions = playerInfo.getActionsInHand();
+        
+        assertTrue("Should have no action cards", actions.isEmpty());
+    }
+
+    @Test
+    public void testGetMoneysInHand_FiltersMoneyCards() throws Exception {
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        unplayedCards.clear();
+        
+        hand.addToUnplayed(new Card(Type.BITCOIN, 400));      // MONEY
+        hand.addToUnplayed(new Card(Type.ETHEREUM, 401));     // MONEY
+        hand.addToUnplayed(new Card(Type.REFACTOR, 402));     // ACTION
+        hand.addToUnplayed(new Card(Type.METHOD, 403));       // VICTORY
+        
+        List<Card> moneys = playerInfo.getMoneysInHand();
+        
+        assertEquals("Should have 2 money cards", 2, moneys.size());
+        for (Card card : moneys) {
+            assertEquals("All cards should be MONEY category", 
+                        Card.Type.Category.MONEY, card.getCategory());
+        }
+    }
+
+    @Test
+    public void testGetMoneysInHand_EmptyWhenNoMoney() throws Exception {
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        unplayedCards.clear();
+        
+        hand.addToUnplayed(new Card(Type.REFACTOR, 500));
+        hand.addToUnplayed(new Card(Type.METHOD, 501));
+        
+        List<Card> moneys = playerInfo.getMoneysInHand();
+        
+        assertTrue("Should have no money cards", moneys.isEmpty());
+    }
+
+    // ========== Immutable Hand Tests ==========
+
+    @Test
+    public void testGetImmutableHand_ReturnsHand() {
+        Hand immutableHand = playerInfo.getImmutableHand();
+        assertNotNull("Should return a hand", immutableHand);
+    }
+
+    @Test
+    public void testGetImmutableHand_ContainsCorrectCards() {
+        Hand immutableHand = playerInfo.getImmutableHand();
+        assertEquals("Immutable hand should have same unplayed count as mutable", 
+                     playerInfo.getUnplayedCards().size(), 
+                     immutableHand.unplayedCards().size());
+    }
+
+    // ========== Turn Resource Delegation Tests ==========
+
+    @Test
+    public void testNumActions_DelegatesToTurnInfo() {
+        assertEquals("Should return 1 action by default", 1, playerInfo.numActions());
+    }
+
+    @Test
+    public void testIncrementActions_DelegatesToTurnInfo() {
+        playerInfo.incrementActions(2);
+        assertEquals("Should have 3 actions after incrementing by 2", 3, playerInfo.numActions());
+    }
+
+    @Test
+    public void testDecrementActions_DelegatesToTurnInfo() {
+        playerInfo.decrementActions();
+        assertEquals("Should have 0 actions after decrementing", 0, playerInfo.numActions());
+    }
+
+    @Test
+    public void testNumMoney_DelegatesToTurnInfo() {
+        assertEquals("Should return 0 money by default", 0, playerInfo.numMoney());
+    }
+
+    @Test
+    public void testIncrementMoney_DelegatesToTurnInfo() {
+        playerInfo.incrementMoney(5);
+        assertEquals("Should have 5 money after incrementing", 5, playerInfo.numMoney());
+    }
+
+    @Test
+    public void testDecrementMoney_DelegatesToTurnInfo() {
+        playerInfo.incrementMoney(10);
+        playerInfo.decrementMoney(3);
+        assertEquals("Should have 7 money after increment/decrement", 7, playerInfo.numMoney());
+    }
+
+    @Test
+    public void testNumBuys_DelegatesToTurnInfo() {
+        assertEquals("Should return 1 buy by default", 1, playerInfo.numBuys());
+    }
+
+    @Test
+    public void testIncrementBuys_DelegatesToTurnInfo() {
+        playerInfo.incrementBuys();
+        assertEquals("Should have 2 buys after incrementing", 2, playerInfo.numBuys());
+    }
+
+    @Test
+    public void testDecrementBuys_DelegatesToTurnInfo() {
+        playerInfo.decrementBuys();
+        assertEquals("Should have 0 buys after decrementing", 0, playerInfo.numBuys());
+    }
+
+    @Test
+    public void testTurnReset_DelegatesToTurnInfo() {
+        playerInfo.incrementActions(5);
+        playerInfo.incrementMoney(10);
+        playerInfo.incrementBuys();
+        
+        playerInfo.turnReset();
+        
+        assertEquals("Actions should reset to 1", 1, playerInfo.numActions());
+        assertEquals("Money should reset to 0", 0, playerInfo.numMoney());
+        assertEquals("Buys should reset to 1", 1, playerInfo.numBuys());
+    }
+
+    // ========== Equals Tests ==========
+
+    @Test
+    public void testEquals_SameObject() {
+        assertTrue("PlayerInfo should equal itself", playerInfo.equals(playerInfo));
+    }
+
+    @Test
+    public void testEquals_SamePlayer() {
+        PlayerInfo other = new PlayerInfo(mockPlayer, 100);
+        assertTrue("PlayerInfo with same underlying player should be equal", playerInfo.equals(other));
+    }
+
+    @Test
+    public void testEquals_DifferentPlayer() {
+        MockPlayer otherPlayer = new MockPlayer("OtherPlayer");
+        PlayerInfo other = new PlayerInfo(otherPlayer, 100);
+        assertFalse("PlayerInfo with different players should not be equal", playerInfo.equals(other));
+    }
+
+    @Test
+    public void testEquals_Null() {
+        assertFalse("PlayerInfo should not equal null", playerInfo.equals(null));
+    }
+
+    @Test
+    public void testEquals_DifferentType() {
+        assertFalse("PlayerInfo should not equal a string", playerInfo.equals("not a PlayerInfo"));
+    }
+
+    // ========== Integration Tests ==========
+
+    @Test
+    public void testCompleteGameTurn() throws Exception {
+        // Simulate a complete turn
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        
+        // Play some cards
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+        if (!unplayed.isEmpty()) {
+            playerInfo.playCard(unplayed.get(0));
+        }
+        
+        // Gain a card
+        Card gainedCard = new Card(Type.ETHEREUM, 600);
+        playerInfo.gainCard(gainedCard);
+        assertTrue("Gained card should be in discard", discard.contains(gainedCard));
+        
+        // Modify turn resources
+        playerInfo.incrementMoney(5);
+        playerInfo.decrementBuys();
+        
+        // Cleanup
+        playerInfo.cleanup();
+        
+        assertEquals("Should have 5 cards in new hand", 5, playerInfo.getUnplayedCards().size());
+        
+        // Gained card should still be in discard
+        assertTrue("Gained card should remain in discard after cleanup", discard.contains(gainedCard));
+    }
+
+    @Test
+    public void testMultipleTurnsWithGainedCards() throws Exception {
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        
+        // Turn 1: Gain a card and cleanup
+        Card newCard = new Card(Type.CODE_REVIEW, 700);
+        playerInfo.gainCard(newCard);
+        playerInfo.cleanup();
+        
+        // After cleanup, deck is empty, gained card is in discard
+        assertTrue("Deck should be empty", deck.isEmpty());
+        assertTrue("Gained card should be in discard", discard.contains(newCard));
+        
+        // Turn 2: Cleanup again - should reshuffle discard (including gained card) into deck
+        playerInfo.cleanup();
+        
+        // The gained card should eventually appear in hand or deck
+        boolean foundNewCard = false;
+        for (Card card : playerInfo.getUnplayedCards()) {
+            if (card.equals(newCard)) {
+                foundNewCard = true;
+                break;
+            }
+        }
+        if (!foundNewCard) {
+            for (Card card : deck) {
+                if (card.equals(newCard)) {
+                    foundNewCard = true;
+                    break;
+                }
+            }
+        }
+        
+        assertTrue("Gained card should eventually be in deck or hand after reshuffling", foundNewCard);
+    }
+
+}
