@@ -506,15 +506,16 @@ public class PlayerInfoTest {
     }
 
     @Test
-    public void testIncrementActions_DelegatesToTurnInfo() {
-        playerInfo.incrementActions(2);
-        assertEquals("Should have 3 actions after incrementing by 2", 3, playerInfo.numActions());
+    public void testAdjustActions_PositiveAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustActions(2);
+        assertEquals("Should have 3 actions after adjusting by +2", 3, playerInfo.numActions());
     }
 
     @Test
-    public void testDecrementActions_DelegatesToTurnInfo() {
-        playerInfo.decrementActions();
-        assertEquals("Should have 0 actions after decrementing", 0, playerInfo.numActions());
+    public void testAdjustActions_NegativeAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustActions(5);
+        playerInfo.adjustActions(-2);
+        assertEquals("Should have 4 actions after adjusting by -2", 4, playerInfo.numActions());
     }
 
     @Test
@@ -523,16 +524,16 @@ public class PlayerInfoTest {
     }
 
     @Test
-    public void testIncrementMoney_DelegatesToTurnInfo() {
-        playerInfo.incrementMoney(5);
-        assertEquals("Should have 5 money after incrementing", 5, playerInfo.numMoney());
+    public void testAdjustMoney_PositiveAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustMoney(5);
+        assertEquals("Should have 5 money after adjusting by +5", 5, playerInfo.numMoney());
     }
 
     @Test
-    public void testDecrementMoney_DelegatesToTurnInfo() {
-        playerInfo.incrementMoney(10);
-        playerInfo.decrementMoney(3);
-        assertEquals("Should have 7 money after increment/decrement", 7, playerInfo.numMoney());
+    public void testAdjustMoney_NegativeAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustMoney(10);
+        playerInfo.adjustMoney(-3);
+        assertEquals("Should have 7 money after adjusting by +10 and -3", 7, playerInfo.numMoney());
     }
 
     @Test
@@ -541,22 +542,23 @@ public class PlayerInfoTest {
     }
 
     @Test
-    public void testIncrementBuys_DelegatesToTurnInfo() {
-        playerInfo.incrementBuys();
-        assertEquals("Should have 2 buys after incrementing", 2, playerInfo.numBuys());
+    public void testAdjustBuys_PositiveAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustBuys(4);
+        assertEquals("Should have 5 buys after adjusting by +4", 5, playerInfo.numBuys());
     }
 
     @Test
-    public void testDecrementBuys_DelegatesToTurnInfo() {
-        playerInfo.decrementBuys();
-        assertEquals("Should have 0 buys after decrementing", 0, playerInfo.numBuys());
+    public void testAdjustBuys_NegativeAmount_DelegatesToTurnInfo() {
+        playerInfo.adjustBuys(5);
+        playerInfo.adjustBuys(-2);
+        assertEquals("Should have 4 buys after adjusting by -2", 4, playerInfo.numBuys());
     }
 
     @Test
     public void testTurnReset_DelegatesToTurnInfo() {
-        playerInfo.incrementActions(5);
-        playerInfo.incrementMoney(10);
-        playerInfo.incrementBuys();
+        playerInfo.adjustActions(5);
+        playerInfo.adjustMoney(10);
+        playerInfo.adjustBuys(2);
         
         playerInfo.turnReset();
         
@@ -603,9 +605,9 @@ public class PlayerInfoTest {
         assertTrue("Should be equal initially", playerInfo.equals(other));
         
         // Modify state (TurnInfo, hand, etc.)
-        playerInfo.incrementActions(5);
-        playerInfo.incrementMoney(10);
-        playerInfo.incrementBuys();
+        playerInfo.adjustActions(5);
+        playerInfo.adjustMoney(10);
+        playerInfo.adjustBuys(2);
         
         // Still equal because equality is based only on Player
         assertTrue("Should still be equal after state changes", playerInfo.equals(other));
@@ -634,9 +636,9 @@ public class PlayerInfoTest {
         int initialHash = playerInfo.hashCode();
         
         // Modify state (TurnInfo, hand, etc.)
-        playerInfo.incrementActions(5);
-        playerInfo.incrementMoney(10);
-        playerInfo.incrementBuys();
+        playerInfo.adjustActions(5);
+        playerInfo.adjustMoney(10);
+        playerInfo.adjustBuys(2);
         
         int hashAfterChanges = playerInfo.hashCode();
         assertEquals("hashCode should remain consistent after state changes", 
@@ -713,8 +715,8 @@ public class PlayerInfoTest {
         assertTrue("Gained card should be in discard", discard.contains(gainedCard));
         
         // Modify turn resources
-        playerInfo.incrementMoney(5);
-        playerInfo.decrementBuys();
+        playerInfo.adjustMoney(5);
+        playerInfo.adjustBuys(-1);
         
         // Cleanup
         playerInfo.cleanup();

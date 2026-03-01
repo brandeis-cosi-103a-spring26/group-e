@@ -140,7 +140,7 @@ public class PlayerInfo {
     /**
      * Trashes a card from the player's hand.
      * Removes the card from the unplayed cards in hand. Once removed,
-     * the card is no longer in the game.
+     * the card is no longer in the player's possession.
      * 
      * @param card The card to trash (must be in unplayed cards)
      * @return true if the card was successfully removed, false if not found in hand
@@ -213,21 +213,14 @@ public class PlayerInfo {
     }
 
     /**
-     * Increases the number of actions by the specified amount.
+     * Adjusts the number of actions by the specified amount.
+     * Positive values increase actions, negative values decrease them.
      * Delegates to the underlying TurnInfo.
      * 
-     * @param amount The number of actions to add
+     * @param amount The amount to adjust actions by (can be positive or negative)
      */
-    public void incrementActions(int amount) {
-        turnInfo.incrementActions(amount);
-    }
-
-    /**
-     * Decreases the number of actions by 1.
-     * Delegates to the underlying TurnInfo.
-     */
-    public void decrementActions() {
-        turnInfo.decrementActions();
+    public void adjustActions(int amount) {
+        turnInfo.adjustActions(amount);
     }
 
     /**
@@ -241,23 +234,14 @@ public class PlayerInfo {
     }
 
     /**
-     * Increases the amount of money by the specified amount.
+     * Adjusts the amount of money by the specified amount.
+     * Positive values increase money, negative values decrease it.
      * Delegates to the underlying TurnInfo.
      * 
-     * @param amount The amount of money to add
+     * @param amount The amount to adjust money by (can be positive or negative)
      */
-    public void incrementMoney(int amount) {
-        turnInfo.incrementMoney(amount);
-    }
-
-    /**
-     * Decreases the amount of money by the specified amount.
-     * Delegates to the underlying TurnInfo.
-     * 
-     * @param amount The amount of money to subtract
-     */
-    public void decrementMoney(int amount) {
-        turnInfo.decrementMoney(amount);
+    public void adjustMoney(int amount) {
+        turnInfo.adjustMoney(amount);
     }
 
     /**
@@ -271,19 +255,14 @@ public class PlayerInfo {
     }
 
     /**
-     * Increases the number of buys by 1.
+     * Adjusts the number of buys by the specified amount.
+     * Positive values increase buys, negative values decrease them.
      * Delegates to the underlying TurnInfo.
+     * 
+     * @param amount The amount to adjust buys by (can be positive or negative)
      */
-    public void incrementBuys() {
-        turnInfo.incrementBuys();
-    }
-
-    /**
-     * Decreases the number of buys by 1.
-     * Delegates to the underlying TurnInfo.
-     */
-    public void decrementBuys() {
-        turnInfo.decrementBuys();
+    public void adjustBuys(int amount) {
+        turnInfo.adjustBuys(amount);
     }
 
     /**

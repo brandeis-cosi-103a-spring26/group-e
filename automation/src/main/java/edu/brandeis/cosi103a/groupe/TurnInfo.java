@@ -33,23 +33,19 @@ public class TurnInfo {
     }
 
     /**
-     * Increases the number of actions by the specified amount.
-     * Used when action cards grant additional actions (e.g., CODE_REVIEW grants +2 actions).
+     * Adjusts the number of actions by the specified amount.
+     * Positive values increase actions (e.g., +2 from CODE_REVIEW card).
+     * Negative values decrease actions (e.g., -1 when playing an action card).
+     * Only decreases if sufficient actions are available.
      * 
-     * @param amount The number of actions to add
+     * @param amount The amount to adjust actions by (can be positive or negative)
      */
-    public void incrementActions(int amount) {
-        numActions += amount;
-    }
-
-    /**
-     * Decreases the number of actions by 1.
-     * Used when an action card is played.
-     * Only decrements if at least one action is available.
-     */
-    public void decrementActions() {
-        if (numActions > 0) {
-            numActions -= 1;
+    public void adjustActions(int amount) {
+        if (amount < 0 && numActions >= -amount) {
+            numActions += amount;
+        }
+        else if (amount > 0) {
+            numActions += amount;
         }
     }
 
@@ -63,25 +59,19 @@ public class TurnInfo {
     }
 
     /**
-     * Increases the amount of money by the specified amount.
-     * Used when money cards are played (e.g., BITCOIN adds 1, ETHEREUM adds 2).
+     * Adjusts the amount of money by the specified amount.
+     * Positive values increase money (e.g., +1 from BITCOIN, +2 from ETHEREUM).
+     * Negative values decrease money (e.g., -3 when buying a card).
+     * Only decreases if sufficient money is available.
      * 
-     * @param amount The amount of money to add
+     * @param amount The amount to adjust money by (can be positive or negative)
      */
-    public void incrementMoney(int amount) {
-        numMoney += amount;
-    }
-
-    /**
-     * Decreases the amount of money by the specified amount.
-     * Used when purchasing cards during the buy phase.
-     * Only decrements if sufficient money is available.
-     * 
-     * @param amount The amount of money to subtract
-     */
-    public void decrementMoney(int amount) {
-        if (numMoney >= amount) {
-            numMoney -= amount;
+    public void adjustMoney(int amount) {
+        if (amount < 0 && numMoney >= -amount) {
+            numMoney += amount;
+        }
+        else if (amount > 0) {
+            numMoney += amount;
         }
     }
 
@@ -95,21 +85,19 @@ public class TurnInfo {
     }
 
     /**
-     * Increases the number of buys by 1.
-     * Used when action cards grant additional buys.
+     * Adjusts the number of buys by the specified amount.
+     * Positive values increase buys (e.g., +1 from an action card).
+     * Negative values decrease buys (e.g., -1 when purchasing a card).
+     * Only decreases if sufficient buys are available.
+     * 
+     * @param amount The amount to adjust buys by (can be positive or negative)
      */
-    public void incrementBuys() {
-        numBuys += 1;
-    }
-
-    /**
-     * Decreases the number of buys by 1.
-     * Used when a card is purchased during the buy phase.
-     * Only decrements if at least one buy is available.
-     */
-    public void decrementBuys() {
-        if (numBuys > 0) {
-            numBuys -= 1;
+    public void adjustBuys(int amount) {
+        if (amount < 0 && numBuys >= -amount) {
+            numBuys += amount;
+        }
+        else if (amount > 0) {
+            numBuys += amount;
         }
     }
 
