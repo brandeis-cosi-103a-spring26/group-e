@@ -31,8 +31,7 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with
-                                    // `shop.toImmutableCardStacks()`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
 
     // Constants
