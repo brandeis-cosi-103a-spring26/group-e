@@ -678,30 +678,10 @@ public class OurEngine implements Engine {
             playerResultsBuilder.add(new PlayerResult(p.getName(), score, ImmutableList.copyOf(discards.get(p))));
         }
         GameResult result = new GameResult(playerResultsBuilder.build());
-        printGameResult(result);
+        Renderer.printGameResult(result);
         return result;
     }
 
-    /**
-     * Prints the final game results in a readable format, showing each player's
-     * score
-     * and the cards in their discard pile at the end of the game.
-     *
-     * @param result
-     */
-    private void printGameResult(GameResult result) {
-        System.out.println("\n═══════════════════════════════════════════════");
-        System.out.println("                 Game Over!                  ");
-        System.out.println("═══════════════════════════════════════════════\n");
-        for (PlayerResult pr : result.playerResults()) {
-            System.out.println(pr.playerName() + " scored " + pr.score()
-                    + " points with the following cards in their discard pile:");
-            for (Card card : pr.endingDeck()) {
-                System.out.println("  - " + card);
-            }
-            System.out.println();
-        }
-    }
 
     /**
      * Calculates the final score for a player by counting the victory points in
