@@ -2522,9 +2522,7 @@ public class OurEngineTest {
     // ========== Print Game Result Tests ==========
 
     @Test
-    public void testPrintGameResult_DisplaysGameOverHeader() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
+    public void testPrintGameResult_DisplaysGameOverHeader() {
         // Create a simple game result
         Card methodCard = new Card(Card.Type.METHOD, 1);
         ImmutableList<Card> deck = ImmutableList.of(methodCard);
@@ -2537,10 +2535,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method reflectMethod = engine.getClass().getDeclaredMethod("printGameResult",
-                    GameResult.class);
-            reflectMethod.setAccessible(true);
-            reflectMethod.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
             assertTrue("Should display 'Game Over!'", output.contains("Game Over!"));
@@ -2552,9 +2547,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testPrintGameResult_DisplaysPlayerNameAndScore() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
+    public void testPrintGameResult_DisplaysPlayerNameAndScore() {
         Card methodCard = new Card(Card.Type.METHOD, 1);
         ImmutableList<Card> deck = ImmutableList.of(methodCard);
         PlayerResult pr = new PlayerResult("TestPlayer", 15, deck);
@@ -2565,10 +2558,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method reflectMethod = engine.getClass().getDeclaredMethod("printGameResult",
-                    GameResult.class);
-            reflectMethod.setAccessible(true);
-            reflectMethod.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
             assertTrue("Should display player name", output.contains("TestPlayer"));
@@ -2579,9 +2569,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testPrintGameResult_DisplaysAllPlayersAndCards() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
+    public void testPrintGameResult_DisplaysAllPlayersAndCards() {
         Card methodCard = new Card(Card.Type.METHOD, 1);
         Card module = new Card(Card.Type.MODULE, 2);
         Card bitcoin = new Card(Card.Type.BITCOIN, 3);
@@ -2595,10 +2583,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method reflectMethod = engine.getClass().getDeclaredMethod("printGameResult",
-                    GameResult.class);
-            reflectMethod.setAccessible(true);
-            reflectMethod.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
 
@@ -2616,9 +2601,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testPrintGameResult_DisplaysMultipleCards() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
+    public void testPrintGameResult_DisplaysMultipleCards() {
         Card methodCard = new Card(Card.Type.METHOD, 1);
         Card module = new Card(Card.Type.MODULE, 2);
         Card framework = new Card(Card.Type.FRAMEWORK, 3);
@@ -2631,10 +2614,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method reflectMethod = engine.getClass().getDeclaredMethod("printGameResult",
-                    GameResult.class);
-            reflectMethod.setAccessible(true);
-            reflectMethod.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
 
@@ -2648,9 +2628,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testPrintGameResult_EmptyDeck() throws Exception {
-        OurEngine engine = new OurEngine(twoPlayers);
-
+    public void testPrintGameResult_EmptyDeck() {
         PlayerResult pr = new PlayerResult("Player1", 0, ImmutableList.of());
         GameResult result = new GameResult(ImmutableList.of(pr));
 
@@ -2659,9 +2637,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("printGameResult", GameResult.class);
-            method.setAccessible(true);
-            method.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
             assertTrue("Should still display player info", output.contains("Player1"));
@@ -2672,9 +2648,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testPrintGameResult_FourPlayers() throws Exception {
-        OurEngine engine = new OurEngine(fourPlayers);
-
+    public void testPrintGameResult_FourPlayers() {
         Card card1 = new Card(Card.Type.METHOD, 1);
         PlayerResult pr1 = new PlayerResult("Alice", 20, ImmutableList.of(card1));
         PlayerResult pr2 = new PlayerResult("Bob", 15, ImmutableList.of(card1));
@@ -2688,9 +2662,7 @@ public class OurEngineTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("printGameResult", GameResult.class);
-            method.setAccessible(true);
-            method.invoke(engine, result);
+            Renderer.printGameResult(result);
 
             String output = outputStream.toString();
 
