@@ -1,8 +1,10 @@
 package edu.brandeis.cosi103a.groupe;
 
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
+
+import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -40,10 +42,11 @@ public class PlayerInfo {
      * and draws an initial hand of 5 cards.
      * 
      * @param player The player interface that will make decisions for this player
-     * @param cardId The starting card ID for this player's cards (will be incremented
-     *               as cards are created to ensure unique IDs across the game)
+     * @param cardID A shared AtomicInteger used to generate unique card IDs for the
+     *               initial deck cards. The counter is incremented for each card created
+     *               during construction to ensure uniqueness across all players.
      */
-    public PlayerInfo(Player player, int cardId) { // Will need to update the way Engine keeps track of card IDs
+    public PlayerInfo(Player player, AtomicInteger cardID) {
         this.player = player;
         hand = new MutableHand();
         deck = new ArrayList<>();
@@ -53,10 +56,10 @@ public class PlayerInfo {
         disqualified = false;
         // Initialize the player's deck with starting cards, then shuffle
         for (int i = 0; i < PLAYER_STARTING_BITCOINS; i++) {
-            deck.add(new Card(Type.BITCOIN, cardId++));
+            deck.add(new Card(Type.BITCOIN, cardID.getAndIncrement()));
         }
         for (int i = 0; i < PLAYER_STARTING_METHODS; i++) {
-            deck.add(new Card(Type.METHOD, cardId++));
+            deck.add(new Card(Type.METHOD, cardID.getAndIncrement()));
         }
         java.util.Collections.shuffle(deck);
         // Draw initial hands of 5 cards
@@ -158,9 +161,9 @@ public class PlayerInfo {
      * Gets all action cards currently unplayed in the player's hand.
      * Filters unplayed cards for those with ACTION category.
      * 
-     * @return A list of unplayed action cards in hand
+     * @return An immutable list of unplayed action cards in hand
      */
-    public List<Card> getActionsInHand() {
+    public ImmutableList<Card> getActionsInHand() {
         List<Card> actions = new ArrayList<>();
         List<Card> unplayed = getUnplayedCards();
         for (Card card : unplayed) {
@@ -168,16 +171,16 @@ public class PlayerInfo {
                 actions.add(card);
             }
         }
-        return actions;
+        return ImmutableList.copyOf(actions);
     }
 
     /**
      * Gets all money cards currently unplayed in the player's hand.
      * Filters unplayed cards for those with MONEY category.
      * 
-     * @return A list of unplayed money cards in hand
+     * @return An immutable list of unplayed money cards in hand
      */
-    public List<Card> getMoneysInHand() {
+    public ImmutableList<Card> getMoneysInHand() {
         List<Card> money = new ArrayList<>();
         List<Card> unplayed = getUnplayedCards();
         for (Card card : unplayed) {
@@ -185,7 +188,7 @@ public class PlayerInfo {
                 money.add(card);
             }
         }
-        return money;
+        return ImmutableList.copyOf(money);
     }
 
     /**

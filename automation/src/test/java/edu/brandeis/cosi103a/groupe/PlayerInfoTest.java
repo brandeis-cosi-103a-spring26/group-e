@@ -3,7 +3,9 @@ package edu.brandeis.cosi103a.groupe;
 import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +80,7 @@ public class PlayerInfoTest {
     @Before
     public void setUp() {
         mockPlayer = new MockPlayer("TestPlayer");
-        playerInfo = new PlayerInfo(mockPlayer, 0);
+        playerInfo = new PlayerInfo(mockPlayer, new AtomicInteger(0));
     }
 
     // ========== Constructor Tests ==========
@@ -129,6 +131,83 @@ public class PlayerInfoTest {
         assertEquals("Should start with 1 action", 1, playerInfo.numActions());
         assertEquals("Should start with 0 money", 0, playerInfo.numMoney());
         assertEquals("Should start with 1 buy", 1, playerInfo.numBuys());
+    }
+
+    @Test
+    public void testConstructor_AllCardIDsAreUnique() throws Exception {
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> hand = playerInfo.getUnplayedCards();
+        
+        // Collect all card IDs
+        List<Integer> cardIds = new ArrayList<>();
+        for (Card card : deck) {
+            cardIds.add(card.id());
+        }
+        for (Card card : hand) {
+            cardIds.add(card.id());
+        }
+        
+        // Check all IDs are unique
+        assertEquals("All 10 cards should have unique IDs", 10, cardIds.size());
+        assertEquals("No duplicate IDs should exist", 
+                     cardIds.size(), 
+                     new java.util.HashSet<>(cardIds).size());
+    }
+
+    @Test
+    public void testConstructor_CardIDsIncrementSequentially() throws Exception {
+        AtomicInteger counter = new AtomicInteger(100);
+        PlayerInfo testPlayer = new PlayerInfo(mockPlayer, counter);
+        
+        List<Card> deck = getPrivateField(testPlayer, "deck");
+        List<Card> hand = testPlayer.getUnplayedCards();
+        
+        // Collect all card IDs
+        List<Integer> cardIds = new ArrayList<>();
+        for (Card card : deck) {
+            cardIds.add(card.id());
+        }
+        for (Card card : hand) {
+            cardIds.add(card.id());
+        }
+        
+        // Sort to check sequential increment
+        java.util.Collections.sort(cardIds);
+        
+        // IDs should start at 100 and go to 109
+        assertEquals("First card ID should be 100", 100, (int)cardIds.get(0));
+        assertEquals("Last card ID should be 109", 109, (int)cardIds.get(9));
+    }
+
+    @Test
+    public void testConstructor_SharedCounterBetweenPlayers() throws Exception {
+        AtomicInteger sharedCounter = new AtomicInteger(0);
+        
+        // Create two players with the same counter
+        PlayerInfo player1 = new PlayerInfo(new MockPlayer("Player1"), sharedCounter);
+        PlayerInfo player2 = new PlayerInfo(new MockPlayer("Player2"), sharedCounter);
+        
+        // Get all cards from both players
+        List<Card> deck1 = getPrivateField(player1, "deck");
+        List<Card> hand1 = player1.getUnplayedCards();
+        List<Card> deck2 = getPrivateField(player2, "deck");
+        List<Card> hand2 = player2.getUnplayedCards();
+        
+        // Collect all card IDs from both players
+        List<Integer> allCardIds = new ArrayList<>();
+        for (Card card : deck1) allCardIds.add(card.id());
+        for (Card card : hand1) allCardIds.add(card.id());
+        for (Card card : deck2) allCardIds.add(card.id());
+        for (Card card : hand2) allCardIds.add(card.id());
+        
+        // All 20 cards (10 per player) should have unique IDs
+        assertEquals("Should have 20 total cards", 20, allCardIds.size());
+        assertEquals("All card IDs should be unique across both players", 
+                     20, 
+                     new java.util.HashSet<>(allCardIds).size());
+        
+        // Counter should have incremented to 20
+        assertEquals("Shared counter should be at 20", 20, sharedCounter.get());
     }
 
     // ========== Player Delegation Tests ==========
@@ -495,14 +574,14 @@ public class PlayerInfoTest {
 
     @Test
     public void testEquals_SamePlayer() {
-        PlayerInfo other = new PlayerInfo(mockPlayer, 100);
+        PlayerInfo other = new PlayerInfo(mockPlayer, new AtomicInteger(100));
         assertTrue("PlayerInfo with same underlying player should be equal", playerInfo.equals(other));
     }
 
     @Test
     public void testEquals_DifferentPlayer() {
         MockPlayer otherPlayer = new MockPlayer("OtherPlayer");
-        PlayerInfo other = new PlayerInfo(otherPlayer, 100);
+        PlayerInfo other = new PlayerInfo(otherPlayer, new AtomicInteger(100));
         assertFalse("PlayerInfo with different players should not be equal", playerInfo.equals(other));
     }
 
