@@ -338,7 +338,7 @@ public class OurEngineTest {
     public void testMutableCardStacks_GetNumAvailable_SoldOut_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        
+
         // Deplete FRAMEWORK by repeatedly calling decrementCount
         for (int i = 0; i < 8; i++) {
             shop.decrementCount(Card.Type.FRAMEWORK);
@@ -747,7 +747,7 @@ public class OurEngineTest {
     public void testMutableCardStacks_GetNumAvailable_AfterModification_ReturnsUpdatedValue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        
+
         // Deplete BITCOIN from 60 to 25 by calling decrementCount 35 times
         for (int i = 0; i < 35; i++) {
             shop.decrementCount(Card.Type.BITCOIN);
@@ -1156,12 +1156,12 @@ public class OurEngineTest {
     public void testBuildBuyDecisions_OnlyIncludesCardsInStock() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
-        
+
         // Deplete BITCOIN stock completely (from 60 to 0)
         for (int i = 0; i < 60; i++) {
             shop.decrementCount(Card.Type.BITCOIN);
         }
-        
+
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 10); // Can afford anything
 
@@ -1470,7 +1470,7 @@ public class OurEngineTest {
         MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int cardIdCounter = getPrivateField(engine, "cardIdCounter");
-        
+
         int initialShopCount = shop.getNumAvailable(Card.Type.ETHEREUM);
         int initialDiscardSize = discards.get(player).size();
 
@@ -1482,7 +1482,7 @@ public class OurEngineTest {
 
         // Verify shop count decremented
         assertEquals("Shop count should decrease by 1", initialShopCount - 1, shop.getNumAvailable(Card.Type.ETHEREUM));
-        
+
         // Verify card added to discard
         assertEquals("Discard size should increase by 1", initialDiscardSize + 1, discards.get(player).size());
 
@@ -1503,7 +1503,7 @@ public class OurEngineTest {
 
         MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Deplete REFACTOR to have only 1 card (starts at 10)
         for (int i = 0; i < 9; i++) {
             shop.decrementCount(Card.Type.REFACTOR);
@@ -1517,7 +1517,7 @@ public class OurEngineTest {
 
         // Verify shop count is now 0
         assertEquals("Shop count should be 0", 0, shop.getNumAvailable(Card.Type.REFACTOR));
-        
+
         // Verify card was still added to discard
         boolean foundRefactor = false;
         for (Card card : discards.get(player)) {
@@ -1601,7 +1601,7 @@ public class OurEngineTest {
 
         MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Deplete all CODE_REVIEW cards (starts at 10)
         for (int i = 0; i < 10; i++) {
             shop.decrementCount(Card.Type.CODE_REVIEW);
@@ -1626,7 +1626,7 @@ public class OurEngineTest {
 
         MutableCardStacks shop = getPrivateField(engine, "shop");
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
-        
+
         // Deplete all FRAMEWORK cards (starts at 8 for 2 players)
         for (int i = 0; i < 8; i++) {
             shop.decrementCount(Card.Type.FRAMEWORK);
@@ -2196,8 +2196,8 @@ public class OurEngineTest {
         assertEquals("Should return EndPhaseDecision", endPhase, result);
     }
 
-    @Test(expected = java.lang.reflect.InvocationTargetException.class)
-    public void testMakeValidDecision_InvalidDecision() throws Exception {
+    @Test
+    public void testMakeValidDecision_InvalidDecision_ThrowsPlayerViolationException() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
         Card validCard = new Card(Card.Type.BITCOIN, 12001);
@@ -2217,18 +2217,18 @@ public class OurEngineTest {
 
         try {
             method.invoke(engine, mockPlayer, validDecisions);
+            fail("Should throw PlayerViolationException for invalid decision");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            // Should throw UnsupportedOperationException from handleCheating
-            assertTrue("Should throw UnsupportedOperationException",
-                    e.getCause() instanceof UnsupportedOperationException);
-            assertTrue("Error message should mention that invalid decisions are not handled",
-                    e.getCause().getMessage().contains("Invalid decisions not yet handled"));
-            throw e;
+            // Should throw PlayerViolationException from makeValidDecision
+            assertTrue("Should throw PlayerViolationException",
+                    e.getCause() instanceof edu.brandeis.cosi.atg.engine.PlayerViolationException);
+            assertTrue("Error message should mention invalid decision",
+                    e.getCause().getMessage().toLowerCase().contains("invalid"));
         }
     }
 
-    @Test(expected = java.lang.reflect.InvocationTargetException.class)
-    public void testMakeValidDecision_NullDecision() throws Exception {
+    @Test
+    public void testMakeValidDecision_NullDecision_ThrowsPlayerViolationException() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
         Card card = new Card(Card.Type.BITCOIN, 13001);
@@ -2244,12 +2244,11 @@ public class OurEngineTest {
 
         try {
             method.invoke(engine, mockPlayer, validDecisions);
+            fail("Should throw PlayerViolationException for null decision");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            // null is not in validDecisions, so should trigger handleCheating
-            assertTrue("Should throw UnsupportedOperationException or NullPointerException",
-                    e.getCause() instanceof UnsupportedOperationException ||
-                            e.getCause() instanceof NullPointerException);
-            throw e;
+            // null is not in validDecisions, so should throw PlayerViolationException
+            assertTrue("Should throw PlayerViolationException",
+                    e.getCause() instanceof edu.brandeis.cosi.atg.engine.PlayerViolationException);
         }
     }
 
@@ -2274,5 +2273,205 @@ public class OurEngineTest {
             // Expected - documents that empty list triggers exception
             assertTrue("Should throw some exception", e.getCause() != null);
         }
+    }
+
+    // ========== Player Disqualification Tests ==========
+
+    @Test
+    public void testConstructor_InitializesDisqualifiedPlayersMap() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        assertNotNull("disqualifiedPlayers should be initialized", disqualifiedPlayers);
+        assertEquals("Should have entries for all players", 2, disqualifiedPlayers.size());
+
+        for (Player p : twoPlayers) {
+            assertTrue("Should have entry for player", disqualifiedPlayers.containsKey(p));
+            assertFalse("All players should start non-disqualified", disqualifiedPlayers.get(p));
+        }
+    }
+
+    @Test
+    public void testHandleCheating_MarksPlayerAsDisqualified() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player cheater = twoPlayers.get(0);
+
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+        assertFalse("Player should start non-disqualified", disqualifiedPlayers.get(cheater));
+
+        // Call handleCheating using reflection
+        java.lang.reflect.Method handleCheating = engine.getClass()
+                .getDeclaredMethod("handleCheating", Player.class,
+                        edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
+        handleCheating.setAccessible(true);
+        handleCheating.invoke(engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
+
+        assertTrue("Player should be disqualified after cheating", disqualifiedPlayers.get(cheater));
+    }
+
+    @Test
+    public void testHandleCheating_DoesNotAffectOtherPlayers() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        Player cheater = threePlayers.get(1);
+        Player innocent1 = threePlayers.get(0);
+        Player innocent2 = threePlayers.get(2);
+
+        // Call handleCheating using reflection
+        java.lang.reflect.Method handleCheating = engine.getClass()
+                .getDeclaredMethod("handleCheating", Player.class,
+                        edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
+        handleCheating.setAccessible(true);
+        handleCheating.invoke(engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
+
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+        assertTrue("Cheater should be disqualified", disqualifiedPlayers.get(cheater));
+        assertFalse("Other player 1 should not be disqualified", disqualifiedPlayers.get(innocent1));
+        assertFalse("Other player 2 should not be disqualified", disqualifiedPlayers.get(innocent2));
+    }
+
+    @Test
+    public void testGetNextPlayer_SkipsDisqualifiedPlayer() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify player at index 1
+        disqualifiedPlayers.put(players.get(1), true);
+
+        // Set active player to player 0
+        setPrivateField(engine, "activePlayer", players.get(0));
+
+        Player next = engine.getNextPlayer();
+        assertEquals("Should skip disqualified player 1 and return player 2", players.get(2), next);
+    }
+
+    @Test
+    public void testGetNextPlayer_SkipsMultipleDisqualifiedPlayers() throws Exception {
+        OurEngine engine = new OurEngine(fourPlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify players at indices 1 and 2
+        disqualifiedPlayers.put(players.get(1), true);
+        disqualifiedPlayers.put(players.get(2), true);
+
+        // Set active player to player 0
+        setPrivateField(engine, "activePlayer", players.get(0));
+
+        Player next = engine.getNextPlayer();
+        assertEquals("Should skip both disqualified players and return player 3", players.get(3), next);
+    }
+
+    @Test
+    public void testGetNextPlayer_WrapsAroundAndSkipsDisqualified() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify player at index 0
+        disqualifiedPlayers.put(players.get(0), true);
+
+        // Set active player to player 2 (last player)
+        setPrivateField(engine, "activePlayer", players.get(2));
+
+        Player next = engine.getNextPlayer();
+        assertEquals("Should wrap around and skip disqualified player 0, returning player 1",
+                players.get(1), next);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testGetNextPlayer_AllButOneDisqualified_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify all but one player
+        disqualifiedPlayers.put(players.get(0), true);
+        disqualifiedPlayers.put(players.get(1), true);
+
+        // Set active player to the only non-disqualified player
+        setPrivateField(engine, "activePlayer", players.get(2));
+
+        // This should throw IllegalStateException
+        engine.getNextPlayer();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testGetNextPlayer_AllDisqualified_ThrowsException() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify all players
+        disqualifiedPlayers.put(players.get(0), true);
+        disqualifiedPlayers.put(players.get(1), true);
+
+        setPrivateField(engine, "activePlayer", players.get(0));
+
+        // This should throw IllegalStateException
+        engine.getNextPlayer();
+    }
+
+    @Test
+    public void testIsGameOver_AllButOneDisqualified_ReturnsTrue() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify all but one player
+        disqualifiedPlayers.put(players.get(0), true);
+        disqualifiedPlayers.put(players.get(1), true);
+
+        assertTrue("Game should be over when all but one player is disqualified", engine.isGameOver());
+    }
+
+    @Test
+    public void testIsGameOver_AllDisqualified_ReturnsTrue() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify all players
+        disqualifiedPlayers.put(players.get(0), true);
+        disqualifiedPlayers.put(players.get(1), true);
+
+        assertTrue("Game should be over when all players are disqualified", engine.isGameOver());
+    }
+
+    @Test
+    public void testIsGameOver_NoPlayersDisqualified_ReturnsFalse() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        assertFalse("Game should not be over when no players are disqualified", engine.isGameOver());
+    }
+
+    @Test
+    public void testIsGameOver_OnePlayerDisqualified_ReturnsFalse() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+
+        // Disqualify one player (leaving two active)
+        disqualifiedPlayers.put(players.get(0), true);
+
+        assertFalse("Game should not be over when two or more players remain", engine.isGameOver());
+    }
+
+    @Test
+    public void testIsGameOver_StillTrueWhenBothConditionsActive() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<Player> players = getPrivateField(engine, "players");
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+
+        // Disqualify one player (game should continue with 2 players)
+        disqualifiedPlayers.put(players.get(0), true);
+
+        // But sell out FRAMEWORK
+        while (shop.getNumAvailable(Card.Type.FRAMEWORK) > 0) {
+            shop.decrementCount(Card.Type.FRAMEWORK);
+        }
+
+        assertTrue("Game should be over when FRAMEWORK is sold out", engine.isGameOver());
     }
 }
