@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
@@ -16,11 +17,13 @@ import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.player.Player;
 
 public class OurEngine implements Engine {
     private GameState.TurnPhase phase;
+    private Map<Player, Boolean> disqualifiedPlayers;
     private List<Player> players;
     private Map<Player, MutableHand> hands;
     private Map<Player, List<Card>> decks;
@@ -29,9 +32,9 @@ public class OurEngine implements Engine {
     private int numActions;
     private int numMoney;
     private int numBuys;
-    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with `shop.toImmutableCardStacks()`
+    private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with
+                                    // `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
-
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -39,7 +42,6 @@ public class OurEngine implements Engine {
     private static final int PLAYER_STARTING_BITCOINS = 7;
     private static final int PLAYER_STARTING_METHODS = 3;
     private static final int HAND_SIZE = 5;
-
 
     /**
      * 1 Argument constructor which initializes the game engine with the provided
@@ -78,10 +80,12 @@ public class OurEngine implements Engine {
         decks = new HashMap<>();
         discards = new HashMap<>();
         hands = new HashMap<>();
+        disqualifiedPlayers = new HashMap<>();
         for (Player p : this.players) {
             hands.put(p, new MutableHand());
             decks.put(p, new ArrayList<>());
             discards.put(p, new ArrayList<>());
+            disqualifiedPlayers.put(p, false);
         }
 
         // Initialize decks with the starting cards then shuffles
@@ -103,10 +107,9 @@ public class OurEngine implements Engine {
         }
 
         ImmutableSet<Type> actionCardsForGame = ImmutableSet.of(
-            Type.CODE_REVIEW,
-            Type.REFACTOR,
-            Type.EVERGREEN_TEST
-        );
+                Type.CODE_REVIEW,
+                Type.REFACTOR,
+                Type.EVERGREEN_TEST);
 
         // Set up shop with starting card quantities
         shop = new MutableCardStacks(this.players.size(), actionCardsForGame);
@@ -147,12 +150,15 @@ public class OurEngine implements Engine {
 
                 } catch (PlayerViolationException e) {
                     handleCheating(activePlayer, e);
+                    phase = GameState.TurnPhase.CLEANUP;
                 }
             }
             // Cleanup phase
             executeCleanupPhase();
         }
-        return endGame();
+        GameResult finalResult = endGame();
+        Renderer.printGameResult(finalResult);
+        return finalResult;
     }
 
     /**
@@ -162,8 +168,7 @@ public class OurEngine implements Engine {
      * @param e       The exception detailing the violation
      */
     private void handleCheating(Player cheater, PlayerViolationException e) {
-        // TODO future week
-        throw new UnsupportedOperationException("Unimplemented method 'handleCheating'");
+        disqualifiedPlayers.put(cheater, true);
     }
 
     /**
@@ -173,7 +178,6 @@ public class OurEngine implements Engine {
     private void executeCleanupPhase() {
         MutableHand hand = hands.get(activePlayer);
         List<Card> discard = discards.get(activePlayer);
-        List<Card> deck = decks.get(activePlayer);
 
         // Discard all cards in hand
         hand.moveAllCardsTo(discard);
@@ -264,8 +268,12 @@ public class OurEngine implements Engine {
      * by calling the process card method for Action or Money cards
      *
      * @param decision The PlayCardDecision made by the active player.
+     * @throws PlayerViolationException      if the player makes an ivalid decision
+     *                                       while processing the card.
+     * @throws UnsupportedOperationException if the card category is not supported.
      */
-    private void processPlayCardDecision(PlayCardDecision decision) {
+    private void processPlayCardDecision(PlayCardDecision decision)
+            throws PlayerViolationException, UnsupportedOperationException {
 
         Card card = decision.card();
 
@@ -285,8 +293,12 @@ public class OurEngine implements Engine {
      * Delegates to specific execute methods based on card type.
      *
      * @param type The type of action card being played
+     * @throws IllegalStateException         if no actions remain for the active
+     *                                       player
+     * @throws UnsupportedOperationException if the action card type is not
+     *                                       supported.
      */
-    private void processPlayActionCard(Card.Type type) {
+    private void processPlayActionCard(Card.Type type) throws PlayerViolationException, UnsupportedOperationException {
 
         // Note: under current implementation, when PARALLELIZATION (Throne Room) is
         // immplemented,
@@ -314,8 +326,10 @@ public class OurEngine implements Engine {
      *
      * @param type The type of money card being played (BITCOIN adds 1, ETHEREUM
      *             adds 2, DOGECOIN adds 3)
+     * @throws UnsupportedOperationException if the money card type is not
+     *                                       supported.
      */
-    private void processPlayMoneyCard(Card.Type type) {
+    private void processPlayMoneyCard(Card.Type type) throws UnsupportedOperationException {
         switch (type) {
             case BITCOIN -> numMoney += 1;
             case ETHEREUM -> numMoney += 2;
@@ -350,8 +364,11 @@ public class OurEngine implements Engine {
      * that costs up to 2 more than the trashed card.
      * Gaining a card is also not optional. Gained cards are placed into the
      * player's discard pile.
+     *
+     * @throws PlayerViolationException if the player makes an invalid decision
+     *                                  during transh or gain phases.
      */
-    private void executeActionRefactor() {
+    private void executeActionRefactor() throws PlayerViolationException {
 
         ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
         Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
@@ -368,7 +385,8 @@ public class OurEngine implements Engine {
         int cardCost = trashCardDecision.card().cost();
         int maxGainCost = cardCost + 2;
 
-        // Create list of gain decisions based on all cards available to gain in the cardstacks that cost <= max cost
+        // Create list of gain decisions based on all cards available to gain in the
+        // cardstacks that cost <= max cost
         ImmutableList.Builder<Decision> gainDecisionsBuilder = ImmutableList.builder();
 
         ImmutableSet<Type> availableCardTypes = shop.availableCardsForCost(maxGainCost);
@@ -377,7 +395,7 @@ public class OurEngine implements Engine {
             // If there are no possible cards to gain (unlikely) give a end phase decision
             gainDecisionsBuilder.add(new EndPhaseDecision(TurnPhase.GAIN));
         }
-        
+
         for (Type cardType : availableCardTypes) {
             gainDecisionsBuilder.add(new GainCardDecision(cardType));
         }
@@ -397,7 +415,7 @@ public class OurEngine implements Engine {
         GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
         processGainingCard(gainCardDecision.cardType(), activePlayer);
         phase = TurnPhase.ACTION; // Reset phase to action
-      
+
     }
 
     /**
@@ -416,7 +434,10 @@ public class OurEngine implements Engine {
         for (int i = 1; i < players.size(); i++) {
             int playerIndex = (players.indexOf(activePlayer) + i) % players.size();
             Player p = players.get(playerIndex);
-            processGainingCard(Type.BUG, p);
+            // Skip disqualified players, they do not gain the bug
+            if (!disqualifiedPlayers.get(p)) {
+                processGainingCard(Type.BUG, p);
+            }
         }
     }
 
@@ -461,7 +482,7 @@ public class OurEngine implements Engine {
             // none left in the supply
             return false;
         }
-        
+
         shop.decrementCount(type);
 
         // Create new card instance and add to player's discard pile
@@ -476,6 +497,9 @@ public class OurEngine implements Engine {
      * Make sure to update the shop inventory, numMoney, and numBuys.
      *
      * @param decision The BuyDecision made by the active player.
+     * @throws IllegalStateException if the card is out of stock, the player has
+     *                               insufficient money, or the player has no buys
+     *                               remaining.
      */
     private void processBuyDecision(BuyDecision decision) {
         Type type = decision.cardType();
@@ -526,11 +550,12 @@ public class OurEngine implements Engine {
      * @return A validated decision that is guaranteed to be in the validDecisions
      *         list
      */
-    private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions) {
+    private Decision makeValidDecision(Player player, ImmutableList<Decision> validDecisions)
+            throws PlayerViolationException {
         Decision decision = player.makeDecision(buildGameState(), validDecisions);
         if (!validateDecision(decision, validDecisions)) {
-            throw new UnsupportedOperationException("Invalid decisions not yet handled");
-            // throw new PlayerViolationException("Invalid decision made");
+            String decisionStr = (decision == null) ? "null" : decision.toString();
+            throw new PlayerViolationException("Player made an invalid decision: " + decisionStr);
         }
         return decision;
     }
@@ -541,8 +566,15 @@ public class OurEngine implements Engine {
      * @return The next player in turn order.
      */
     @VisibleForTesting
-    Player getNextPlayer() {
-        return players.get((players.indexOf(activePlayer) + 1) % players.size());
+    Player getNextPlayer() throws IllegalStateException {
+        if (disqualifiedPlayers.values().stream().filter(disqualified -> disqualified).count() >= players.size() - 1) {
+            throw new IllegalStateException("All but one player is disqualified, game should be over");
+        }
+        Player nextPlayer = players.get((players.indexOf(activePlayer) + 1) % players.size());
+        while (disqualifiedPlayers.get(nextPlayer)) {
+            nextPlayer = players.get((players.indexOf(nextPlayer) + 1) % players.size());
+        }
+        return nextPlayer;
     }
 
     /**
@@ -589,24 +621,12 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Builds the list of all valid decisions for the GAIN phase, based on the card
-     * that triggered the gain.
-     *
-     * @return An ImmutableList of Decision objects for the GAIN phase.
-     */
-    private ImmutableList<Decision> buildGainDecisions(Type triggeredBy) {
-        // TODO: Oneg: Likely a future week issue since it's related to action
-        // functionality
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
      * Builds the list of all valid decisions for the BUY phase.
      *
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     private ImmutableList<Decision> buildBuyDecisions() {
-        
+
         ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
 
         if (numBuys <= 0) {
@@ -651,14 +671,13 @@ public class OurEngine implements Engine {
      */
     private GameState buildGameState() {
         GameState gamestate = new GameState(
-            activePlayer.getName(),
-            hands.get(activePlayer).toImmutableHand(),
-            phase,
-            numActions,
-            numMoney,
-            numBuys,
-            shop.toImmutableCardStacks()
-        );
+                activePlayer.getName(),
+                hands.get(activePlayer).toImmutableHand(),
+                phase,
+                numActions,
+                numMoney,
+                numBuys,
+                shop.toImmutableCardStacks());
         return gamestate;
     }
 
@@ -670,6 +689,11 @@ public class OurEngine implements Engine {
      */
     @VisibleForTesting
     boolean isGameOver() {
+        long disqualifiedPlayerCount = disqualifiedPlayers.values().stream().filter(disqualified -> disqualified)
+                .count();
+        if (disqualifiedPlayerCount >= players.size() - 1) {
+            return true;
+        }
         return shop.getNumAvailable(Type.FRAMEWORK) == 0;
     }
 
@@ -679,8 +703,46 @@ public class OurEngine implements Engine {
      * @return The final GameResult object.
      */
     private GameResult endGame() {
-        // TODO: Future Week
-        throw new UnsupportedOperationException("Not yet implemented");
+        ImmutableList.Builder<PlayerResult> playerResultsBuilder = ImmutableList.builder();
+        // Sort players by score in descending order for nicer end game results display
+        players.sort((p1, p2) -> Integer.compare(calculatePlayerScore(p2), calculatePlayerScore(p1)));
+        for (Player p : players) {
+            // Don't love that we're calculating the score twice but I don't see a better
+            // way to do it
+            int score = calculatePlayerScore(p);
+            // Since calculatePlayerScore moves all cards to the discard pile, we can just
+            // copy the discard pile for the final deck
+            playerResultsBuilder.add(new PlayerResult(p.getName(), score, ImmutableList.copyOf(discards.get(p))));
+        }
+        GameResult result = new GameResult(playerResultsBuilder.build());
+        return result;
+    }
+
+    /**
+     * Calculates the final score for a player by counting the victory points in
+     * their discard pile, hand, and deck. This method is called at the end of the
+     * game. All cards from the player's hand and deck are moved to their discard
+     * pile, and the score is calculated based on the total victory points in the
+     * discard pile.
+     *
+     * @param p The player whose score is being calculated
+     * @return The final score for the player
+     */
+    private int calculatePlayerScore(Player p) {
+        MutableHand hand = hands.get(p);
+        List<Card> deck = decks.get(p);
+        List<Card> discard = discards.get(p);
+        int score = 0;
+        // move cards to discard from hand and deck
+        hand.moveAllCardsTo(discard);
+        deck.forEach(discard::add);
+        deck.clear();
+        for (Card card : discard) {
+            if (card.getCategory() == Card.Type.Category.VICTORY) {
+                score += card.value();
+            }
+        }
+        return score;
     }
 
     /**
