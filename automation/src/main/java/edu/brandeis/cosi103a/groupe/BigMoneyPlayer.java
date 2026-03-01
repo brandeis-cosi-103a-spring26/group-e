@@ -12,8 +12,8 @@ import com.google.common.collect.ImmutableList;
 public class BigMoneyPlayer extends AbstractPlayer {
 
     /**
-     * Makes a decision based on the current game state and available options. The AI Player
-     * currently follows the Big Money Player basic strategy.
+     * Makes a decision based on the current game state and available options. This player follows
+     * the basic Big Money strategy
      * 
      * @param state The current game state.
      * @param options The list of available decisions.
