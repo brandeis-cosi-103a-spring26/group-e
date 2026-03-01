@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableList;
 public class HandEVPlayer extends AbstractPlayer {
     
     // Track deck statistics to inform buy decisions
+    private final int HAND_SIZE = 5; // Assuming a hand size of 5 for expected value calculations
     private int deckSize;
     private int totalMoneyInDeck;
 
@@ -77,11 +78,11 @@ public class HandEVPlayer extends AbstractPlayer {
         // Try to find each preferred card in order
         for (Card.Type preferredType : preferredCards) {
             // Skip Framework if the expected value of a hand is less than Framework cost
-            
+
             // This is imperfect because the player can't track when it gains a Bug, but it's
             // a reasonable heuristic to avoid buying Framework too early
             if (preferredType == Card.Type.FRAMEWORK
-                && 5 * totalMoneyInDeck / deckSize < Card.Type.FRAMEWORK.cost()) {
+                && HAND_SIZE * totalMoneyInDeck / deckSize < Card.Type.FRAMEWORK.cost()) {
                 continue;
             }
 
@@ -90,7 +91,9 @@ public class HandEVPlayer extends AbstractPlayer {
                     if (buyDecision.cardType() == preferredType) {
                         // Update deck statistics if we buy a card
                         deckSize++;
-                        totalMoneyInDeck += buyDecision.cardType().cost();
+                        if (buyDecision.cardType().category() == Card.Type.Category.MONEY) {
+                            totalMoneyInDeck += buyDecision.cardType().value();
+                        }
                         return buyDecision;
                     }
                 }
