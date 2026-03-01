@@ -3142,4 +3142,196 @@ public class OurEngineTest {
             System.setOut(originalOut);
         }
     }
+
+    // ========== play() Integration Tests ==========
+
+    /**
+     * A player that always returns null from makeDecision, triggering
+     * PlayerViolationException and disqualification.
+     */
+    private static class CheaterPlayer implements Player {
+        @Override
+        public String getName() {
+            return "Cheater";
+        }
+
+        @Override
+        public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
+            return null;
+        }
+    }
+
+    @Test
+    public void testPlay_TwoPlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_ThreePlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_FourPlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(fourPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_ResultHasCorrectPlayerCount() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertEquals("GameResult should contain the same number of players as input",
+                    twoPlayers.size(), result.playerResults().size());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_AllScoresNonNegative() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            for (PlayerResult pr : result.playerResults()) {
+                assertTrue("All player scores should be non-negative", pr.score() >= 0);
+            }
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_ResultSortedByScoreDescending() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            List<PlayerResult> results = result.playerResults();
+            for (int i = 0; i < results.size() - 1; i++) {
+                assertTrue("Results should be sorted in descending order by score",
+                        results.get(i).score() >= results.get(i + 1).score());
+            }
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_EndingDecksHaveMinimumCardCount() throws Exception {
+        // Each player starts with 10 cards (7 Bitcoins + 3 Methods) and may only gain
+        // more
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            for (PlayerResult pr : result.playerResults()) {
+                assertTrue("Each player's ending deck should have at least 10 cards (starting deck size)",
+                        pr.endingDeck().size() >= 10);
+            }
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_ResultPlayerNamesMatchInputPlayers() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            List<String> resultNames = new ArrayList<>();
+            for (PlayerResult pr : result.playerResults()) {
+                resultNames.add(pr.playerName());
+            }
+            for (Player p : twoPlayers) {
+                assertTrue("All input player names should appear in the result",
+                        resultNames.contains(p.getName()));
+            }
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_CheatingPlayer_GameStillCompletes() throws Exception {
+        // When one player cheats, they are disqualified and the game ends immediately
+        // since only one qualified player remains
+        List<Player> players = new ArrayList<>();
+        players.add(new CheaterPlayer());
+        players.add(new AIPlayer());
+
+        OurEngine engine = new OurEngine(players);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertNotNull("Game should still return a result when a player cheats", result);
+            assertEquals("Result should still contain all players", 2, result.playerResults().size());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPlay_CheatingPlayer_DoesNotCauseExceptionInCaller() {
+        // PlayerViolationException should be handled internally; play() should not
+        // propagate it to the caller
+        List<Player> players = new ArrayList<>();
+        players.add(new AIPlayer());
+        players.add(new CheaterPlayer());
+
+        OurEngine engine = new OurEngine(players);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should not propagate PlayerViolationException", result);
+        } catch (Exception e) {
+            fail("play() should not throw an exception when a player cheats: " + e.getMessage());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
 }
