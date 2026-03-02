@@ -764,4 +764,177 @@ public class PlayerInfoTest {
         assertTrue("Gained card should eventually be in deck or hand after reshuffling", foundNewCard);
     }
 
+    // ========== Score Calculation Tests ==========
+
+    @Test
+    public void testGetScore_InitiallyZero() {
+        assertEquals("Score should be 0 before calculation", 0, playerInfo.getScore());
+    }
+
+    @Test
+    public void testCalculateScore_WithVictoryCards() throws Exception {
+        // Clear initial cards and add known cards
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        unplayedCards.clear();
+        deck.clear();
+        discard.clear();
+        
+        // Add victory cards to deck
+        deck.add(new Card(Type.METHOD, 1000)); // 1 point
+        deck.add(new Card(Type.MODULE, 1001)); // 3 points
+        deck.add(new Card(Type.FRAMEWORK, 1002)); // 6 points
+        
+        // Add non-victory cards to hand
+        playerInfo.gainCard(new Card(Type.BITCOIN, 1003));
+        playerInfo.gainCard(new Card(Type.ETHEREUM, 1004));
+        
+        playerInfo.calculateScore();
+        
+        assertEquals("Score should be sum of victory card values (1+3+6=10)", 10, playerInfo.getScore());
+    }
+
+    @Test
+    public void testCalculateScore_WithNoVictoryCards() throws Exception {
+        // Clear initial cards and add only non-victory cards
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        unplayedCards.clear();
+        deck.clear();
+        discard.clear();
+        
+        deck.add(new Card(Type.BITCOIN, 2000));
+        deck.add(new Card(Type.ETHEREUM, 2001));
+        
+        playerInfo.calculateScore();
+        
+        assertEquals("Score should be 0 with no victory cards", 0, playerInfo.getScore());
+    }
+
+    @Test
+    public void testCalculateScore_MovesAllCardsToDiscard() throws Exception {
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        
+        int initialTotalCards = playerInfo.getUnplayedCards().size() + deck.size() + discard.size();
+        
+        playerInfo.calculateScore();
+        
+        assertEquals("Hand should be empty after score calculation", 0, playerInfo.getUnplayedCards().size());
+        assertEquals("Deck should be empty after score calculation", 0, deck.size());
+        assertEquals("All cards should be in discard pile", initialTotalCards, discard.size());
+    }
+
+    @Test
+    public void testCalculateScore_WithVictoryCardsInHand() throws Exception {
+        // Clear initial cards
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        unplayedCards.clear();
+        deck.clear();
+        discard.clear();
+        
+        // Add victory cards through gainCard (goes to discard) then draw them
+        Card method = new Card(Type.METHOD, 3000);
+        Card module = new Card(Type.MODULE, 3001);
+        
+        deck.add(method);
+        deck.add(module);
+        
+        // Draw them into hand
+        playerInfo.drawCard();
+        playerInfo.drawCard();
+        
+        playerInfo.calculateScore();
+        
+        assertEquals("Score should include victory cards from hand (1+3=4)", 4, playerInfo.getScore());
+    }
+
+    @Test
+    public void testCalculateScore_MultipleVictoryCardsOfSameType() throws Exception {
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        unplayedCards.clear();
+        deck.clear();
+        discard.clear();
+        
+        // Add 3 METHOD cards (1 point each)
+        deck.add(new Card(Type.METHOD, 4000));
+        deck.add(new Card(Type.METHOD, 4001));
+        deck.add(new Card(Type.METHOD, 4002));
+        
+        playerInfo.calculateScore();
+        
+        assertEquals("Score should be sum of all victory cards (1+1+1=3)", 3, playerInfo.getScore());
+    }
+
+    @Test
+    public void testCalculateScore_Idempotent() throws Exception {
+        MutableHand hand = getPrivateField(playerInfo, "hand");
+        List<Card> unplayedCards = getPrivateField(hand, "unplayedCards");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        unplayedCards.clear();
+        deck.clear();
+        discard.clear();
+        
+        // Add victory cards
+        deck.add(new Card(Type.METHOD, 5000));
+        deck.add(new Card(Type.MODULE, 5001));
+        
+        // First call
+        playerInfo.calculateScore();
+        int firstScore = playerInfo.getScore();
+        assertEquals("First calculation should be 4 points (1+3)", 4, firstScore);
+        
+        // Call again
+        playerInfo.calculateScore();
+        assertEquals("Second calculation should not change score", firstScore, playerInfo.getScore());
+        
+        // Call a third time
+        playerInfo.calculateScore();
+        assertEquals("Third calculation should not change score", firstScore, playerInfo.getScore());
+    }
+
+    // ========== Disqualification Tests ==========
+
+    @Test
+    public void testIsDisqualified_InitiallyFalse() {
+        assertFalse("Player should not be disqualified initially", playerInfo.isDisqualified());
+    }
+
+    @Test
+    public void testForfeit_SetsDisqualifiedToTrue() {
+        playerInfo.forfeit();
+        assertTrue("Player should be disqualified after forfeit", playerInfo.isDisqualified());
+    }
+
+    @Test
+    public void testForfeit_CanBeCalledMultipleTimes() {
+        playerInfo.forfeit();
+        playerInfo.forfeit();
+        assertTrue("Player should remain disqualified", playerInfo.isDisqualified());
+    }
+
+    @Test
+    public void testDisqualification_DoesNotAffectOtherState() throws Exception {
+        // Set up some state
+        playerInfo.adjustMoney(5);
+        playerInfo.gainCard(new Card(Type.ETHEREUM, 5000));
+        
+        playerInfo.forfeit();
+        
+        // State should be unchanged
+        assertEquals("Money should be unchanged by disqualification", 5, playerInfo.numMoney());
+        assertTrue("Player should still be disqualified", playerInfo.isDisqualified());
+    }
+
 }

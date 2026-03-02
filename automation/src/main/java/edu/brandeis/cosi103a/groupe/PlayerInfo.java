@@ -29,6 +29,7 @@ public class PlayerInfo {
     private List<Card> discard;
     private TurnInfo turnInfo;
     private int score;
+    private boolean scoreCalculated;
     private boolean disqualified;
 
     // Constants
@@ -53,6 +54,7 @@ public class PlayerInfo {
         discard = new ArrayList<>();
         turnInfo = new TurnInfo();
         score = 0;
+        scoreCalculated = false;
         disqualified = false;
         // Initialize the player's deck with starting cards, then shuffle
         for (int i = 0; i < PLAYER_STARTING_BITCOINS; i++) {
@@ -274,13 +276,56 @@ public class PlayerInfo {
         turnInfo.reset();
     }
 
-    // TODO: public void calculateScore()
+    /**
+     * Calculates and stores the player's final score based on victory cards.
+     * Moves all cards from hand and deck to the discard pile, then sums the
+     * point values of all victory cards in the discard pile.
+     * Should be called at the end of the game.
+     * 
+     * This method is idempotent - calling it multiple times will not recalculate
+     * or change the score after the first call.
+     */
+    public void calculateScore() {
+        if (!scoreCalculated) {
+            // move cards to discard from hand and deck
+            hand.moveAllCardsTo(discard);
+            deck.forEach(discard::add);
+            deck.clear();
+            for (Card card : discard) {
+                if (card.getCategory() == Card.Type.Category.VICTORY) {
+                    score += card.value();
+                }
+            }
+        }
+        scoreCalculated = true;
+    }
 
-    // TODO: public int getScore()
+    /**
+     * Gets the player's calculated score.
+     * Returns 0 until calculateScore() has been called.
+     * 
+     * @return The player's score based on victory card point values
+     */
+    public int getScore() {
+        return score;
+    }
 
-    // TODO: public void forfeit()
+    /**
+     * Forfeits the game for this player, marking them as disqualified.
+     * Called when the player violates game rules or makes invalid decisions.
+     */
+    public void forfeit() {
+        disqualified = true;
+    }
 
-    // TODO: public boolean isDisqualified()
+    /**
+     * Checks whether this player has been disqualified from the game.
+     * 
+     * @return true if the player has been disqualified, false otherwise
+     */
+    public boolean isDisqualified() {
+        return disqualified;
+    }
 
     /**
      * Determines if this PlayerInfo represents the same player as another object.
