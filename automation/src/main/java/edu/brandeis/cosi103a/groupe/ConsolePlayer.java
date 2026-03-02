@@ -76,6 +76,17 @@ public class ConsolePlayer extends AbstractPlayer {
      */
     @Override
     public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
+        
+        if (state.phase() == TurnPhase.ACTION && options.size() == 1 && options.get(0) instanceof EndPhaseDecision && state.availableActions() == 0) {
+            // If the only option is to end the action phase due to no actions remaining, we can skip prompting the user and just return that decision
+            return options.get(0);
+        }
+
+        if (state.phase() == TurnPhase.BUY && options.size() == 1 && options.get(0) instanceof EndPhaseDecision && state.availableBuys() == 0) {
+            // If the only option is to end the buy phase due to no buys remaining, we can skip prompting the user and just return that decision
+            return options.get(0);
+        }
+
         // Check if we're in auto-play mode during Money phase
         boolean isMoneyPhase = state.phase() == GameState.TurnPhase.MONEY;
         
@@ -99,10 +110,6 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        if (state.phase() == TurnPhase.BUY && options.size() == 1 && options.get(0) instanceof EndPhaseDecision && state.availableBuys() == 0) {
-            // If the only option is to end the buy phase due to no buys remaining, we can skip prompting the user and just return that decision
-            return options.get(0);
-        }
         
         // Not in auto-play mode or no treasures available - get user input
         // Render the current game state to the console

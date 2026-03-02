@@ -20,8 +20,8 @@ import edu.brandeis.cosi.atg.decisions.*;;
 public class Renderer {
     
     // Layout constants
-    private static final int SCREEN_WIDTH = 50;
-    private static final int COLUMN_WIDTH = 24;
+    private static final int SCREEN_WIDTH = 76;
+    private static final int COLUMN_WIDTH = 22;
     private static final int SUPPLY_GAP = 2;
 
 
@@ -447,24 +447,25 @@ public class Renderer {
             playedCards.add(c);
         }
         
-        // Print column headers
-        System.out.print(" ".repeat(2));
+        // Print column headers (* space + content start)
+        System.out.print(" "); // Space for * marker
+        System.out.print(" ".repeat(1));
         System.out.print(ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP));
+        System.out.print(" ".repeat(SUPPLY_GAP+2));
         System.out.print(ansi().fgYellow().bold().a(fixedWidth("TREASURES", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP));
+        System.out.print(" ".repeat(SUPPLY_GAP+2));
         System.out.print(ansi().fgGreen().bold().a(fixedWidth("VICTORIES", pileWidth)).reset());
         System.out.println();
         
-        System.out.print(" ".repeat(2));
-        System.out.println("─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP) + 
-                          "─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP) + 
+        System.out.print(" "); // Space for * marker
+        System.out.print(" ".repeat(1));
+        System.out.println("─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP+2) + 
+                          "─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP+2) + 
                           "─".repeat(pileWidth));
         
         // Display cards in columns WITH DECISION NUMBERS
         int maxRows = Math.max(actionCards.size(), Math.max(treasureCards.size(), victoryCards.size()));
         for (int i = 0; i < maxRows; i++) {
-            System.out.print(" ".repeat(2));
             
             // Action column
             if (i < actionCards.size()) {
@@ -474,17 +475,17 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(ansi().fgBrightBlue().a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(ansi().fgRed().a("*").reset());
                 } else {
-                    System.out.print("  ");
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(ansi().fgBrightBlue().a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(" ");
                 }
+                System.out.print(" ".repeat(1));
+                int cost = getCost(cardType);
+                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
+                System.out.print(ansi().fgBrightBlue().a(fixedWidth(pile, pileWidth)).reset());
             } else {
+                System.out.print(" ");
+                System.out.print(" ");
                 System.out.print(fixedWidth("", pileWidth));
             }
             System.out.print(" ".repeat(SUPPLY_GAP));
@@ -497,17 +498,17 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(ansi().fgYellow().a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(ansi().fgRed().a("*").reset());
                 } else {
-                    System.out.print("  ");
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(ansi().fgYellow().a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(" ");
                 }
+                System.out.print(" ");
+                int cost = getCost(cardType);
+                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
+                System.out.print(ansi().fgYellow().a(fixedWidth(pile, pileWidth)).reset());
             } else {
+                System.out.print(" ");
+                System.out.print(" ");
                 System.out.print(fixedWidth("", pileWidth));
             }
             System.out.print(" ".repeat(SUPPLY_GAP));
@@ -523,17 +524,17 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(colorAnsi.a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(ansi().fgRed().a("*").reset());
                 } else {
-                    System.out.print("  ");
-                    int cost = getCost(cardType);
-                    String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                    System.out.print(colorAnsi.a(fixedWidth(pile, pileWidth - 2)).reset());
+                    System.out.print(" ");
                 }
+                System.out.print(" ");
+                int cost = getCost(cardType);
+                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
+                System.out.print(colorAnsi.a(fixedWidth(pile, pileWidth)).reset());
             } else {
+                System.out.print(" ");
+                System.out.print(" ");
                 System.out.print(fixedWidth("", pileWidth));
             }
             
@@ -555,7 +556,8 @@ public class Renderer {
         } else {
             for (Card card : playedCards) {
                 String cardText = "• " + displayName(card.type());
-                int cardPadding = (SCREEN_WIDTH - cardText.length()) / 2;
+                // int cardPadding = (SCREEN_WIDTH - cardText.length()) / 2;
+                int cardPadding = (SCREEN_WIDTH) / 3 + 5; // May not work for all screen widths
                 System.out.print(" ".repeat(cardPadding));
                 System.out.println(colorForCategory(card.getCategory()).a(cardText).reset());
             }
@@ -587,8 +589,9 @@ public class Renderer {
         if (maxHandRows == 0) maxHandRows = 1; // Show at least headers
         
         // Calculate padding to center the treasure column (middle column)
-        int totalHandWidth = COLUMN_WIDTH * 3;
-        int handLeftPadding = Math.max(0, (SCREEN_WIDTH - totalHandWidth) / 2) + 2;
+        // Account for potential * markers (2 chars per column)
+        int totalHandWidth = COLUMN_WIDTH * 3 + 6; // +6 for "* " on each of 3 columns
+        int handLeftPadding = Math.max(0, (SCREEN_WIDTH - totalHandWidth) / 2);
         
         for (int i = 0; i < maxHandRows; i++) {
             // Add left padding to center the hand
@@ -600,13 +603,15 @@ public class Renderer {
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
                     System.out.print(ansi().fgRed().a("* ").reset());
-                    System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
-                    System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                    System.out.print("  ");
                 }
+                System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
             } else if (i == 0) {
+                System.out.print("  ");
                 System.out.print(ansi().fgBrightBlue().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
             } else {
+                System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
             
@@ -616,13 +621,15 @@ public class Renderer {
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
                     System.out.print(ansi().fgRed().a("* ").reset());
-                    System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
-                    System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                    System.out.print("  ");
                 }
+                System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
             } else if (i == 0) {
+                System.out.print("  ");
                 System.out.print(ansi().fgYellow().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
             } else {
+                System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
             
@@ -632,13 +639,15 @@ public class Renderer {
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
                     System.out.print(ansi().fgRed().a("* ").reset());
-                    System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
-                    System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                    System.out.print("  ");
                 }
+                System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
             } else if (i == 0) {
+                System.out.print("  ");
                 System.out.print(ansi().fgGreen().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
             } else {
+                System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
             
@@ -722,6 +731,7 @@ public class Renderer {
         int availableBuys = 1;
         CardStacks buyableCards = new CardStacks(
             ImmutableMap.of(
+                Type.BUG, 12,
                 Type.METHOD, 12,
                 Type.MODULE, 12,
                 Type.FRAMEWORK, 12,

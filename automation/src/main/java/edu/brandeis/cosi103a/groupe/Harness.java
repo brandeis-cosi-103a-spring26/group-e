@@ -385,7 +385,7 @@ public class Harness {
                         if (card.getCategory() == Card.Type.Category.MONEY) {
                             choice = option;
                             autoPlayRequested = true;
-                            System.out.println(ansi().fg(GREEN).a("✓ Auto-playing all treasure cards...").reset());
+                            // System.out.println(ansi().fg(GREEN).a("✓ Auto-playing all treasure cards...").reset());
                             break;
                         }
                     }
