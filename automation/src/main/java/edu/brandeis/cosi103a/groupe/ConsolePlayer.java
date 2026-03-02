@@ -16,7 +16,8 @@ public class ConsolePlayer extends AbstractPlayer {
     @Override
     public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
         // Render the current game state to the console
-        Renderer.renderGame(state);
+        // Renderer.renderGame(state);
+        Renderer.renderGameWithDecisions(state, options);
 
         return Harness.getDecisionFromConsole(options);
     }

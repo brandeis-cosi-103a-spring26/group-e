@@ -188,11 +188,11 @@ public class Harness {
             return options.get(0);
         }
 
-        // Print available options
-        System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
-        for (int i = 0; i < options.size(); i++) {
-            System.out.println(ansi().fg(YELLOW).a("  " + (i + 1) + ". " + options.get(i).getDescription()).reset());
-        }
+        // // Print available options
+        // System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
+        // for (int i = 0; i < options.size(); i++) {
+        //     System.out.println(ansi().fg(YELLOW).a("  " + (i + 1) + ". " + options.get(i).getDescription()).reset());
+        // }
 
         // Prompt user for input until a valid choice is made
         System.out.print(ansi().fg(GREEN).a("Enter the number of your chosen option: ").reset());
