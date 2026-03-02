@@ -16,6 +16,7 @@ import edu.brandeis.cosi.atg.decisions.*;
 public class Harness {
 
     private static Scanner scanner = new Scanner(System.in);
+    private static boolean autoPlayRequested = false;
 
     /**
      * Prompts user for number/type of players
@@ -232,11 +233,10 @@ public class Harness {
             System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
         } else {
             Card.Type foundType = matches.get(0);
-            Card card = new Card(foundType, 0);
             System.out.println(ansi().fg(CYAN).a("\n═══ " + getDisplayName(foundType) + " ═══").reset());
-            System.out.println(ansi().fg(YELLOW).a("Cost: $" + card.cost()).reset());
+            System.out.println(ansi().fg(YELLOW).a("Cost: $" + foundType.cost()).reset());
             System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
-            System.out.println(ansi().fg(WHITE).a("Description: " + card.description()).reset());
+            System.out.println(ansi().fg(WHITE).a("Description: " + ConsolePlayer.getCardDescription(foundType)).reset());
             System.out.println();
         }
     }
@@ -251,7 +251,7 @@ public class Harness {
      * @return the {@link Decision} chosen by the user from the provided options
      */
     public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
-        return getDecisionFromConsole(options, scanner);
+        return getDecisionFromConsole(null, options, scanner);
     }
 
     /**
@@ -264,6 +264,46 @@ public class Harness {
      * @return the {@link Decision} chosen by the user from the provided options
      */
     static Decision getDecisionFromConsole(ImmutableList<Decision> options, Scanner inputScanner) {
+        return getDecisionFromConsole(null, options, inputScanner);
+    }
+
+    /**
+     * Checks if the last decision request triggered auto-play mode.
+     * This method returns true once and then resets the flag.
+     * 
+     * @return true if auto-play was requested, false otherwise
+     */
+    public static boolean wasAutoPlayRequested() {
+        boolean result = autoPlayRequested;
+        autoPlayRequested = false;
+        return result;
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options.
+     * If the only available option is an {@link EndPhaseDecision}, the user is
+     * prompted to press enter to continue and that decision is returned.
+     *
+     * @param state the current game state (may be null)
+     * @param options an immutable list of available {@link Decision} options for
+     *                the user
+     * @return the {@link Decision} chosen by the user from the provided options
+     */
+    public static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options) {
+        return getDecisionFromConsole(state, options, scanner);
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options using the specified Scanner.
+     * If the only available option is an {@link EndPhaseDecision}, the user is
+     * prompted to press enter to continue and that decision is returned.
+     *
+     * @param state the current game state (may be null)
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @param inputScanner the Scanner to use for reading user input
+     * @return the {@link Decision} chosen by the user from the provided options
+     */
+    static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options, Scanner inputScanner) {
 
         // Defensively ensure we have at least one option; otherwise, we could loop
         // forever.
@@ -279,6 +319,9 @@ public class Harness {
             return options.get(0);
         }
 
+        // Determine if we're in the Money phase
+        boolean isMoneyPhase = (state != null && state.phase() == edu.brandeis.cosi.atg.state.GameState.TurnPhase.MONEY);
+
         // // Print available options
         // System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
         // for (int i = 0; i < options.size(); i++) {
@@ -288,7 +331,12 @@ public class Harness {
         // Prompt user for input until a valid choice is made
         Decision choice = null;
         while (choice == null) {
-            System.out.print(ansi().fg(GREEN).a("Enter card name, E to end phase, or 'man <cardname>' for info: ").reset());
+            // Only prompt if not in auto-play mode
+            if (isMoneyPhase) {
+                System.out.print(ansi().fg(GREEN).a("Enter card name, A to play all treasures, E to end phase, or 'man <cardname>' for info: ").reset());
+            } else {
+                System.out.print(ansi().fg(GREEN).a("Enter card name, E to end phase, or 'man <cardname>' for info: ").reset());
+            }
             String input = inputScanner.nextLine().trim();
             
             // Handle empty input
@@ -319,6 +367,32 @@ public class Harness {
                 }
                 if (choice == null) {
                     System.out.println(ansi().fg(RED).a("✗ Cannot end phase right now.").reset());
+                }
+                continue;
+            }
+            
+            // Handle "A" for auto-play all treasures in Money phase
+            if (input.equalsIgnoreCase("a") || input.equalsIgnoreCase("auto")) {
+                if (!isMoneyPhase) {
+                    System.out.println(ansi().fg(RED).a("✗ Auto-play is only available during the Money phase.").reset());
+                    continue;
+                }
+                
+                // Find the first treasure card to play and signal auto-play mode
+                for (Decision option : options) {
+                    if (option instanceof PlayCardDecision) {
+                        Card card = ((PlayCardDecision) option).card();
+                        if (card.getCategory() == Card.Type.Category.MONEY) {
+                            choice = option;
+                            autoPlayRequested = true;
+                            System.out.println(ansi().fg(GREEN).a("✓ Auto-playing all treasure cards...").reset());
+                            break;
+                        }
+                    }
+                }
+                
+                if (choice == null) {
+                    System.out.println(ansi().fg(RED).a("✗ No treasure cards available to play.").reset());
                 }
                 continue;
             }

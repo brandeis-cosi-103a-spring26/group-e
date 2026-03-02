@@ -21,7 +21,7 @@ public class Renderer {
     
     // Layout constants
     private static final int SCREEN_WIDTH = 50;
-    private static final int COLUMN_WIDTH = 22;
+    private static final int COLUMN_WIDTH = 24;
     private static final int SUPPLY_GAP = 2;
 
 
@@ -664,12 +664,6 @@ public class Renderer {
 
         System.out.println("\n");
         
-        // // Bottom instruction
-        // String instruction = "Press the number of the decision you want to make or E to end phase.";
-        // int instructionPadding = Math.max(0, (SCREEN_WIDTH - instruction.length()) / 2);
-        // System.out.print(" ".repeat(instructionPadding));
-        // System.out.println(ansi().fgBrightYellow().a(instruction).reset());
-        // System.out.println();
     }
 
     /**
