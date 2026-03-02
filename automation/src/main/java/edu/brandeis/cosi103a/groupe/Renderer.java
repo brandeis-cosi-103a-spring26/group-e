@@ -474,7 +474,7 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     int cost = getCost(cardType);
                     String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
                     System.out.print(ansi().fgBrightBlue().a(fixedWidth(pile, pileWidth - 2)).reset());
@@ -497,7 +497,7 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     int cost = getCost(cardType);
                     String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
                     System.out.print(ansi().fgYellow().a(fixedWidth(pile, pileWidth - 2)).reset());
@@ -523,7 +523,7 @@ public class Renderer {
                 // Check if this card type has a decision
                 if (supplyDecisionMap.containsKey(cardType)) {
                     int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     int cost = getCost(cardType);
                     String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
                     System.out.print(colorAnsi.a(fixedWidth(pile, pileWidth - 2)).reset());
@@ -599,7 +599,7 @@ public class Renderer {
                 Card card = actionsInHand.get(i);
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
                     System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
@@ -615,7 +615,7 @@ public class Renderer {
                 Card card = treasuresInHand.get(i);
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
                     System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
@@ -631,7 +631,7 @@ public class Renderer {
                 Card card = victoriesInHand.get(i);
                 if (handDecisionMap.containsKey(card)) {
                     int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a(decisionNum + " ").reset());
+                    System.out.print(ansi().fgRed().a("* ").reset());
                     System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH - 2)).reset());
                 } else {
                     System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
@@ -664,12 +664,12 @@ public class Renderer {
 
         System.out.println("\n");
         
-        // Bottom instruction
-        String instruction = "Press the number of the decision you want to make or E to end phase.";
-        int instructionPadding = Math.max(0, (SCREEN_WIDTH - instruction.length()) / 2);
-        System.out.print(" ".repeat(instructionPadding));
-        System.out.println(ansi().fgBrightYellow().a(instruction).reset());
-        System.out.println();
+        // // Bottom instruction
+        // String instruction = "Press the number of the decision you want to make or E to end phase.";
+        // int instructionPadding = Math.max(0, (SCREEN_WIDTH - instruction.length()) / 2);
+        // System.out.print(" ".repeat(instructionPadding));
+        // System.out.println(ansi().fgBrightYellow().a(instruction).reset());
+        // System.out.println();
     }
 
     /**

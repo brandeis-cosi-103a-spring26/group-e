@@ -10,6 +10,7 @@ import org.fusesource.jansi.AnsiConsole;
 import com.google.common.collect.ImmutableList;
 
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 
 public class Harness {
@@ -151,6 +152,96 @@ public class Harness {
     }
 
     /**
+     * Converts a Card.Type to its display name (e.g., EVERGREEN_TEST -> "Evergreen Test")
+     */
+    private static String getDisplayName(Card.Type cardType) {
+        String raw = cardType.toString().toLowerCase().replace('_', ' ');
+        String[] words = raw.split(" ");
+        StringBuilder display = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            display.append(Character.toUpperCase(word.charAt(0)));
+            display.append(word.substring(1));
+            display.append(" ");
+        }
+        return display.toString().trim();
+    }
+
+    /**
+     * Normalizes a user input string for card name matching (case-insensitive, handles spaces and underscores)
+     */
+    private static String normalizeCardName(String input) {
+        return input.trim().toLowerCase().replace('_', ' ').replace("  ", " ");
+    }
+
+    /**
+     * Finds all card types that match the given input string (exact match or substring match)
+     * Returns a list of matching Card.Type values
+     */
+    private static java.util.List<Card.Type> findMatchingCardTypes(String input) {
+        String normalizedInput = normalizeCardName(input);
+        java.util.List<Card.Type> matches = new java.util.ArrayList<>();
+        
+        for (Card.Type type : Card.Type.values()) {
+            String displayName = getDisplayName(type).toLowerCase();
+            if (displayName.equals(normalizedInput) || displayName.contains(normalizedInput)) {
+                matches.add(type);
+            }
+        }
+        
+        return matches;
+    }
+
+    /**
+     * Attempts to match user input to a card in a decision.
+     * Returns true only if the input uniquely identifies this card type among all Card.Type values.
+     */
+    private static boolean matchesCard(String input, Card card, java.util.List<Card.Type> allMatches) {
+        // Only match if there's exactly one match across all card types and it's this card
+        return allMatches.size() == 1 && allMatches.get(0) == card.type();
+    }
+
+    /**
+     * Attempts to match user input to a card type in a decision.
+     * Returns true only if the input uniquely identifies this card type among all Card.Type values.
+     */
+    private static boolean matchesCardType(String input, Card.Type cardType, java.util.List<Card.Type> allMatches) {
+        // Only match if there's exactly one match across all card types and it's this type
+        return allMatches.size() == 1 && allMatches.get(0) == cardType;
+    }
+
+    /**
+     * Shows a description/manual for a card type
+     */
+    private static void showCardDescription(String cardName) {
+        // Try to find the card type using the same matching logic
+        java.util.List<Card.Type> matches = findMatchingCardTypes(cardName);
+        
+        if (matches.isEmpty()) {
+            System.out.println(ansi().fg(RED).a("✗ Card not found: " + cardName).reset());
+        } else if (matches.size() > 1) {
+            System.out.print(ansi().fg(RED).a("✗ Multiple cards match '" + cardName + "': ").reset());
+            for (int i = 0; i < matches.size(); i++) {
+                System.out.print(ansi().fg(YELLOW).a(getDisplayName(matches.get(i))).reset());
+                if (i < matches.size() - 1) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
+        } else {
+            Card.Type foundType = matches.get(0);
+            Card card = new Card(foundType, 0);
+            System.out.println(ansi().fg(CYAN).a("\n═══ " + getDisplayName(foundType) + " ═══").reset());
+            System.out.println(ansi().fg(YELLOW).a("Cost: $" + card.cost()).reset());
+            System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
+            System.out.println(ansi().fg(WHITE).a("Description: " + card.description()).reset());
+            System.out.println();
+        }
+    }
+
+    /**
      * Prompts the user to select a {@link Decision} from the provided options.
      * If the only available option is an {@link EndPhaseDecision}, the user is
      * prompted to press enter to continue and that decision is returned.
@@ -195,24 +286,98 @@ public class Harness {
         // }
 
         // Prompt user for input until a valid choice is made
-        System.out.print(ansi().fg(GREEN).a("Enter the number of your chosen option: ").reset());
-        int choice = -1;
-        while (choice < 1 || choice > options.size()) {
-            if (inputScanner.hasNextInt()) {
-                choice = inputScanner.nextInt();
-                inputScanner.nextLine(); // Consume the leftover newline character
-                if (choice < 1 || choice > options.size()) {
-                    System.out.print(ansi().fg(RED)
-                            .a("✗ Invalid choice. Please enter a number between 1 and " + options.size() + ": ")
-                            .reset());
+        Decision choice = null;
+        while (choice == null) {
+            System.out.print(ansi().fg(GREEN).a("Enter card name, E to end phase, or 'man <cardname>' for info: ").reset());
+            String input = inputScanner.nextLine().trim();
+            
+            // Handle empty input
+            if (input.isEmpty()) {
+                System.out.println(ansi().fg(RED).a("✗ Invalid input. Please enter a card name, E, or 'man <cardname>'.").reset());
+                continue;
+            }
+            
+            // Handle "man cardname" for card descriptions
+            if (input.toLowerCase().startsWith("man ")) {
+                String cardName = input.substring(4).trim();
+                if (!cardName.isEmpty()) {
+                    showCardDescription(cardName);
+                } else {
+                    System.out.println(ansi().fg(RED).a("✗ Please specify a card name after 'man'.").reset());
                 }
-            } else {
-                System.out.print(ansi().fg(RED).a("✗ Invalid input. Please enter a number: ").reset());
-                inputScanner.nextLine(); // Consume the invalid input
+                continue;
+            }
+            
+            // Handle "E" for end phase
+            if (input.equalsIgnoreCase("e") || input.equalsIgnoreCase("end")) {
+                // Find EndPhaseDecision in options
+                for (Decision option : options) {
+                    if (option instanceof EndPhaseDecision) {
+                        choice = option;
+                        break;
+                    }
+                }
+                if (choice == null) {
+                    System.out.println(ansi().fg(RED).a("✗ Cannot end phase right now.").reset());
+                }
+                continue;
+            }
+            
+            // First, find all card types that match the input
+            java.util.List<Card.Type> allMatches = findMatchingCardTypes(input);
+            
+            // Check if the input uniquely identifies a card
+            if (allMatches.isEmpty()) {
+                System.out.println(ansi().fg(RED).a("✗ Card not found matching: '" + input + "'. Try again.").reset());
+                continue;
+            } else if (allMatches.size() > 1) {
+                // Multiple cards match - show which ones
+                System.out.print(ansi().fg(RED).a("✗ Invalid - multiple cards match '" + input + "': ").reset());
+                for (int i = 0; i < allMatches.size(); i++) {
+                    System.out.print(ansi().fg(YELLOW).a(getDisplayName(allMatches.get(i))).reset());
+                    if (i < allMatches.size() - 1) {
+                        System.out.print(", ");
+                    }
+                }
+                System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
+                continue;
+            }
+            
+            // Exactly one card matches - try to find it in the available decisions
+            for (Decision option : options) {
+                if (option instanceof PlayCardDecision) {
+                    Card card = ((PlayCardDecision) option).card();
+                    if (matchesCard(input, card, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof TrashCardDecision) {
+                    Card card = ((TrashCardDecision) option).card();
+                    if (matchesCard(input, card, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof BuyDecision) {
+                    Card.Type cardType = ((BuyDecision) option).cardType();
+                    if (matchesCardType(input, cardType, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof GainCardDecision) {
+                    Card.Type cardType = ((GainCardDecision) option).cardType();
+                    if (matchesCardType(input, cardType, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                }
+            }
+            
+            if (choice == null) {
+                System.out.println(ansi().fg(RED).a("✗ Invalid choice: Card '" + getDisplayName(allMatches.get(0)) + "' is not available right now.").reset());
             }
         }
 
-        return options.get(choice - 1);
+        return choice;
     }
 
 }
