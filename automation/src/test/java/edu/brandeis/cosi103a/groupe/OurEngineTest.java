@@ -4,10 +4,14 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameResult;
+import edu.brandeis.cosi.atg.state.PlayerResult;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -2473,5 +2477,826 @@ public class OurEngineTest {
         }
 
         assertTrue("Game should be over when FRAMEWORK is sold out", engine.isGameOver());
+    }
+
+    // ========== Calculate Player Score Tests ==========
+
+    @Test
+    public void testCalculatePlayerScore_OnlyVictoryCardsInDiscard() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Verify piles are empty after clearing
+        assertEquals("Hand should be empty after clear", 0, hands.get(player).size());
+        assertEquals("Deck should be empty after clear", 0, decks.get(player).size());
+        assertEquals("Discard should be empty after clear", 0, discards.get(player).size());
+
+        // Add only victory cards to discard
+        discards.get(player).add(new Card(Card.Type.METHOD, 1)); // 1 point
+        discards.get(player).add(new Card(Card.Type.MODULE, 2)); // 3 points
+        discards.get(player).add(new Card(Card.Type.FRAMEWORK, 3)); // 6 points
+
+        // Verify we added exactly 3 cards
+        assertEquals("Should have 3 cards in discard before score calculation", 3, discards.get(player).size());
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        // Debug: Check what's actually in discard after scoring
+        int actualDiscardSize = discards.get(player).size();
+        int victoryPoints = 0;
+        for (Card card : discards.get(player)) {
+            if (card.getCategory() == Card.Type.Category.VICTORY) {
+                victoryPoints += card.value();
+            }
+        }
+
+        // Assert discard size first to see if extra cards were added
+        assertEquals("Discard should have exactly 3 cards", 3, actualDiscardSize);
+        // Then assert the score matches our calculation
+        assertEquals("Victory points should match our calculation", 10, victoryPoints);
+        assertEquals("Score should be sum of victory points (1 + 3 + 6)", 10, score);
+    }
+
+    @Test
+    public void testCalculatePlayerScore_VictoryCardsInHand() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add victory cards to hand
+        hands.get(player).addToUnplayed(new Card(Card.Type.METHOD, 1)); // 1 point
+        hands.get(player).addToUnplayed(new Card(Card.Type.FRAMEWORK, 2)); // 6 points
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be sum of victory points (1 + 6)", 7, score);
+        assertEquals("Hand should be empty after scoring", 0, hands.get(player).size());
+        assertEquals("All cards should be moved to discard", 2, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_VictoryCardsInDeck() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add victory cards to deck
+        decks.get(player).add(new Card(Card.Type.METHOD, 1)); // 1 point
+        decks.get(player).add(new Card(Card.Type.MODULE, 2)); // 3 points
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be sum of victory points (1 + 3)", 4, score);
+        assertEquals("Deck should be empty after scoring", 0, decks.get(player).size());
+        assertEquals("All cards should be moved to discard", 2, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_VictoryCardsAcrossAllLocations() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add victory cards to all locations
+        discards.get(player).add(new Card(Card.Type.METHOD, 1)); // 1 point
+        hands.get(player).addToUnplayed(new Card(Card.Type.MODULE, 2)); // 3 points
+        decks.get(player).add(new Card(Card.Type.FRAMEWORK, 3)); // 6 points
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be sum of all victory points (1 + 3 + 6)", 10, score);
+        assertEquals("Hand should be empty after scoring", 0, hands.get(player).size());
+        assertEquals("Deck should be empty after scoring", 0, decks.get(player).size());
+        assertEquals("All cards should be in discard", 3, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_MixedCardsOnlyCountsVictory() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add mixed card types
+        discards.get(player).add(new Card(Card.Type.BITCOIN, 1)); // Money, 0 points
+        discards.get(player).add(new Card(Card.Type.METHOD, 2)); // Victory, 1 point
+        hands.get(player).addToUnplayed(new Card(Card.Type.REFACTOR, 3)); // Action, 0 points
+        hands.get(player).addToUnplayed(new Card(Card.Type.MODULE, 4)); // Victory, 3 points
+        decks.get(player).add(new Card(Card.Type.ETHEREUM, 5)); // Money, 0 points
+        decks.get(player).add(new Card(Card.Type.FRAMEWORK, 6)); // Victory, 6 points
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should only count victory cards (1 + 3 + 6)", 10, score);
+        assertEquals("Hand should be empty after scoring", 0, hands.get(player).size());
+        assertEquals("Deck should be empty after scoring", 0, decks.get(player).size());
+        assertEquals("All 6 cards should be in discard", 6, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_NoVictoryCards() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add only non-victory cards
+        discards.get(player).add(new Card(Card.Type.BITCOIN, 1));
+        hands.get(player).addToUnplayed(new Card(Card.Type.REFACTOR, 2));
+        decks.get(player).add(new Card(Card.Type.ETHEREUM, 3));
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be 0 with no victory cards", 0, score);
+        assertEquals("All 3 cards should be in discard", 3, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_EmptyPiles() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be 0 with empty piles", 0, score);
+        assertEquals("Discard should remain empty", 0, discards.get(player).size());
+    }
+
+    @Test
+    public void testCalculatePlayerScore_MultipleMethodCards() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        discards.get(player).clear();
+        decks.get(player).clear();
+        hands.get(player).clear();
+
+        // Add multiple METHOD cards (1 point each)
+        for (int i = 0; i < 5; i++) {
+            discards.get(player).add(new Card(Card.Type.METHOD, i));
+        }
+
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        method.setAccessible(true);
+        int score = (int) method.invoke(engine, player);
+
+        assertEquals("Score should be 5 (5 x 1 point)", 5, score);
+    }
+
+    // ========== Print Game Result Tests ==========
+
+    @Test
+    public void testPrintGameResult_DisplaysGameOverHeader() {
+        // Create a simple game result
+        Card methodCard = new Card(Card.Type.METHOD, 1);
+        ImmutableList<Card> deck = ImmutableList.of(methodCard);
+        PlayerResult pr = new PlayerResult("Player-1", 1, deck);
+        GameResult result = new GameResult(ImmutableList.of(pr));
+
+        // Capture System.out
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+            assertTrue("Should display 'Game Over!'", output.contains("Game Over!"));
+            assertTrue("Should display header separator",
+                    output.contains("═══════════════════════════════════════════════"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPrintGameResult_DisplaysPlayerNameAndScore() {
+        Card methodCard = new Card(Card.Type.METHOD, 1);
+        ImmutableList<Card> deck = ImmutableList.of(methodCard);
+        PlayerResult pr = new PlayerResult("TestPlayer", 15, deck);
+        GameResult result = new GameResult(ImmutableList.of(pr));
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+            assertTrue("Should display player name", output.contains("TestPlayer"));
+            assertTrue("Should display score", output.contains("scored 15"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPrintGameResult_DisplaysAllPlayersAndCards() {
+        Card methodCard = new Card(Card.Type.METHOD, 1);
+        Card module = new Card(Card.Type.MODULE, 2);
+        Card bitcoin = new Card(Card.Type.BITCOIN, 3);
+
+        PlayerResult pr1 = new PlayerResult("Player1", 10, ImmutableList.of(methodCard, bitcoin));
+        PlayerResult pr2 = new PlayerResult("Player2", 5, ImmutableList.of(module));
+        GameResult result = new GameResult(ImmutableList.of(pr1, pr2));
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+
+            // Check both players are displayed
+            assertTrue("Should display Player1", output.contains("Player1"));
+            assertTrue("Should display Player2", output.contains("Player2"));
+            assertTrue("Should display Player1 score", output.contains("scored 10"));
+            assertTrue("Should display Player2 score", output.contains("scored 5"));
+
+            // Check cards are displayed
+            assertTrue("Should mention cards in discard pile", output.contains("cards in their discard pile"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPrintGameResult_DisplaysMultipleCards() {
+        Card methodCard = new Card(Card.Type.METHOD, 1);
+        Card module = new Card(Card.Type.MODULE, 2);
+        Card framework = new Card(Card.Type.FRAMEWORK, 3);
+
+        PlayerResult pr = new PlayerResult("Player1", 8, ImmutableList.of(methodCard, module, framework));
+        GameResult result = new GameResult(ImmutableList.of(pr));
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+
+            // All cards should appear in output
+            assertTrue("Should list Method card", output.contains("Method"));
+            assertTrue("Should list Module card", output.contains("Module"));
+            assertTrue("Should list Framework card", output.contains("Framework"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPrintGameResult_EmptyDeck() {
+        PlayerResult pr = new PlayerResult("Player1", 0, ImmutableList.of());
+        GameResult result = new GameResult(ImmutableList.of(pr));
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+            assertTrue("Should still display player info", output.contains("Player1"));
+            assertTrue("Should display score of 0", output.contains("scored 0"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testPrintGameResult_FourPlayers() {
+        Card card1 = new Card(Card.Type.METHOD, 1);
+        PlayerResult pr1 = new PlayerResult("Alice", 20, ImmutableList.of(card1));
+        PlayerResult pr2 = new PlayerResult("Bob", 15, ImmutableList.of(card1));
+        PlayerResult pr3 = new PlayerResult("Charlie", 10, ImmutableList.of(card1));
+        PlayerResult pr4 = new PlayerResult("Diana", 5, ImmutableList.of(card1));
+
+        GameResult result = new GameResult(ImmutableList.of(pr1, pr2, pr3, pr4));
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            Renderer.printGameResult(result);
+
+            String output = outputStream.toString();
+
+            // All players should be displayed
+            assertTrue("Should display Alice", output.contains("Alice"));
+            assertTrue("Should display Bob", output.contains("Bob"));
+            assertTrue("Should display Charlie", output.contains("Charlie"));
+            assertTrue("Should display Diana", output.contains("Diana"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    // ========== End Game Tests ==========
+
+    @Test
+    public void testEndGame_ReturnsGameResult() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        // Set up minimal game state
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        for (Player p : twoPlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+        }
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
+            method.setAccessible(true);
+            GameResult result = (GameResult) method.invoke(engine);
+
+            assertNotNull("Should return a GameResult", result);
+            assertEquals("Should have results for 2 players", 2, result.playerResults().size());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testEndGame_SortsPlayersByScoreDescending() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player1 = twoPlayers.get(0);
+        Player player2 = twoPlayers.get(1);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        for (Player p : twoPlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+        }
+
+        // Give player1 lower score (1 point)
+        discards.get(player1).add(new Card(Card.Type.METHOD, 1));
+
+        // Give player2 higher score (6 points)
+        discards.get(player2).add(new Card(Card.Type.FRAMEWORK, 2));
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
+            method.setAccessible(true);
+            GameResult result = (GameResult) method.invoke(engine);
+
+            // Results should be sorted by score descending (player2 first)
+            assertEquals("First player should be the one with higher score",
+                    player2.getName(), result.playerResults().get(0).playerName());
+            assertEquals("First player score should be 6",
+                    6, result.playerResults().get(0).score());
+            assertEquals("Second player should be the one with lower score",
+                    player1.getName(), result.playerResults().get(1).playerName());
+            assertEquals("Second player score should be 1",
+                    1, result.playerResults().get(1).score());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testEndGame_ThreePlayers_SortsCorrectly() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        Player player1 = threePlayers.get(0);
+        Player player2 = threePlayers.get(1);
+        Player player3 = threePlayers.get(2);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        for (Player p : threePlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+        }
+
+        // Give different scores: player1=3, player2=6, player3=1
+        discards.get(player1).add(new Card(Card.Type.MODULE, 1)); // 3 points
+        discards.get(player2).add(new Card(Card.Type.FRAMEWORK, 2)); // 6 points
+        discards.get(player3).add(new Card(Card.Type.METHOD, 3)); // 1 point
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
+            method.setAccessible(true);
+            GameResult result = (GameResult) method.invoke(engine);
+
+            // Should be sorted: player2 (6), player1 (3), player3 (1)
+            assertEquals("First should be player2 with 6 points",
+                    player2.getName(), result.playerResults().get(0).playerName());
+            assertEquals("First player score should be 6",
+                    6, result.playerResults().get(0).score());
+            assertEquals("Second should be player1 with 3 points",
+                    player1.getName(), result.playerResults().get(1).playerName());
+            assertEquals("Second player score should be 3",
+                    3, result.playerResults().get(1).score());
+            assertEquals("Third should be player3 with 1 point",
+                    player3.getName(), result.playerResults().get(2).playerName());
+            assertEquals("Third player score should be 1",
+                    1, result.playerResults().get(2).score());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testEndGame_MovesAllCardsToDiscard() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        for (Player p : twoPlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+        }
+
+        // Add cards to different locations
+        hands.get(player).addToUnplayed(new Card(Card.Type.METHOD, 1));
+        decks.get(player).add(new Card(Card.Type.MODULE, 2));
+        discards.get(player).add(new Card(Card.Type.BITCOIN, 3));
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
+            method.setAccessible(true);
+            GameResult result = (GameResult) method.invoke(engine);
+
+            // After endGame, all cards should be in discard
+            assertEquals("Hand should be empty", 0, hands.get(player).size());
+            assertEquals("Deck should be empty", 0, decks.get(player).size());
+            assertEquals("All 3 cards should be in discard", 3, discards.get(player).size());
+
+            // GameResult should have all cards in endingDeck
+            PlayerResult pr = result.playerResults().stream()
+                    .filter(p -> p.playerName().equals(player.getName()))
+                    .findFirst()
+                    .orElse(null);
+            assertNotNull("Should find player result", pr);
+            assertEquals("PlayerResult should have all 3 cards", 3, pr.endingDeck().size());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testEndGame_PlayerResultContainsCorrectDeck() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        Player player = twoPlayers.get(0);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles
+        for (Player p : twoPlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+        }
+
+        // Add specific cards
+        Card method = new Card(Card.Type.METHOD, 100);
+        Card module = new Card(Card.Type.MODULE, 101);
+        discards.get(player).add(method);
+        decks.get(player).add(module);
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method endGameMethod = engine.getClass().getDeclaredMethod("endGame");
+            endGameMethod.setAccessible(true);
+            GameResult result = (GameResult) endGameMethod.invoke(engine);
+
+            // Find this player's result
+            PlayerResult pr = result.playerResults().stream()
+                    .filter(p -> p.playerName().equals(player.getName()))
+                    .findFirst()
+                    .orElse(null);
+
+            assertNotNull("Should find player result", pr);
+            assertEquals("Should have 2 cards in ending deck", 2, pr.endingDeck().size());
+
+            // Verify the cards are present (they should be in discard after
+            // calculatePlayerScore)
+            assertTrue("Should contain method card",
+                    pr.endingDeck().stream().anyMatch(c -> c.id() == 100));
+            assertTrue("Should contain module card",
+                    pr.endingDeck().stream().anyMatch(c -> c.id() == 101));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void testEndGame_ZeroScoresHandledCorrectly() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        Map<Player, List<Card>> decks = getPrivateField(engine, "decks");
+        Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
+
+        // Clear all piles and add only non-victory cards
+        for (Player p : twoPlayers) {
+            discards.get(p).clear();
+            decks.get(p).clear();
+            hands.get(p).clear();
+            // Add only money cards (no victory points)
+            discards.get(p).add(new Card(Card.Type.BITCOIN, p.hashCode()));
+        }
+
+        // Suppress output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+
+        try {
+            java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("endGame");
+            method.setAccessible(true);
+            GameResult result = (GameResult) method.invoke(engine);
+
+            // Both players should have 0 score
+            for (PlayerResult pr : result.playerResults()) {
+                assertEquals("All players should have 0 score", 0, pr.score());
+            }
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    // ========== Output Suppression Helpers ==========
+
+    private PrintStream savedOut;
+
+    private void suppressOutput() {
+        savedOut = System.out;
+        System.setOut(new PrintStream(new ByteArrayOutputStream()));
+    }
+
+    private void restoreOutput() {
+        if (savedOut != null) {
+            System.setOut(savedOut);
+            savedOut = null;
+        }
+    }
+
+    // ========== play() Integration Tests ==========
+
+    /**
+     * A player that always returns null from makeDecision, triggering
+     * PlayerViolationException and disqualification.
+     */
+    private static class CheaterPlayer implements Player {
+        @Override
+        public String getName() {
+            return "Cheater";
+        }
+
+        @Override
+        public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
+            return null;
+        }
+    }
+
+    @Test
+    public void testPlay_TwoPlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_ThreePlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_FourPlayers_ReturnsNonNullGameResult() throws Exception {
+        OurEngine engine = new OurEngine(fourPlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should return a non-null GameResult", result);
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_ResultHasCorrectPlayerCount() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertEquals("GameResult should contain the same number of players as input",
+                    twoPlayers.size(), result.playerResults().size());
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_ResultSortedByScoreDescending() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            List<PlayerResult> results = result.playerResults();
+            for (int i = 0; i < results.size() - 1; i++) {
+                assertTrue("Results should be sorted in descending order by score",
+                        results.get(i).score() >= results.get(i + 1).score());
+            }
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_ResultPlayerNamesMatchInputPlayers() throws Exception {
+        OurEngine engine = new OurEngine(twoPlayers);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            List<String> resultNames = new ArrayList<>();
+            for (PlayerResult pr : result.playerResults()) {
+                resultNames.add(pr.playerName());
+            }
+            for (Player p : twoPlayers) {
+                assertTrue("All input player names should appear in the result",
+                        resultNames.contains(p.getName()));
+            }
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_CheatingPlayer_GameStillCompletes() throws Exception {
+        // When one player cheats, they are disqualified and the game ends immediately
+        // since only one qualified player remains
+        List<Player> players = new ArrayList<>();
+        players.add(new CheaterPlayer());
+        players.add(new AIPlayer());
+
+        OurEngine engine = new OurEngine(players);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertNotNull("Game should still return a result when a player cheats", result);
+            assertEquals("Result should still contain all players", 2, result.playerResults().size());
+        } finally {
+            restoreOutput();
+        }
+    }
+
+    @Test
+    public void testPlay_CheatingPlayer_DoesNotCauseExceptionInCaller() {
+        // PlayerViolationException should be handled internally; play() should not
+        // propagate it to the caller
+        List<Player> players = new ArrayList<>();
+        players.add(new AIPlayer());
+        players.add(new CheaterPlayer());
+
+        OurEngine engine = new OurEngine(players);
+        suppressOutput();
+        try {
+            GameResult result = engine.play();
+            assertNotNull("play() should not propagate PlayerViolationException", result);
+        } catch (Exception e) {
+            fail("play() should not throw an exception when a player cheats: " + e.getMessage());
+        } finally {
+            restoreOutput();
+        }
     }
 }
