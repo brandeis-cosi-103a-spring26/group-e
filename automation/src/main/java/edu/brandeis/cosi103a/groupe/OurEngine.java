@@ -831,15 +831,7 @@ public class OurEngine implements Engine {
      * e.g. {@code CODE_REVIEW → "Code Review"}.
      */
     private static String cardDisplayName(Card.Type type) {
-        String raw = type.toString().toLowerCase().replace('_', ' ');
-        String[] words = raw.split(" ");
-        StringBuilder sb = new StringBuilder();
-        for (String w : words) {
-            if (!w.isEmpty()) {
-                sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1)).append(" ");
-            }
-        }
-        return sb.toString().trim();
+        return Renderer.displayName(type);
     }
 
     /**
