@@ -141,7 +141,10 @@ public class OurEngine implements Engine {
                     GameState gs = buildGameState();
 
                     // Render the current game state to the console
-                    Renderer.renderGame(gs);
+                    // (only runs on console player turns for now to avoid excessive rendering)
+                    if (activePlayer instanceof ConsolePlayer) {
+                        Renderer.renderGame(gs);
+                    }
 
                     // Get decision from active player
                     Decision decision = activePlayer.makeDecision(gs, options);
