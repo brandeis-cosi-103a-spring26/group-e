@@ -7,7 +7,6 @@ import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.cards.Card;
@@ -140,6 +139,12 @@ public class OurEngine implements Engine {
                     // Build decision options and game state
                     ImmutableList<Decision> options = buildDecisionOptions();
                     GameState gs = buildGameState();
+
+                    // Render the current game state to the console
+                    // (only runs on console player turns for now to avoid excessive rendering)
+                    if (activePlayer instanceof ConsolePlayer) {
+                        Renderer.renderGame(gs);
+                    }
 
                     // Get decision from active player
                     Decision decision = activePlayer.makeDecision(gs, options);
