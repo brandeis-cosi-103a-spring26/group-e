@@ -724,7 +724,10 @@ public class Renderer {
         System.out.println("═══════════════════════════════════════════════\n");
 
         // ── Determine winner(s) ─────────────────────────────────────────────
-        int maxScore = 0;
+        if (result.playerResults().isEmpty()) {
+            return;
+        }
+        int maxScore = Integer.MIN_VALUE;
         for (PlayerResult pr : result.playerResults()) {
             if (pr.score() > maxScore) maxScore = pr.score();
         }
