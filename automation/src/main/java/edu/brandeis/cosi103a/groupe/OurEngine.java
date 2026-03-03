@@ -140,12 +140,6 @@ public class OurEngine implements Engine {
                     ImmutableList<Decision> options = buildDecisionOptions();
                     GameState gs = buildGameState();
 
-                    // Render the current game state to the console
-                    // (only runs on console player turns for now to avoid excessive rendering)
-                    if (activePlayer instanceof ConsolePlayer) {
-                        Renderer.renderGame(gs);
-                    }
-
                     // Get decision from active player
                     Decision decision = activePlayer.makeDecision(gs, options);
 
