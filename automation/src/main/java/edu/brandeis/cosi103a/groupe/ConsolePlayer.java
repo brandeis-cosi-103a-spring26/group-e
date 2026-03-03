@@ -7,8 +7,6 @@ import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.cards.Card;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 
 public class ConsolePlayer extends AbstractPlayer {
 
@@ -55,7 +53,7 @@ public class ConsolePlayer extends AbstractPlayer {
             // No more treasure cards, turn off auto-play
             autoPlayTreasures = false;
 
-            // If the only deicsion left is to end the phase, we can return that immediately
+            // If the only decision left is to end the phase, we can return that immediately
             // without prompting the user
             if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
                 return options.get(0);
