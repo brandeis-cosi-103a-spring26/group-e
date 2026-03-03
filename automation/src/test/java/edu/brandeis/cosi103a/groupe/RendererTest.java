@@ -12,6 +12,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.decisions.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -225,13 +226,10 @@ public class RendererTest {
     
     @Test
     public void testRenderGame_DisplaysCardsFromAllCategories() {
-        // Action card
-        Card method = new Card(Card.Type.METHOD, 1);
-        // Treasure cards
-        Card bitcoin = new Card(Card.Type.BITCOIN, 2);
-        Card ethereum = new Card(Card.Type.ETHEREUM, 3);
-        // Victory card
-        Card codeReview = new Card(Card.Type.CODE_REVIEW, 4);
+        Card codeReview = new Card(Card.Type.CODE_REVIEW, 1); // action card
+        Card bitcoin = new Card(Card.Type.BITCOIN, 2);        // treasure card
+        Card ethereum = new Card(Card.Type.ETHEREUM, 3);      // treasure card
+        Card method = new Card(Card.Type.METHOD, 4);          // victory card
         
         Hand mixedHand = new Hand(
             ImmutableList.of(),
@@ -246,10 +244,10 @@ public class RendererTest {
         Renderer.renderGame(state);
         
         String output = outputStream.toString();
-        assertTrue("Should display action card (Method)", output.contains("Method"));
+        assertTrue("Should display action card (Code Review)", output.contains("Code Review"));
         assertTrue("Should display treasure card (Bitcoin)", output.contains("Bitcoin"));
         assertTrue("Should display treasure card (Ethereum)", output.contains("Ethereum"));
-        assertTrue("Should display victory card (Code Review)", output.contains("Code Review"));
+        assertTrue("Should display victory card (Method)", output.contains("Method"));
     }
     
     // ========== Played Cards Tests ==========
@@ -498,6 +496,140 @@ public class RendererTest {
                    output.contains("Available Cards"));
     }
     
+    // ========== renderGameWithDecisions Tests ==========
+
+    @Test
+    public void testRenderGameWithDecisions_EmptyDecisions_SameAsRenderGame() {
+        // renderGameWithDecisions with no decisions should produce identical structural output
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+
+        Renderer.renderGameWithDecisions(state, ImmutableList.of());
+        String output = outputStream.toString();
+
+        assertTrue("Should still display player name", output.contains("Player: Player1"));
+        assertTrue("Should still display phase", output.contains("Phase: Action"));
+        assertTrue("Should still display Available Cards", output.contains("Available Cards"));
+        assertTrue("Should still display Your Hand", output.contains("Your Hand"));
+        assertFalse("Should not show any * markers with no decisions", output.contains("*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_BuyDecision_MarksSupplyCard() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.BUY);
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new BuyDecision(Card.Type.BITCOIN)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertTrue("Output should contain * marker for actionable supply card", output.contains("*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_NoBuyDecisionForCard_NoMarker() {
+        // Only Ethereum is buyable; Bitcoin is in supply but not in decisions
+        CardStacks supply = new CardStacks(ImmutableMap.of(
+            Card.Type.BITCOIN, 10,
+            Card.Type.ETHEREUM, 10
+        ));
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
+        GameState state = new GameState("Player1", hand, GameState.TurnPhase.BUY,
+            0, 0, 1, supply);
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new BuyDecision(Card.Type.ETHEREUM)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        // There should be exactly one * (for Ethereum), not two
+        assertEquals("Only one supply card should be marked", 1, countOccurrences(output, "*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_PlayCardDecision_MarksHandCard() {
+        Card bitcoin = new Card(Card.Type.BITCOIN, 1);
+        Card ethereum = new Card(Card.Type.ETHEREUM, 2);
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of(bitcoin, ethereum));
+        GameState state = new GameState("Player1", hand, GameState.TurnPhase.MONEY,
+            0, 0, 1, createTestCardStacks());
+        // Only bitcoin is playable
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new PlayCardDecision(bitcoin)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertTrue("Output should contain * marker for actionable hand card", output.contains("*"));
+        assertEquals("Exactly one hand card should be marked", 1, countOccurrences(output, "*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_GainCardDecision_MarksSupplyCard() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.GAIN);
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new GainCardDecision(Card.Type.METHOD)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertTrue("Output should contain * marker for gainable supply card", output.contains("*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_TrashCardDecision_MarksHandCard() {
+        Card refactor = new Card(Card.Type.REFACTOR, 1);
+        Card bitcoin = new Card(Card.Type.BITCOIN, 2);
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of(refactor, bitcoin));
+        GameState state = new GameState("Player1", hand, GameState.TurnPhase.ACTION,
+            1, 0, 1, createTestCardStacks());
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new TrashCardDecision(bitcoin)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertTrue("Output should contain * marker for trashable hand card", output.contains("*"));
+        assertEquals("Exactly one hand card should be marked", 1, countOccurrences(output, "*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_MultipleDecisions_MarksAllActionableCards() {
+        Card bitcoin1 = new Card(Card.Type.BITCOIN, 1);
+        Card bitcoin2 = new Card(Card.Type.BITCOIN, 2);
+        Card method = new Card(Card.Type.METHOD, 3);
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of(bitcoin1, bitcoin2, method));
+        GameState state = new GameState("Player1", hand, GameState.TurnPhase.MONEY,
+            0, 0, 1, createTestCardStacks());
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new PlayCardDecision(bitcoin1),
+            new PlayCardDecision(bitcoin2)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertEquals("Both playable cards should be marked", 2, countOccurrences(output, "*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_EndPhaseDecision_NoMarkerAdded() {
+        // EndPhaseDecision should not cause any * markers
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        ImmutableList<Decision> decisions = ImmutableList.of(
+            new EndPhaseDecision(GameState.TurnPhase.ACTION)
+        );
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertFalse("EndPhaseDecision should not produce any * markers", output.contains("*"));
+    }
+
     // ========== Helper Methods ==========
     
     /**

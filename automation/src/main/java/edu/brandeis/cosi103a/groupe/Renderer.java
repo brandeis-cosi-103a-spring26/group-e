@@ -14,7 +14,9 @@ import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi.atg.decisions.*;;
+import edu.brandeis.cosi.atg.decisions.*;
+import java.util.Set;
+import java.util.HashSet;
 
 
 public class Renderer {
@@ -23,10 +25,13 @@ public class Renderer {
     private static final int SCREEN_WIDTH = 76;
     private static final int COLUMN_WIDTH = 22;
     private static final int SUPPLY_GAP = 2;
+    private static final int MARKER_PREFIX = 2; // "* " or "  " before each card name
 
 
-    // Helper: get Display name for card type
-    // Transforms to Title Case and replaces underscores with spaces
+    /**
+     * Converts a {@link Card.Type} enum value to a human-readable Title Case name.
+     * Underscores are replaced with spaces (e.g. {@code CODE_REVIEW} → "Code Review").
+     */
     private static String displayName(Card.Type cardType) {
         String raw = cardType.toString().toLowerCase().replace('_', ' ');
         String[] words = raw.split(" ");
@@ -42,7 +47,7 @@ public class Renderer {
         return display.toString().trim();
     }
     
-    // Helper: get ANSI color for card category
+    /** Returns an {@link org.fusesource.jansi.Ansi} instance set to the display color for the given card category. */
     private static org.fusesource.jansi.Ansi colorForCategory(Card.Type.Category category) {
         switch (category) {
             case ACTION: return ansi().fgBrightBlue();
@@ -52,7 +57,7 @@ public class Renderer {
         }
     }
     
-    // Helper: pad or truncate text to fixed width
+    /** Pads {@code text} with trailing spaces to exactly {@code width} chars, or truncates if longer. */
     private static String fixedWidth(String text, int width) {
         if (text.length() > width) {
             return text.substring(0, width);
@@ -60,27 +65,85 @@ public class Renderer {
         return String.format("%-" + width + "s", text);
     }
     
-    // Helper: render a supply pile (count + card name + cost)
-    private static String renderPile(Card.Type cardType, int count, int width) {
-        int cost = getCost(cardType);
-        String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-        return fixedWidth(pile, width);
+    /**
+     * Prints one supply column cell: the '*' actionable marker (or a blank placeholder),
+     * one space, then the pile text (count + name + cost) padded to {@link #COLUMN_WIDTH}.
+     *
+     * @param cardType   the card type being displayed
+     * @param count      number of copies remaining in this pile
+     * @param actionable whether this pile has an available decision (e.g. BuyDecision)
+     * @param color      the ANSI color to use for the pile text
+     */
+    private static void renderSupplyCell(Card.Type cardType, int count,
+                                          boolean actionable, org.fusesource.jansi.Ansi color) {
+        System.out.print(actionable ? ansi().fgRed().a("*").reset() : " ");
+        System.out.print(" ");
+        String pile = count + " " + displayName(cardType) + " ($" + cardType.cost() + ")";
+        System.out.print(color.a(fixedWidth(pile, COLUMN_WIDTH)).reset());
+    }
+
+    /**
+     * Prints a blank supply column cell of the correct width so subsequent columns
+     * remain aligned when a category has fewer rows than others.
+     */
+    private static void renderEmptySupplyCell() {
+        System.out.print(" "); // marker placeholder
+        System.out.print(" "); // space
+        System.out.print(fixedWidth("", COLUMN_WIDTH));
+    }
+
+    /**
+     * Prints one hand column cell: the '* ' actionable marker (or '  '), then the
+     * card name padded to {@link #COLUMN_WIDTH}.
+     *
+     * @param card        the card to display
+     * @param actionableCards set of cards that have an available decision
+     * @param color           the ANSI color to use for the card name
+     */
+    private static void renderHandCell(Card card, Set<Card> actionableCards,
+                                        org.fusesource.jansi.Ansi color) {
+        System.out.print(actionableCards.contains(card) ? ansi().fgRed().a("* ").reset() : "  ");
+        System.out.print(color.a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
     }
     
-    // Helper: get cost for a card type
-    private static int getCost(Card.Type cardType) {
-        return new Card(cardType, 0).cost();
-    }
-    
-    // Renders the current game state to console
+    /**
+     * Renders the current game state to the console with no decision indicators.
+     * Equivalent to calling {@link #renderGameWithDecisions(GameState, List)} with an empty list.
+     *
+     * @param state the current game state to render
+     */
     public static void renderGame(GameState state) {
+        renderGameWithDecisions(state, ImmutableList.of());
+    }
+
+     /**
+      * Renders the current game state to console, including indicators for which cards in hand and supply are actionable based on the provided decisions.
+      * 
+      * @param state Current game state to render
+      * @param options List of available decisions for the current player - used to determine which cards are actionable and should be marked with *
+      */
+    public static void renderGameWithDecisions(GameState state, List<Decision> options) {
+        // Build sets of actionable cards from the available decisions
+        Set<Card> actionableHandCards = new HashSet<>();
+        Set<Card.Type> actionableSupplyTypes = new HashSet<>();
         
+        for (Decision decision : options) {
+            if (decision instanceof PlayCardDecision) {
+                actionableHandCards.add(((PlayCardDecision) decision).card());
+            } else if (decision instanceof TrashCardDecision) {
+                actionableHandCards.add(((TrashCardDecision) decision).card());
+            } else if (decision instanceof BuyDecision) {
+                actionableSupplyTypes.add(((BuyDecision) decision).cardType());
+            } else if (decision instanceof GainCardDecision) {
+                actionableSupplyTypes.add(((GainCardDecision) decision).cardType());
+            }
+        }
         
+        // Render game state with actionable card indicators
         System.out.println( ansi().eraseScreen() );
         System.out.println();
 
         // 1. Welcome message
-        
         String prepostfix = " -------- ";
         String welcome = "Welcome to Automation: The Game";
         int welcomeLength = prepostfix.length() + welcome.length() + prepostfix.length();
@@ -135,7 +198,6 @@ public class Renderer {
                 break;
         }
 
-
         System.out.println();
         System.out.println();
 
@@ -144,7 +206,6 @@ public class Renderer {
         System.out.print(" ".repeat(availablePadding));
         System.out.println(ansi().fgBrightBlue().a(availableCardsLabel).reset());
         System.out.println();
-
 
         // Prepare supply piles by category
         List<Card.Type> victoryCards = new ArrayList<>();
@@ -160,78 +221,76 @@ public class Renderer {
         }
         
         // Sort each category by cost
-        actionCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
-        treasureCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
-        victoryCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
+        actionCards.sort((a, b) -> Integer.compare(a.cost(), b.cost()));
+        treasureCards.sort((a, b) -> Integer.compare(a.cost(), b.cost()));
+        victoryCards.sort((a, b) -> Integer.compare(a.cost(), b.cost()));
         
-        // Calculate supply area width
-        int pileWidth = COLUMN_WIDTH;
-        
-        // 2. Supply area (3 columns: Actions, Treasures, Victories)
+        // Collect played cards for the Played Cards section
         List<Card> playedCards = new ArrayList<>();
         for (Card c : state.currentPlayerHand().playedCards()) {
             playedCards.add(c);
         }
         
-        // Print column headers
-        System.out.print(" ".repeat(2));
-        System.out.print(ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP));
-        System.out.print(ansi().fgYellow().bold().a(fixedWidth("TREASURES", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP));
-        System.out.print(ansi().fgGreen().bold().a(fixedWidth("VICTORIES", pileWidth)).reset());
+        // Print column headers. Each header is aligned to where data rows print their
+        // content: [marker][space][content]. Headers for columns 2 and 3 therefore
+        // need an extra MARKER_PREFIX gap in addition to SUPPLY_GAP.
+        System.out.print(" "); // marker placeholder
+        System.out.print(" "); // space
+        System.out.print(ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", COLUMN_WIDTH)).reset());
+        System.out.print(" ".repeat(SUPPLY_GAP + MARKER_PREFIX));
+        System.out.print(ansi().fgYellow().bold().a(fixedWidth("TREASURES", COLUMN_WIDTH)).reset());
+        System.out.print(" ".repeat(SUPPLY_GAP + MARKER_PREFIX));
+        System.out.print(ansi().fgGreen().bold().a(fixedWidth("VICTORIES", COLUMN_WIDTH)).reset());
         System.out.println();
         
-        System.out.print(" ".repeat(2));
-        System.out.println("─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP) + 
-                          "─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP) + 
-                          "─".repeat(pileWidth));
+        System.out.print(" "); // marker placeholder
+        System.out.print(" "); // space
+        System.out.println("─".repeat(COLUMN_WIDTH) + " ".repeat(SUPPLY_GAP + MARKER_PREFIX) +
+                          "─".repeat(COLUMN_WIDTH) + " ".repeat(SUPPLY_GAP + MARKER_PREFIX) +
+                          "─".repeat(COLUMN_WIDTH));
         
-        // Display cards in columns
+        // Display supply cards in three columns, one row per card
         int maxRows = Math.max(actionCards.size(), Math.max(treasureCards.size(), victoryCards.size()));
         for (int i = 0; i < maxRows; i++) {
-            System.out.print(" ".repeat(2));
-            
+
             // Action column
             if (i < actionCards.size()) {
                 Card.Type cardType = actionCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                System.out.print(ansi().fgBrightBlue().a(renderPile(cardType, count, pileWidth)).reset());
+                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
+                                 actionableSupplyTypes.contains(cardType), ansi().fgBrightBlue());
             } else {
-                System.out.print(fixedWidth("", pileWidth));
+                renderEmptySupplyCell();
             }
             System.out.print(" ".repeat(SUPPLY_GAP));
-            
+
             // Treasure column
             if (i < treasureCards.size()) {
                 Card.Type cardType = treasureCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                System.out.print(ansi().fgYellow().a(renderPile(cardType, count, pileWidth)).reset());
+                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
+                                 actionableSupplyTypes.contains(cardType), ansi().fgYellow());
             } else {
-                System.out.print(fixedWidth("", pileWidth));
+                renderEmptySupplyCell();
             }
             System.out.print(" ".repeat(SUPPLY_GAP));
-            
-            // Victory column
+
+            // Victory column (BUG renders in magenta; all others in green)
             if (i < victoryCards.size()) {
                 Card.Type cardType = victoryCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                if (cardType == Card.Type.BUG) {
-                    System.out.print(ansi().fgMagenta().a(renderPile(cardType, count, pileWidth)).reset());
-                } else {
-                    System.out.print(ansi().fgGreen().a(renderPile(cardType, count, pileWidth)).reset());
-                }
+                org.fusesource.jansi.Ansi color = (cardType == Card.Type.BUG)
+                        ? ansi().fgMagenta() : ansi().fgGreen();
+                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
+                                 actionableSupplyTypes.contains(cardType), color);
             } else {
-                System.out.print(fixedWidth("", pileWidth));
+                renderEmptySupplyCell();
             }
-            
+
             System.out.println();
         }
         
         System.out.println();
         System.out.println();
         
-        // 3. Played cards section
+        // Played cards section
         String playedCardsLabel = "═══ Played Cards ═══";
         int playedPadding = (SCREEN_WIDTH - playedCardsLabel.length()) / 2;
         System.out.print(" ".repeat(playedPadding));
@@ -253,7 +312,8 @@ public class Renderer {
         System.out.println();
         System.out.println();
         
-        // 4. Hand display (3 columns)
+        // Hand display: three columns (Actions | Treasures | Victories) with * marker prefix.
+        // Total width = 3 * (MARKER_PREFIX + COLUMN_WIDTH) + 2 * SUPPLY_GAP, centred on screen.
         String yourHandLabel = "═══ Your Hand ═══";
         int handPadding = (SCREEN_WIDTH - yourHandLabel.length()) / 2;
         System.out.print(" ".repeat(handPadding));
@@ -272,325 +332,9 @@ public class Renderer {
         }
         
         int maxHandRows = Math.max(actionsInHand.size(), Math.max(treasuresInHand.size(), victoriesInHand.size()));
-        if (maxHandRows == 0) maxHandRows = 1; // Show at least headers
+        if (maxHandRows == 0) maxHandRows = 1; // Show at least the (none) row
         
-        // Calculate padding to center the treasure column (middle column)
-        int totalHandWidth = COLUMN_WIDTH * 3;
-        int handLeftPadding = Math.max(0, (SCREEN_WIDTH - totalHandWidth) / 2) + 2;
-        
-        for (int i = 0; i < maxHandRows; i++) {
-            // Add left padding to center the hand
-            System.out.print(" ".repeat(handLeftPadding));
-            
-            // Action column
-            if (i < actionsInHand.size()) {
-                System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(actionsInHand.get(i).type()), COLUMN_WIDTH)).reset());
-            } else if (i == 0) {
-                System.out.print(ansi().fgBrightBlue().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
-            } else {
-                System.out.print(fixedWidth("", COLUMN_WIDTH));
-            }
-            
-            // Treasure column
-            if (i < treasuresInHand.size()) {
-                System.out.print(ansi().fgYellow().a(fixedWidth(displayName(treasuresInHand.get(i).type()), COLUMN_WIDTH)).reset());
-            } else if (i == 0) {
-                System.out.print(ansi().fgYellow().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
-            } else {
-                System.out.print(fixedWidth("", COLUMN_WIDTH));
-            }
-            
-            // Victory column
-            if (i < victoriesInHand.size()) {
-                System.out.print(ansi().fgGreen().a(fixedWidth(displayName(victoriesInHand.get(i).type()), COLUMN_WIDTH)).reset());
-            } else if (i == 0) {
-                System.out.print(ansi().fgGreen().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
-            } else {
-                System.out.print(fixedWidth("", COLUMN_WIDTH));
-            }
-            
-            System.out.println();
-        }
-        
-        System.out.println();
-        System.out.println();
-        
-        // 5. Status bar
-        int spaces = 2;
-        String statusText = "Actions: " + state.availableActions() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                           "Buys: " + state.availableBuys() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                           "Money: " + state.spendableMoney();
-        int statusPadding = Math.max(0, (SCREEN_WIDTH - statusText.length()) / 2);
-        System.out.print(" ".repeat(statusPadding));
-        
-        System.out.print(ansi().fgBrightBlue().a("Actions: " + state.availableActions()).reset());
-        System.out.print(" ".repeat(spaces) + "|" + " ".repeat(spaces));
-        System.out.print(ansi().fgGreen().a("Buys: " + state.availableBuys()).reset());
-        System.out.print(" ".repeat(spaces) + "|" + " ".repeat(spaces));
-        System.out.print(ansi().fgYellow().a("Money: " + state.spendableMoney()).reset());
-
-        System.out.println("\n");
-
-
-    }
-
-    public static void renderGameWithDecisions(GameState state, List<Decision> options) {
-        // Build mappings from cards to decision numbers
-        Map<Card, Integer> handDecisionMap = new java.util.HashMap<>();
-        Map<Card.Type, Integer> supplyDecisionMap = new java.util.HashMap<>();
-        
-        for (int i = 0; i < options.size(); i++) {
-            Decision decision = options.get(i);
-            if (decision instanceof PlayCardDecision) {
-                handDecisionMap.put(((PlayCardDecision) decision).card(), i + 1);
-            } else if (decision instanceof TrashCardDecision) {
-                handDecisionMap.put(((TrashCardDecision) decision).card(), i + 1);
-            } else if (decision instanceof BuyDecision) {
-                supplyDecisionMap.put(((BuyDecision) decision).cardType(), i + 1);
-            } else if (decision instanceof GainCardDecision) {
-                supplyDecisionMap.put(((GainCardDecision) decision).cardType(), i + 1);
-            }
-        }
-        
-        // Render game state with decision numbers
-        System.out.println( ansi().eraseScreen() );
-        System.out.println();
-
-        // 1. Welcome message
-        String prepostfix = " -------- ";
-        String welcome = "Welcome to Automation: The Game";
-        int welcomeLength = prepostfix.length() + welcome.length() + prepostfix.length();
-        int welcomePadding = (SCREEN_WIDTH - welcomeLength) / 2;
-        System.out.print(" ".repeat(welcomePadding));
-        System.out.print(ansi().fgBrightBlue().a(prepostfix).reset());
-        System.out.print(ansi().fgBrightGreen().bold().a(welcome).reset());
-        System.out.println(ansi().fgBrightBlue().a(prepostfix).reset());
-        System.out.println();
-
-        String playerText = "Player: " + state.currentPlayerName();
-        System.out.print(playerText);
-
-        String phaseText = "";
-        switch (state.phase()) {
-            case GameState.TurnPhase.ACTION:
-                phaseText = "Phase: Action";
-                break;
-            case GameState.TurnPhase.BUY:
-                phaseText = "Phase: Buy";
-                break;
-            case GameState.TurnPhase.MONEY:
-                phaseText = "Phase: Money";
-                break;
-            case GameState.TurnPhase.CLEANUP:
-                phaseText = "Phase: Cleanup";
-                break;
-            case GameState.TurnPhase.GAIN:
-                phaseText = "Phase: Gain";
-                break;
-        }
-        
-        int phasePosition = SCREEN_WIDTH - phaseText.length();
-        int spacesNeeded = phasePosition - playerText.length();
-        System.out.print(" ".repeat(Math.max(1, spacesNeeded)));
-        
-        switch (state.phase()) {
-            case GameState.TurnPhase.ACTION:
-                System.out.print(ansi().fgBrightBlue().a(phaseText).reset()); 
-                break;
-            case GameState.TurnPhase.BUY:
-                System.out.print(ansi().fgYellow().a(phaseText).reset()); 
-                break;
-            case GameState.TurnPhase.MONEY:
-                System.out.print(ansi().fgYellow().a(phaseText).reset()); 
-                break;
-            case GameState.TurnPhase.CLEANUP:
-                System.out.print(ansi().fgBrightBlue().a(phaseText).reset()); 
-                break;
-            case GameState.TurnPhase.GAIN:
-                System.out.print(ansi().fgGreen().a(phaseText).reset()); 
-                break;
-        }
-
-        System.out.println();
-        System.out.println();
-
-        String availableCardsLabel = "═══ Available Cards ═══";
-        int availablePadding = (SCREEN_WIDTH - availableCardsLabel.length()) / 2;
-        System.out.print(" ".repeat(availablePadding));
-        System.out.println(ansi().fgBrightBlue().a(availableCardsLabel).reset());
-        System.out.println();
-
-        // Prepare supply piles by category
-        List<Card.Type> victoryCards = new ArrayList<>();
-        List<Card.Type> treasureCards = new ArrayList<>();
-        List<Card.Type> actionCards = new ArrayList<>();
-        
-        for (Card.Type cardType : state.buyableCards().getCardTypes()) {
-            switch (cardType.category()) {
-                case VICTORY: victoryCards.add(cardType); break;
-                case MONEY: treasureCards.add(cardType); break;
-                case ACTION: actionCards.add(cardType); break;
-            }
-        }
-        
-        // Sort each category by cost
-        actionCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
-        treasureCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
-        victoryCards.sort((a, b) -> Integer.compare(getCost(a), getCost(b)));
-        
-        // Calculate supply area width
-        int pileWidth = COLUMN_WIDTH;
-        
-        // Print played cards list
-        List<Card> playedCards = new ArrayList<>();
-        for (Card c : state.currentPlayerHand().playedCards()) {
-            playedCards.add(c);
-        }
-        
-        // Print column headers (* space + content start)
-        System.out.print(" "); // Space for * marker
-        System.out.print(" ".repeat(1));
-        System.out.print(ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP+2));
-        System.out.print(ansi().fgYellow().bold().a(fixedWidth("TREASURES", pileWidth)).reset());
-        System.out.print(" ".repeat(SUPPLY_GAP+2));
-        System.out.print(ansi().fgGreen().bold().a(fixedWidth("VICTORIES", pileWidth)).reset());
-        System.out.println();
-        
-        System.out.print(" "); // Space for * marker
-        System.out.print(" ".repeat(1));
-        System.out.println("─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP+2) + 
-                          "─".repeat(pileWidth) + " ".repeat(SUPPLY_GAP+2) + 
-                          "─".repeat(pileWidth));
-        
-        // Display cards in columns WITH DECISION NUMBERS
-        int maxRows = Math.max(actionCards.size(), Math.max(treasureCards.size(), victoryCards.size()));
-        for (int i = 0; i < maxRows; i++) {
-            
-            // Action column
-            if (i < actionCards.size()) {
-                Card.Type cardType = actionCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                
-                // Check if this card type has a decision
-                if (supplyDecisionMap.containsKey(cardType)) {
-                    int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("*").reset());
-                } else {
-                    System.out.print(" ");
-                }
-                System.out.print(" ".repeat(1));
-                int cost = getCost(cardType);
-                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                System.out.print(ansi().fgBrightBlue().a(fixedWidth(pile, pileWidth)).reset());
-            } else {
-                System.out.print(" ");
-                System.out.print(" ");
-                System.out.print(fixedWidth("", pileWidth));
-            }
-            System.out.print(" ".repeat(SUPPLY_GAP));
-            
-            // Treasure column
-            if (i < treasureCards.size()) {
-                Card.Type cardType = treasureCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                
-                // Check if this card type has a decision
-                if (supplyDecisionMap.containsKey(cardType)) {
-                    int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("*").reset());
-                } else {
-                    System.out.print(" ");
-                }
-                System.out.print(" ");
-                int cost = getCost(cardType);
-                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                System.out.print(ansi().fgYellow().a(fixedWidth(pile, pileWidth)).reset());
-            } else {
-                System.out.print(" ");
-                System.out.print(" ");
-                System.out.print(fixedWidth("", pileWidth));
-            }
-            System.out.print(" ".repeat(SUPPLY_GAP));
-            
-            // Victory column
-            if (i < victoryCards.size()) {
-                Card.Type cardType = victoryCards.get(i);
-                int count = state.buyableCards().getNumAvailable(cardType);
-                
-                // Determine color based on card type
-                org.fusesource.jansi.Ansi colorAnsi = (cardType == Card.Type.BUG) ? ansi().fgMagenta() : ansi().fgGreen();
-                
-                // Check if this card type has a decision
-                if (supplyDecisionMap.containsKey(cardType)) {
-                    int decisionNum = supplyDecisionMap.get(cardType);
-                    System.out.print(ansi().fgRed().a("*").reset());
-                } else {
-                    System.out.print(" ");
-                }
-                System.out.print(" ");
-                int cost = getCost(cardType);
-                String pile = count + " " + displayName(cardType) + " ($" + cost + ")";
-                System.out.print(colorAnsi.a(fixedWidth(pile, pileWidth)).reset());
-            } else {
-                System.out.print(" ");
-                System.out.print(" ");
-                System.out.print(fixedWidth("", pileWidth));
-            }
-            
-            System.out.println();
-        }
-        
-        System.out.println();
-        System.out.println();
-        
-        // Played cards section
-        String playedCardsLabel = "═══ Played Cards ═══";
-        int playedPadding = (SCREEN_WIDTH - playedCardsLabel.length()) / 2;
-        System.out.print(" ".repeat(playedPadding));
-        System.out.println(ansi().fgBrightBlue().a(playedCardsLabel).reset());
-        System.out.println();
-        if (playedCards.isEmpty()) {
-            System.out.print(" ".repeat(playedPadding));
-            System.out.println("(none)");
-        } else {
-            for (Card card : playedCards) {
-                String cardText = "• " + displayName(card.type());
-                // int cardPadding = (SCREEN_WIDTH - cardText.length()) / 2;
-                int cardPadding = (SCREEN_WIDTH) / 3 + 5; // May not work for all screen widths
-                System.out.print(" ".repeat(cardPadding));
-                System.out.println(colorForCategory(card.getCategory()).a(cardText).reset());
-            }
-        }
-        
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        
-        // Hand display WITH DECISION NUMBERS
-        String yourHandLabel = "═══ Your Hand ═══";
-        int handPadding = (SCREEN_WIDTH - yourHandLabel.length()) / 2;
-        System.out.print(" ".repeat(handPadding));
-        System.out.println(ansi().fgBrightBlue().a(yourHandLabel).reset());
-        System.out.println();
-        List<Card> actionsInHand = new ArrayList<>();
-        List<Card> treasuresInHand = new ArrayList<>();
-        List<Card> victoriesInHand = new ArrayList<>();
-        
-        for (Card card : state.currentPlayerHand().unplayedCards()) {
-            switch (card.getCategory()) {
-                case ACTION: actionsInHand.add(card); break;
-                case MONEY: treasuresInHand.add(card); break;
-                case VICTORY: victoriesInHand.add(card); break;
-            }
-        }
-        
-        int maxHandRows = Math.max(actionsInHand.size(), Math.max(treasuresInHand.size(), victoriesInHand.size()));
-        if (maxHandRows == 0) maxHandRows = 1; // Show at least headers
-        
-        // Calculate padding to center the treasure column (middle column)
-        // Account for potential * markers (2 chars per column)
-        int totalHandWidth = COLUMN_WIDTH * 3 + 6; // +6 for "* " on each of 3 columns
+        int totalHandWidth = (MARKER_PREFIX + COLUMN_WIDTH) * 3 + 2 * SUPPLY_GAP;
         int handLeftPadding = Math.max(0, (SCREEN_WIDTH - totalHandWidth) / 2);
         
         for (int i = 0; i < maxHandRows; i++) {
@@ -599,14 +343,7 @@ public class Renderer {
             
             // Action column
             if (i < actionsInHand.size()) {
-                Card card = actionsInHand.get(i);
-                if (handDecisionMap.containsKey(card)) {
-                    int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                } else {
-                    System.out.print("  ");
-                }
-                System.out.print(ansi().fgBrightBlue().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                renderHandCell(actionsInHand.get(i), actionableHandCards, ansi().fgBrightBlue());
             } else if (i == 0) {
                 System.out.print("  ");
                 System.out.print(ansi().fgBrightBlue().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
@@ -614,17 +351,11 @@ public class Renderer {
                 System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
+            System.out.print(" ".repeat(SUPPLY_GAP));
             
             // Treasure column
             if (i < treasuresInHand.size()) {
-                Card card = treasuresInHand.get(i);
-                if (handDecisionMap.containsKey(card)) {
-                    int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                } else {
-                    System.out.print("  ");
-                }
-                System.out.print(ansi().fgYellow().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                renderHandCell(treasuresInHand.get(i), actionableHandCards, ansi().fgYellow());
             } else if (i == 0) {
                 System.out.print("  ");
                 System.out.print(ansi().fgYellow().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
@@ -632,17 +363,11 @@ public class Renderer {
                 System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
+            System.out.print(" ".repeat(SUPPLY_GAP));
             
             // Victory column
             if (i < victoriesInHand.size()) {
-                Card card = victoriesInHand.get(i);
-                if (handDecisionMap.containsKey(card)) {
-                    int decisionNum = handDecisionMap.get(card);
-                    System.out.print(ansi().fgRed().a("* ").reset());
-                } else {
-                    System.out.print("  ");
-                }
-                System.out.print(ansi().fgGreen().a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
+                renderHandCell(victoriesInHand.get(i), actionableHandCards, ansi().fgGreen());
             } else if (i == 0) {
                 System.out.print("  ");
                 System.out.print(ansi().fgGreen().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
