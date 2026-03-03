@@ -18,8 +18,8 @@ public class HandEVPlayer extends AbstractPlayer {
 
     public HandEVPlayer() {
         super();
-        this.deckSize = 10;
-        this.totalMoneyInDeck = 7;
+        this.deckSize = 0;
+        this.totalMoneyInDeck = 0;
     }
 
     /**
@@ -82,7 +82,7 @@ public class HandEVPlayer extends AbstractPlayer {
             // This is imperfect because the player can't track when it gains a Bug, but it's
             // a reasonable heuristic to avoid buying Framework too early
             if (preferredType == Card.Type.FRAMEWORK
-                && HAND_SIZE * (double) totalMoneyInDeck / deckSize < Card.Type.FRAMEWORK.cost()) {
+                && HAND_SIZE * totalMoneyInDeck / deckSize < Card.Type.FRAMEWORK.cost()) {
                 continue;
             }
 
