@@ -7,9 +7,13 @@ import static org.junit.Assert.*;
 import java.lang.reflect.Method;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.Hand;
 
 /**
  * Unit tests for the ConsolePlayer class.
@@ -117,5 +121,48 @@ public class ConsolePlayerTest {
                         p2.getName(), p3.getName());
         assertNotEquals("Instances should have different names", 
                         p1.getName(), p3.getName());
+    }
+
+    // ========== Auto-Skip Behavior Tests ==========
+
+    @Test
+    public void testMakeDecision_ActionPhaseNoActions_AutoReturnsEndPhase() {
+        // When it's the ACTION phase with 0 available actions and the only option
+        // is EndPhaseDecision, ConsolePlayer should return it immediately without input.
+        GameState state = new GameState(
+            player.getName(),
+            new Hand(ImmutableList.<Card>of(), ImmutableList.<Card>of()),
+            GameState.TurnPhase.ACTION,
+            0, // 0 available actions
+            0, 1,
+            new CardStacks(ImmutableMap.of(Card.Type.BITCOIN, 30))
+        );
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        ImmutableList<Decision> options = ImmutableList.of(endPhase);
+
+        Decision result = player.makeDecision(state, options);
+
+        assertSame("Should auto-return EndPhaseDecision when no actions remain", endPhase, result);
+    }
+
+    @Test
+    public void testMakeDecision_BuyPhaseNoBuys_AutoReturnsEndPhase() {
+        // When it's the BUY phase with 0 available buys and the only option
+        // is EndPhaseDecision, ConsolePlayer should return it immediately without input.
+        GameState state = new GameState(
+            player.getName(),
+            new Hand(ImmutableList.<Card>of(), ImmutableList.<Card>of()),
+            GameState.TurnPhase.BUY,
+            0,
+            0,
+            0, // 0 available buys
+            new CardStacks(ImmutableMap.of(Card.Type.BITCOIN, 30))
+        );
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(endPhase);
+
+        Decision result = player.makeDecision(state, options);
+
+        assertSame("Should auto-return EndPhaseDecision when no buys remain", endPhase, result);
     }
 }

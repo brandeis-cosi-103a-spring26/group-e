@@ -630,6 +630,136 @@ public class RendererTest {
         assertFalse("EndPhaseDecision should not produce any * markers", output.contains("*"));
     }
 
+    // ========== Supply Column Header & Cost Tests ==========
+
+    @Test
+    public void testRenderGame_DisplaysColumnHeaders() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+
+        Renderer.renderGame(state);
+
+        String output = outputStream.toString();
+        assertTrue("Should display ACTIONS column header", output.contains("ACTIONS"));
+        assertTrue("Should display TREASURES column header", output.contains("TREASURES"));
+        assertTrue("Should display VICTORIES column header", output.contains("VICTORIES"));
+    }
+
+    @Test
+    public void testRenderGame_SupplyDisplaysCardCosts() {
+        CardStacks supply = new CardStacks(
+            ImmutableMap.of(
+                Card.Type.METHOD, 12,   // costs $2
+                Card.Type.BITCOIN, 30   // costs $0
+            )
+        );
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
+        GameState state = new GameState(
+            "Player1", hand, GameState.TurnPhase.ACTION, 1, 0, 1, supply
+        );
+
+        Renderer.renderGame(state);
+
+        String output = outputStream.toString();
+        // Costs are displayed as ($N) after the card name
+        assertTrue("Should display cost for Method ($2)", output.contains("$2"));
+        assertTrue("Should display cost for Bitcoin ($0)", output.contains("$0"));
+    }
+
+    @Test
+    public void testRenderGame_BugCardInSupply_Renders() {
+        CardStacks supply = new CardStacks(ImmutableMap.of(Card.Type.BUG, 20));
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
+        GameState state = new GameState(
+            "Player1", hand, GameState.TurnPhase.ACTION, 1, 0, 1, supply
+        );
+
+        Renderer.renderGame(state);
+
+        String output = outputStream.toString();
+        assertTrue("Should display Bug card in supply", output.contains("Bug"));
+        assertTrue("Should display Bug's count", output.contains("20 Bug"));
+    }
+
+    // ========== renderGameDebugMode Tests ==========
+
+    @Test
+    public void testRenderGameDebugMode_DisplaysDebugHeaders() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        AIPlayer player = new AIPlayer();
+        DebugGameState debugState = new DebugGameState(
+            state,
+            ImmutableMap.of(player, ImmutableList.<Card>of()),
+            ImmutableMap.of(player, ImmutableList.<Card>of())
+        );
+
+        Renderer.renderGameDebugMode(debugState);
+
+        String output = outputStream.toString();
+        assertTrue("Should display debug deck header", output.contains("DEBUG MODE: Player Decks"));
+        assertTrue("Should display debug discard header", output.contains("DEBUG MODE: Player Discards"));
+    }
+
+    @Test
+    public void testRenderGameDebugMode_DisplaysPlayerDecks() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        AIPlayer player = new AIPlayer();
+        Card bitcoin = new Card(Card.Type.BITCOIN, 1);
+        Card method = new Card(Card.Type.METHOD, 2);
+        DebugGameState debugState = new DebugGameState(
+            state,
+            ImmutableMap.of(player, ImmutableList.of(bitcoin, method)),
+            ImmutableMap.of(player, ImmutableList.<Card>of())
+        );
+
+        Renderer.renderGameDebugMode(debugState);
+
+        String output = outputStream.toString();
+        assertTrue("Should display player name in deck section",
+                   output.contains(player.getName() + "'s deck:"));
+        // Both cards should appear somewhere in the output (also in supply/hand from renderGame)
+        assertTrue("Should display Bitcoin in debug output", output.contains("Bitcoin"));
+        assertTrue("Should display Method in debug output", output.contains("Method"));
+    }
+
+    @Test
+    public void testRenderGameDebugMode_DisplaysPlayerDiscards() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        AIPlayer player = new AIPlayer();
+        Card refactor = new Card(Card.Type.REFACTOR, 1);
+        DebugGameState debugState = new DebugGameState(
+            state,
+            ImmutableMap.of(player, ImmutableList.<Card>of()),
+            ImmutableMap.of(player, ImmutableList.of(refactor))
+        );
+
+        Renderer.renderGameDebugMode(debugState);
+
+        String output = outputStream.toString();
+        assertTrue("Should display player name in discard section",
+                   output.contains(player.getName() + "'s discard pile:"));
+        assertTrue("Should display Refactor in discard section", output.contains("Refactor"));
+    }
+
+    @Test
+    public void testRenderGameDebugMode_EmptyDecksAndDiscards() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        AIPlayer player = new AIPlayer();
+        DebugGameState debugState = new DebugGameState(
+            state,
+            ImmutableMap.of(player, ImmutableList.<Card>of()),
+            ImmutableMap.of(player, ImmutableList.<Card>of())
+        );
+
+        Renderer.renderGameDebugMode(debugState);
+
+        String output = outputStream.toString();
+        // Headers must appear even with empty collections
+        assertTrue("Should display debug headers with empty decks", output.contains("DEBUG MODE"));
+        // No "  - CardName" lines should appear for the debug sections
+        assertFalse("Should not show dash-prefixed card lines when debug decks are empty",
+                    output.contains("\n  - "));
+    }
+
     // ========== Helper Methods ==========
     
     /**

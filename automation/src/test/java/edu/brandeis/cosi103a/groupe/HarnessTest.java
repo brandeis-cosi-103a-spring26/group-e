@@ -12,9 +12,13 @@ import java.io.PrintStream;
 import java.util.Scanner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.state.CardStacks;
+import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.state.Hand;
 
 /**
  * Unit tests for the Harness class.
@@ -390,6 +394,261 @@ public class HarnessTest {
     
     // ========== Edge Cases ==========
     
+    // ========== getCardDescription Tests ==========
+
+    @Test
+    public void testGetCardDescription_BitcoinHasDescription() {
+        String desc = Harness.getCardDescription(Card.Type.BITCOIN);
+        assertNotNull("Description should not be null", desc);
+        assertFalse("Description should not be empty", desc.isEmpty());
+        assertNotEquals("Should return specific description, not default",
+                "No description available.", desc);
+    }
+
+    @Test
+    public void testGetCardDescription_AllKnownCardTypesHaveDescriptions() {
+        Card.Type[] knownTypes = {
+            Card.Type.BUG, Card.Type.METHOD, Card.Type.MODULE, Card.Type.FRAMEWORK,
+            Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN,
+            Card.Type.REFACTOR, Card.Type.CODE_REVIEW, Card.Type.EVERGREEN_TEST
+        };
+        for (Card.Type type : knownTypes) {
+            String desc = Harness.getCardDescription(type);
+            assertNotNull("Description for " + type + " should not be null", desc);
+            assertFalse("Description for " + type + " should not be empty", desc.isEmpty());
+            assertNotEquals("Description for " + type + " should not be default message",
+                    "No description available.", desc);
+        }
+    }
+
+    // ========== wasAutoPlayRequested Tests ==========
+
+    @Test
+    public void testWasAutoPlayRequested_InitiallyFalse() {
+        Harness.wasAutoPlayRequested(); // consume any leftover true from prior tests
+        assertFalse("Auto-play flag should be false after consuming", Harness.wasAutoPlayRequested());
+    }
+
+    @Test
+    public void testWasAutoPlayRequested_ResetsAfterRead() {
+        Harness.wasAutoPlayRequested(); // reset any prior state
+        // Trigger auto-play via the A command in Money phase
+        GameState moneyState = createMoneyPhaseState();
+        Card bitcoin = new Card(Card.Type.BITCOIN, 1);
+        PlayCardDecision playBitcoin = new PlayCardDecision(bitcoin);
+        ImmutableList<Decision> options = ImmutableList.of(playBitcoin);
+        String input = "A\n";
+        Harness.getDecisionFromConsole(moneyState, options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertTrue("wasAutoPlayRequested should return true after A command",
+                Harness.wasAutoPlayRequested());
+        assertFalse("wasAutoPlayRequested should return false on second call (one-shot reset)",
+                Harness.wasAutoPlayRequested());
+    }
+
+    // ========== 'E' / 'end' command tests ==========
+
+    @Test
+    public void testGetDecisionFromConsole_EInput_ReturnsEndPhaseDecision() {
+        EndPhaseDecision endPhase = new EndPhaseDecision(TurnPhase.ACTION);
+        PlayCardDecision play = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(play, endPhase);
+        String input = "E\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("'E' should select the EndPhaseDecision", endPhase, result);
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_EndInput_ReturnsEndPhaseDecision() {
+        EndPhaseDecision endPhase = new EndPhaseDecision(TurnPhase.BUY);
+        BuyDecision buy = new BuyDecision(Card.Type.BITCOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buy, endPhase);
+        String input = "end\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("'end' should select the EndPhaseDecision", endPhase, result);
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_EInput_WhenNoEndPhaseDecision_ShowsErrorThenValid() {
+        PlayCardDecision decision = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(decision);
+        String input = "E\nMethod\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return valid card decision", decision, result);
+        assertTrue("Should show cannot end phase error",
+                outputStream.toString().contains("Cannot end phase"));
+    }
+
+    // ========== 'A' (auto-play) command tests ==========
+
+    @Test
+    public void testGetDecisionFromConsole_ACommand_InMoneyPhase_ReturnsFirstTreasure() {
+        Harness.wasAutoPlayRequested(); // reset any prior state
+        GameState moneyState = createMoneyPhaseState();
+        Card bitcoin = new Card(Card.Type.BITCOIN, 1);
+        PlayCardDecision playBitcoin = new PlayCardDecision(bitcoin);
+        ImmutableList<Decision> options = ImmutableList.of(playBitcoin);
+        String input = "A\n";
+
+        Decision result = Harness.getDecisionFromConsole(moneyState, options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("'A' should return the first treasure card decision", playBitcoin, result);
+        assertTrue("Should set auto-play requested flag", Harness.wasAutoPlayRequested());
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_ACommand_NotInMoneyPhase_ShowsError() {
+        // null state → not in Money phase → A should show error
+        PlayCardDecision decision = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(decision);
+        String input = "a\nMethod\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return valid decision", decision, result);
+        assertTrue("Should show auto-play only in Money phase error",
+                outputStream.toString().contains("Money phase"));
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_ACommand_NoTreasureAvailable_ShowsError() {
+        Harness.wasAutoPlayRequested(); // reset any prior state
+        GameState moneyState = createMoneyPhaseState();
+        // Options contain no PlayCardDecision for a treasure
+        EndPhaseDecision endPhase = new EndPhaseDecision(TurnPhase.MONEY);
+        BuyDecision buyCard = new BuyDecision(Card.Type.BITCOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buyCard, endPhase);
+        String input = "A\nE\n";
+
+        Decision result = Harness.getDecisionFromConsole(moneyState, options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should return end phase after A fails", endPhase, result);
+        assertTrue("Should show no treasure cards error",
+                outputStream.toString().contains("No treasure cards"));
+    }
+
+    // ========== 'man' command tests ==========
+
+    @Test
+    public void testGetDecisionFromConsole_ManCommand_ShowsCardDescription() {
+        BuyDecision buy = new BuyDecision(Card.Type.BITCOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buy);
+        String input = "man bitcoin\nBitcoin\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return the buy decision", buy, result);
+        // Description output should mention Bitcoin cost
+        assertTrue("Should display card info after 'man' command",
+                outputStream.toString().contains("Cost:"));
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_ManCommand_UnknownCard_ShowsError() {
+        // "man" with an unrecognized card name should display "Card not found"
+        BuyDecision buy = new BuyDecision(Card.Type.BITCOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buy);
+        String input = "man unknownxyz\nBitcoin\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return the buy decision", buy, result);
+        assertTrue("Should show card not found message",
+                outputStream.toString().contains("Card not found"));
+    }
+
+    // ========== Empty input test ==========
+
+    @Test
+    public void testGetDecisionFromConsole_EmptyInput_ShowsErrorThenValid() {
+        PlayCardDecision decision = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(decision);
+        String input = "\nMethod\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return valid choice", decision, result);
+        assertTrue("Should show error for empty input",
+                outputStream.toString().contains("Invalid input"));
+    }
+
+    // ========== Ambiguous card name test ==========
+
+    @Test
+    public void testGetDecisionFromConsole_AmbiguousInput_ShowsMultipleMatchesError() {
+        // "m" matches Method, Module, Ethereum, Framework, etc. - many results
+        PlayCardDecision decision = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(decision);
+        String input = "m\nMethod\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually find valid card after ambiguous input", decision, result);
+        assertTrue("Should show multiple matches error",
+                outputStream.toString().contains("multiple cards match"));
+    }
+
+    // ========== Card found globally but not in current options ==========
+
+    @Test
+    public void testGetDecisionFromConsole_CardNotInOptions_ShowsError() {
+        // Ethereum uniquely matches but only Bitcoin buy is in options
+        BuyDecision buy = new BuyDecision(Card.Type.BITCOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buy);
+        String input = "Ethereum\nBitcoin\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should eventually return valid matching decision", buy, result);
+        assertTrue("Should show 'not available right now' message",
+                outputStream.toString().contains("not available right now"));
+    }
+
+    // ========== GainCardDecision and TrashCardDecision matching ==========
+
+    @Test
+    public void testGetDecisionFromConsole_GainCardDecision_MatchesByCardTypeName() {
+        GainCardDecision gain = new GainCardDecision(Card.Type.MODULE);
+        ImmutableList<Decision> options = ImmutableList.of(gain);
+        String input = "Module\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should return the GainCardDecision for matching card type", gain, result);
+    }
+
+    @Test
+    public void testGetDecisionFromConsole_TrashCardDecision_MatchesByCardName() {
+        Card refactor = new Card(Card.Type.REFACTOR, 1);
+        TrashCardDecision trash = new TrashCardDecision(refactor);
+        ImmutableList<Decision> options = ImmutableList.of(trash);
+        String input = "Refactor\n";
+
+        Decision result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+
+        assertSame("Should return the TrashCardDecision for matching card", trash, result);
+    }
+
     @Test
     public void testGetValidPlayerCount_LargeNumber_OutOfRange() {
         String input = "999999\n2\n"; // Very large number, then valid
@@ -424,5 +683,20 @@ public class HarnessTest {
         // Should not show "press enter" prompt since it's not an EndPhaseDecision
         assertFalse("Should not show press enter prompt for non-EndPhase decisions",
                     outputStream.toString().contains("Press enter to continue"));
+    }
+
+    // ========== Helper Methods ==========
+
+    /**
+     * Creates a GameState in the MONEY phase for testing auto-play and phase-sensitive commands.
+     */
+    private GameState createMoneyPhaseState() {
+        return new GameState(
+            "Player1",
+            new Hand(ImmutableList.<Card>of(), ImmutableList.<Card>of()),
+            TurnPhase.MONEY,
+            0, 0, 1,
+            new CardStacks(ImmutableMap.of(Card.Type.BITCOIN, 30))
+        );
     }
 }
