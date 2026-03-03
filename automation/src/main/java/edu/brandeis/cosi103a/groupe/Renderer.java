@@ -2,9 +2,12 @@ package edu.brandeis.cosi103a.groupe;
 
 import static org.fusesource.jansi.Ansi.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.regex.Pattern;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -27,6 +30,10 @@ public class Renderer {
     private static final int COLUMN_WIDTH = 22;
     private static final int SUPPLY_GAP = 2;
     private static final int MARKER_PREFIX = 2; // "* " or " " before each card name
+    private static final int LOG_PANEL_WIDTH = 38;
+
+    /** Matches ANSI CSI escape sequences (e.g. color codes) for visual-length calculation. */
+    private static final Pattern ANSI_ESCAPE = Pattern.compile("\\033\\[[0-9;]*[A-Za-z]");
 
     /**
      * Converts a {@link Card.Type} enum value to a human-readable Title Case name.
@@ -432,6 +439,145 @@ public class Renderer {
 
         System.out.println("\n");
 
+    }
+
+    /**
+     * Renders the current game state side-by-side with a turn log panel on the
+     * right. The main board is rendered at {@link #SCREEN_WIDTH} visible columns;
+     * the log panel occupies {@link #LOG_PANEL_WIDTH} additional columns and shows
+     * the current turn (live) plus up to two completed previous turns.
+     *
+     * @param state   current game state
+     * @param options available decisions (used for actionable-card markers)
+     * @param logs    the engine's turn log list (shared live reference)
+     */
+    public static void renderGameWithDecisions(GameState state, List<Decision> options,
+            List<TurnLog> logs) {
+        // Capture the main panel output into a buffer so we can merge it with the
+        // log panel line-by-line.
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream capture = new PrintStream(baos);
+        PrintStream realOut = System.out;
+        System.setOut(capture);
+        try {
+            renderGameWithDecisions(state, options);
+        } finally {
+            System.out.flush();
+            System.setOut(realOut);
+        }
+
+        // Split captured output into lines, normalising CRLF → LF.
+        String[] rawLines = baos.toString().split("\n", -1);
+        List<String> mainLines = new ArrayList<>();
+        for (String line : rawLines) {
+            mainLines.add(line.endsWith("\r") ? line.substring(0, line.length() - 1) : line);
+        }
+        // Drop trailing blank lines produced by the final println.
+        while (!mainLines.isEmpty() && mainLines.get(mainLines.size() - 1).isEmpty()) {
+            mainLines.remove(mainLines.size() - 1);
+        }
+
+        // Build the log panel.
+        List<String> logLines = buildLogPanelLines(logs);
+
+        // Print main panel and log panel side by side.
+        int maxRows = Math.max(mainLines.size(), logLines.size());
+        for (int i = 0; i < maxRows; i++) {
+            String mainLine = (i < mainLines.size()) ? mainLines.get(i) : "";
+            String logLine  = (i < logLines.size())  ? logLines.get(i)  : "";
+
+            // Pad main line so the separator always appears at column SCREEN_WIDTH.
+            int vLen   = visualLength(mainLine);
+            String pad = " ".repeat(Math.max(0, SCREEN_WIDTH - vLen));
+
+            if (!logLine.isEmpty()) {
+                System.out.println(mainLine + pad + "  \u2502  " + logLine);
+            } else {
+                System.out.println(mainLine + pad);
+            }
+        }
+    }
+
+    // ─── Turn log panel helpers ────────────────────────────────────────────────
+
+    /**
+     * Returns the visible (non-ANSI) length of {@code s}.
+     */
+    static int visualLength(String s) {
+        return ANSI_ESCAPE.matcher(s).replaceAll("").length();
+    }
+
+    /**
+     * Truncates {@code s} to at most {@code maxLen} visible characters, appending
+     * {@code …} if truncated. Does not account for embedded ANSI codes, so this
+     * should only be called on plain (uncoloured) strings.
+     */
+    private static String truncateVisible(String s, int maxLen) {
+        if (s.length() <= maxLen) {
+            return s;
+        }
+        return s.substring(0, Math.max(0, maxLen - 1)) + "\u2026";
+    }
+
+    /**
+     * Builds the lines of the right-hand turn log panel. Shows up to the last
+     * three turns (two completed + current). The current (last) turn is shown in
+     * full colour; older turns are dimmed.
+     *
+     * @param logs the engine's live turn log list
+     * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH}
+     *         visible characters wide
+     */
+    private static List<String> buildLogPanelLines(List<TurnLog> logs) {
+        List<String> lines = new ArrayList<>();
+
+        // Panel header bar
+        String headerLabel = "Turn Log";
+        int fillLen = Math.max(0, LOG_PANEL_WIDTH - 4 - headerLabel.length());
+        String headerBar = "\u2550\u2550 " + headerLabel + " " + "\u2550".repeat(fillLen);
+        lines.add(ansi().fgBrightBlue().a(truncateVisible(headerBar, LOG_PANEL_WIDTH)).reset().toString());
+
+        if (logs == null || logs.isEmpty()) {
+            lines.add(ansi().fgBrightBlack().a("  (no turns yet)").reset().toString());
+            return lines;
+        }
+
+        // Show last 3 turns: up to 2 previous + current.
+        int startIdx = Math.max(0, logs.size() - 3);
+        for (int t = startIdx; t < logs.size(); t++) {
+            TurnLog log = logs.get(t);
+            boolean isCurrent = (t == logs.size() - 1);
+
+            if (t > startIdx) {
+                // Separator between turns.
+                String sep = "  " + "\u2500".repeat(Math.max(0, LOG_PANEL_WIDTH - 2));
+                lines.add(ansi().fgBrightBlack().a(truncateVisible(sep, LOG_PANEL_WIDTH)).reset().toString());
+            }
+
+            // Turn header.
+            String turnHeader = log.getHeader();
+            if (isCurrent) {
+                lines.add(ansi().bold().fgBrightCyan()
+                        .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH)).reset().toString());
+            } else {
+                lines.add(ansi().fgBrightBlack()
+                        .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH)).reset().toString());
+            }
+
+            // Log entries for this turn.
+            for (String entry : log.getEntries()) {
+                String entryLine = "  " + entry;
+                if (isCurrent) {
+                    lines.add(ansi().fgDefault()
+                            .a(truncateVisible(entryLine, LOG_PANEL_WIDTH)).reset().toString());
+                } else {
+                    lines.add(ansi().fgBrightBlack()
+                            .a(truncateVisible(entryLine, LOG_PANEL_WIDTH)).reset().toString());
+                }
+            }
+        }
+
+        return lines;
     }
 
     /**

@@ -8,9 +8,28 @@ import edu.brandeis.cosi.atg.cards.Card;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConsolePlayer extends AbstractPlayer {
 
     private boolean autoPlayTreasures = false;
+
+    /**
+     * Live reference to the engine's turn log history; set after engine creation
+     * via {@link #setTurnLogs(List)}. All turns from all players are visible.
+     */
+    private List<TurnLog> turnLogs = new ArrayList<>();
+
+    /**
+     * Sets the shared turn log list from the engine. Should be called once after
+     * the engine is constructed and before the game starts.
+     *
+     * @param logs the engine's live turn log list
+     */
+    public void setTurnLogs(List<TurnLog> logs) {
+        this.turnLogs = logs;
+    }
 
     /**
      * Makes a decision based on user input from the console.
@@ -63,7 +82,7 @@ public class ConsolePlayer extends AbstractPlayer {
         // Not in auto-play mode or no treasures available - get user input
         // Render the current game state to the console
         // Renderer.renderGame(state);
-        Renderer.renderGameWithDecisions(state, options);
+        Renderer.renderGameWithDecisions(state, options, turnLogs);
 
         DecisionResult result = Harness.getDecisionFromConsole(state, options);
 
