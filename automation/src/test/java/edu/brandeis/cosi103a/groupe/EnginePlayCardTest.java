@@ -75,7 +75,7 @@ public class EnginePlayCardTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         Card actionCard = new Card(Card.Type.CODE_REVIEW, 20001);
         hand.addToUnplayed(actionCard);
 
@@ -87,8 +87,9 @@ public class EnginePlayCardTest {
         // Verify card moved to played
         assertFalse("Card should not be in unplayed", hand.getUnplayedCards().contains(actionCard));
         assertTrue("Card should be in played", hand.getPlayedCards().contains(actionCard));
-        
-        // Verify action was processed (CODE_REVIEW gives +2 actions, then -1 for playing = net +1)
+
+        // Verify action was processed (CODE_REVIEW gives +2 actions, then -1 for
+        // playing = net +1)
         int numActions = getPrivateField(engine, "numActions");
         assertEquals("numActions should be 2 (1 + 2 - 1)", 2, numActions);
     }
@@ -102,7 +103,7 @@ public class EnginePlayCardTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         Card moneyCard = new Card(Card.Type.ETHEREUM, 21001);
         hand.addToUnplayed(moneyCard);
 
@@ -114,7 +115,7 @@ public class EnginePlayCardTest {
         // Verify card moved to played
         assertFalse("Card should not be in unplayed", hand.getUnplayedCards().contains(moneyCard));
         assertTrue("Card should be in played", hand.getPlayedCards().contains(moneyCard));
-        
+
         // Verify money was added (ETHEREUM = 2)
         int numMoney = getPrivateField(engine, "numMoney");
         assertEquals("numMoney should be 2", 2, numMoney);
@@ -130,7 +131,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
         int initialHandSize = hand.size();
-        
+
         Card codeReview = new Card(Card.Type.CODE_REVIEW, 22001);
         hand.addToUnplayed(codeReview);
 
@@ -140,7 +141,8 @@ public class EnginePlayCardTest {
         method.invoke(engine, decision);
 
         // CODE_REVIEW: +1 Card, +2 Actions
-        // Verify hand size increased by 1 (drew 1, played 1 = net 0, but we count unplayed)
+        // Verify hand size increased by 1 (drew 1, played 1 = net 0, but we count
+        // unplayed)
         // Actually: playing moves from unplayed to played, drawing adds to unplayed
         int numActions = getPrivateField(engine, "numActions");
         assertEquals("numActions should be 2 (1 + 2 - 1)", 2, numActions);
@@ -155,7 +157,7 @@ public class EnginePlayCardTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         Card bitcoin = new Card(Card.Type.BITCOIN, 23001);
         hand.addToUnplayed(bitcoin);
 
@@ -176,21 +178,21 @@ public class EnginePlayCardTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         Card victoryCard = new Card(Card.Type.METHOD, 24001);
         hand.addToUnplayed(victoryCard);
 
         PlayCardDecision decision = new PlayCardDecision(victoryCard);
         Method method = engine.getClass().getDeclaredMethod("processPlayCardDecision", PlayCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue("Should throw UnsupportedOperationException", 
-                e.getCause() instanceof UnsupportedOperationException);
-            assertTrue("Error message should mention unsupported category", 
-                e.getCause().getMessage().contains("Unsupported"));
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
+            assertTrue("Error message should mention unsupported category",
+                    e.getCause().getMessage().contains("Unsupported"));
             throw e;
         }
     }
@@ -206,13 +208,13 @@ public class EnginePlayCardTest {
         PlayCardDecision decision = new PlayCardDecision(cardNotInHand);
         Method method = engine.getClass().getDeclaredMethod("processPlayCardDecision", PlayCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
             // MutableHand.playCard should throw IllegalArgumentException
-            assertTrue("Should throw IllegalArgumentException", 
-                e.getCause() instanceof IllegalArgumentException);
+            assertTrue("Should throw IllegalArgumentException",
+                    e.getCause() instanceof IllegalArgumentException);
             throw e;
         }
     }
@@ -225,7 +227,7 @@ public class EnginePlayCardTest {
 
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = hands.get(player);
-        
+
         Card card = new Card(Card.Type.BITCOIN, 26001);
         hand.addToUnplayed(card);
         hand.playCard(card); // Play it once
@@ -234,13 +236,13 @@ public class EnginePlayCardTest {
         PlayCardDecision decision = new PlayCardDecision(card);
         Method method = engine.getClass().getDeclaredMethod("processPlayCardDecision", PlayCardDecision.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
             // Should fail because card is no longer in unplayed
-            assertTrue("Should throw IllegalArgumentException", 
-                e.getCause() instanceof IllegalArgumentException);
+            assertTrue("Should throw IllegalArgumentException",
+                    e.getCause() instanceof IllegalArgumentException);
             throw e;
         }
     }
@@ -265,7 +267,7 @@ public class EnginePlayCardTest {
         // CODE_REVIEW: +1 Card, +2 Actions, then -1 action from playing
         int numActions = getPrivateField(engine, "numActions");
         assertEquals("numActions should be 2 (1 + 2 - 1)", 2, numActions);
-        
+
         // Hand size should increase (if there were cards to draw)
         assertTrue("Hand size should increase or stay same", hand.size() >= initialSize);
     }
@@ -313,14 +315,14 @@ public class EnginePlayCardTest {
         // Try to process BITCOIN as an action (it's money)
         Method method = engine.getClass().getDeclaredMethod("processPlayActionCard", Card.Type.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, Card.Type.BITCOIN);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue("Should throw UnsupportedOperationException", 
-                e.getCause() instanceof UnsupportedOperationException);
-            assertTrue("Error message should mention unsupported", 
-                e.getCause().getMessage().contains("Unsupported"));
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
+            assertTrue("Error message should mention unsupported",
+                    e.getCause().getMessage().contains("Unsupported"));
             throw e;
         }
     }
@@ -328,10 +330,11 @@ public class EnginePlayCardTest {
     @Test
     public void testProcessPlayActionCard_AllActionTypes() throws Exception {
         // Test CODE_REVIEW and EVERGREEN_TEST can be processed
-        // Note: REFACTOR is not tested here because it requires complex player decision mocking
+        // Note: REFACTOR is not tested here because it requires complex player decision
+        // mocking
         Card.Type[] actionTypes = {
-            Card.Type.CODE_REVIEW,
-            Card.Type.EVERGREEN_TEST
+                Card.Type.CODE_REVIEW,
+                Card.Type.EVERGREEN_TEST
         };
 
         for (Card.Type actionType : actionTypes) {
@@ -342,10 +345,10 @@ public class EnginePlayCardTest {
 
             Method method = engine.getClass().getDeclaredMethod("processPlayActionCard", Card.Type.class);
             method.setAccessible(true);
-            
+
             // Should not throw exception
             method.invoke(engine, actionType);
-            
+
             // Verify action was decremented
             int numActions = getPrivateField(engine, "numActions");
             assertTrue("numActions should be affected", numActions >= 0);
@@ -400,11 +403,11 @@ public class EnginePlayCardTest {
 
         Method method = engine.getClass().getDeclaredMethod("processPlayMoneyCard", Card.Type.class);
         method.setAccessible(true);
-        
+
         // Play multiple money cards
-        method.invoke(engine, Card.Type.BITCOIN);    // +1
-        method.invoke(engine, Card.Type.ETHEREUM);   // +2
-        method.invoke(engine, Card.Type.DOGECOIN);   // +3
+        method.invoke(engine, Card.Type.BITCOIN); // +1
+        method.invoke(engine, Card.Type.ETHEREUM); // +2
+        method.invoke(engine, Card.Type.DOGECOIN); // +3
 
         int numMoney = getPrivateField(engine, "numMoney");
         assertEquals("Money should accumulate to 6", 6, numMoney);
@@ -413,7 +416,7 @@ public class EnginePlayCardTest {
     @Test
     public void testProcessPlayMoneyCard_StartingFromZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        
+
         // Verify starts at 0
         int initialMoney = getPrivateField(engine, "numMoney");
         assertEquals("Should start at 0", 0, initialMoney);
@@ -434,20 +437,20 @@ public class EnginePlayCardTest {
         // Try to process CODE_REVIEW as money (it's action)
         Method method = engine.getClass().getDeclaredMethod("processPlayMoneyCard", Card.Type.class);
         method.setAccessible(true);
-        
+
         try {
             method.invoke(engine, Card.Type.CODE_REVIEW);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue("Should throw UnsupportedOperationException", 
-                e.getCause() instanceof UnsupportedOperationException);
+            assertTrue("Should throw UnsupportedOperationException",
+                    e.getCause() instanceof UnsupportedOperationException);
             throw e;
         }
     }
 
     @Test
     public void testProcessPlayMoneyCard_AllMoneyTypesParametric() throws Exception {
-        Card.Type[] moneyTypes = {Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN};
-        int[] expectedValues = {1, 2, 3};
+        Card.Type[] moneyTypes = { Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN };
+        int[] expectedValues = { 1, 2, 3 };
 
         for (int i = 0; i < moneyTypes.length; i++) {
             OurEngine engine = new OurEngine(twoPlayers);
@@ -458,8 +461,8 @@ public class EnginePlayCardTest {
             method.invoke(engine, moneyTypes[i]);
 
             int numMoney = getPrivateField(engine, "numMoney");
-            assertEquals(moneyTypes[i] + " should add " + expectedValues[i] + " money", 
-                expectedValues[i], numMoney);
+            assertEquals(moneyTypes[i] + " should add " + expectedValues[i] + " money",
+                    expectedValues[i], numMoney);
         }
     }
 
@@ -589,7 +592,7 @@ public class EnginePlayCardTest {
 
         // Player 2 should gain a BUG
         assertEquals("Player 2 should gain 1 BUG", initialDiscard2 + 1, discards.get(player2).size());
-        
+
         // Verify it's a BUG
         Card lastCard = discards.get(player2).get(discards.get(player2).size() - 1);
         assertEquals("Should be BUG", Card.Type.BUG, lastCard.type());
@@ -616,8 +619,8 @@ public class EnginePlayCardTest {
         for (int i = 0; i < 4; i++) {
             if (i == 0) {
                 // Active player should not gain BUG
-                assertEquals("Active player should not gain BUG", 
-                    initialSizes[i], discards.get(fourPlayers.get(i)).size());
+                assertEquals("Active player should not gain BUG",
+                        initialSizes[i], discards.get(fourPlayers.get(i)).size());
             } else {
                 // Other players should gain BUG
                 if (discards.get(fourPlayers.get(i)).size() > initialSizes[i]) {
@@ -659,7 +662,7 @@ public class EnginePlayCardTest {
                 }
             }
         }
-        
+
         // At least 1 BUG should be distributed (up to shop limit)
         assertTrue("At least 1 BUG should be distributed", bugsDistributed >= 1);
         assertEquals("BUG count should be 0", 0, shop.getNumAvailable(Card.Type.BUG));
@@ -728,6 +731,79 @@ public class EnginePlayCardTest {
         assertEquals("Active player should not gain BUG", initialDiscard1, discards.get(player1).size());
     }
 
+    @Test
+    public void testExecuteActionEvergreenTest_SkipsDisqualifiedPlayers() throws Exception {
+        OurEngine engine = new OurEngine(fourPlayers);
+        Player activePlayer = fourPlayers.get(0);
+        Player player1 = fourPlayers.get(1);
+        Player player2 = fourPlayers.get(2);
+        Player player3 = fourPlayers.get(3);
+
+        setPrivateField(engine, "activePlayer", activePlayer);
+
+        // Disqualify player at index 2
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+        disqualifiedPlayers.put(player2, true);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        int initialDiscard1 = discards.get(player1).size();
+        int initialDiscard2 = discards.get(player2).size();
+        int initialDiscard3 = discards.get(player3).size();
+
+        Method method = engine.getClass().getDeclaredMethod("executeActionEvergreenTest");
+        method.setAccessible(true);
+        method.invoke(engine);
+
+        // Player 1 should gain a BUG
+        assertEquals("Player 1 should gain 1 BUG", initialDiscard1 + 1, discards.get(player1).size());
+
+        // Player 2 (disqualified) should NOT gain a BUG
+        assertEquals("Disqualified player should not gain BUG", initialDiscard2, discards.get(player2).size());
+
+        // Player 3 should gain a BUG
+        assertEquals("Player 3 should gain 1 BUG", initialDiscard3 + 1, discards.get(player3).size());
+    }
+
+    @Test
+    public void testExecuteActionEvergreenTest_MixedDisqualifiedNonDisqualified() throws Exception {
+        OurEngine engine = new OurEngine(fourPlayers);
+        Player activePlayer = fourPlayers.get(0);
+
+        setPrivateField(engine, "activePlayer", activePlayer);
+
+        // Disqualify alternating players: disqualify player 1, not player 2, disqualify
+        // player 3
+        Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
+        disqualifiedPlayers.put(fourPlayers.get(1), true);
+        disqualifiedPlayers.put(fourPlayers.get(3), true);
+
+        Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
+        int[] initialSizes = new int[4];
+        for (int i = 0; i < 4; i++) {
+            initialSizes[i] = discards.get(fourPlayers.get(i)).size();
+        }
+
+        Method method = engine.getClass().getDeclaredMethod("executeActionEvergreenTest");
+        method.setAccessible(true);
+        method.invoke(engine);
+
+        // Active player (0) should not gain BUG
+        assertEquals("Active player should not gain BUG", initialSizes[0],
+                discards.get(fourPlayers.get(0)).size());
+
+        // Player 1 (disqualified) should not gain BUG
+        assertEquals("Disqualified player 1 should not gain BUG", initialSizes[1],
+                discards.get(fourPlayers.get(1)).size());
+
+        // Player 2 (not disqualified) should gain BUG
+        assertEquals("Non-disqualified player 2 should gain BUG", initialSizes[2] + 1,
+                discards.get(fourPlayers.get(2)).size());
+
+        // Player 3 (disqualified) should not gain BUG
+        assertEquals("Disqualified player 3 should not gain BUG", initialSizes[3],
+                discards.get(fourPlayers.get(3)).size());
+    }
+
     // ========== buildTrashCardDecisionsForCurrentHand Tests ==========
 
     @Test
@@ -739,7 +815,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         Card card = new Card(Card.Type.BITCOIN, 40001);
         hand.addToUnplayed(card);
 
@@ -762,7 +838,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         Card card1 = new Card(Card.Type.BITCOIN, 41001);
         Card card2 = new Card(Card.Type.ETHEREUM, 41002);
         Card card3 = new Card(Card.Type.METHOD, 41003);
@@ -793,7 +869,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         Card card1 = new Card(Card.Type.BITCOIN, 42001);
         Card card2 = new Card(Card.Type.ETHEREUM, 42002);
         hand.addToUnplayed(card1);
@@ -842,7 +918,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         // Add cards and play them (moves to played)
         Card card1 = new Card(Card.Type.BITCOIN, 43001);
         Card card2 = new Card(Card.Type.BITCOIN, 43002);
@@ -869,7 +945,7 @@ public class EnginePlayCardTest {
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
         MutableHand hand = new MutableHand();
         hands.put(player, hand);
-        
+
         // Add 3 BITCOIN cards with different IDs
         Card bitcoin1 = new Card(Card.Type.BITCOIN, 44001);
         Card bitcoin2 = new Card(Card.Type.BITCOIN, 44002);
@@ -883,7 +959,7 @@ public class EnginePlayCardTest {
         ImmutableList<Decision> decisions = (ImmutableList<Decision>) method.invoke(engine);
 
         assertEquals("Should have 3 distinct decisions", 3, decisions.size());
-        
+
         // Verify all are distinct by card ID
         List<Integer> ids = new ArrayList<>();
         for (Decision d : decisions) {

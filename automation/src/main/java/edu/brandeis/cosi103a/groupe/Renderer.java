@@ -10,7 +10,9 @@ import com.google.common.collect.ImmutableMap;
 
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi.atg.state.CardStacks;
+import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.player.Player;
@@ -20,7 +22,7 @@ import java.util.HashSet;
 
 
 public class Renderer {
-    
+
     // Layout constants
     private static final int SCREEN_WIDTH = 76;
     private static final int COLUMN_WIDTH = 22;
@@ -50,10 +52,14 @@ public class Renderer {
     /** Returns an {@link org.fusesource.jansi.Ansi} instance set to the display color for the given card category. */
     private static org.fusesource.jansi.Ansi colorForCategory(Card.Type.Category category) {
         switch (category) {
-            case ACTION: return ansi().fgBrightBlue();
-            case MONEY: return ansi().fgYellow();
-            case VICTORY: return ansi().fgGreen();
-            default: return ansi().fgDefault();
+            case ACTION:
+                return ansi().fgBrightBlue();
+            case MONEY:
+                return ansi().fgYellow();
+            case VICTORY:
+                return ansi().fgGreen();
+            default:
+                return ansi().fgDefault();
         }
     }
     
@@ -175,26 +181,26 @@ public class Renderer {
                 phaseText = "Phase: Gain";
                 break;
         }
-        
+
         int phasePosition = SCREEN_WIDTH - phaseText.length();
         int spacesNeeded = phasePosition - playerText.length();
         System.out.print(" ".repeat(Math.max(1, spacesNeeded)));
-        
+
         switch (state.phase()) {
             case GameState.TurnPhase.ACTION:
-                System.out.print(ansi().fgBrightBlue().a(phaseText).reset()); 
+                System.out.print(ansi().fgBrightBlue().a(phaseText).reset());
                 break;
             case GameState.TurnPhase.BUY:
-                System.out.print(ansi().fgYellow().a(phaseText).reset()); 
+                System.out.print(ansi().fgYellow().a(phaseText).reset());
                 break;
             case GameState.TurnPhase.MONEY:
-                System.out.print(ansi().fgYellow().a(phaseText).reset()); 
+                System.out.print(ansi().fgYellow().a(phaseText).reset());
                 break;
             case GameState.TurnPhase.CLEANUP:
-                System.out.print(ansi().fgBrightBlue().a(phaseText).reset()); 
+                System.out.print(ansi().fgBrightBlue().a(phaseText).reset());
                 break;
             case GameState.TurnPhase.GAIN:
-                System.out.print(ansi().fgGreen().a(phaseText).reset()); 
+                System.out.print(ansi().fgGreen().a(phaseText).reset());
                 break;
         }
 
@@ -211,12 +217,18 @@ public class Renderer {
         List<Card.Type> victoryCards = new ArrayList<>();
         List<Card.Type> treasureCards = new ArrayList<>();
         List<Card.Type> actionCards = new ArrayList<>();
-        
+
         for (Card.Type cardType : state.buyableCards().getCardTypes()) {
             switch (cardType.category()) {
-                case VICTORY: victoryCards.add(cardType); break;
-                case MONEY: treasureCards.add(cardType); break;
-                case ACTION: actionCards.add(cardType); break;
+                case VICTORY:
+                    victoryCards.add(cardType);
+                    break;
+                case MONEY:
+                    treasureCards.add(cardType);
+                    break;
+                case ACTION:
+                    actionCards.add(cardType);
+                    break;
             }
         }
         
@@ -307,7 +319,7 @@ public class Renderer {
                 System.out.println(colorForCategory(card.getCategory()).a(cardText).reset());
             }
         }
-        
+
         System.out.println();
         System.out.println();
         System.out.println();
@@ -322,15 +334,21 @@ public class Renderer {
         List<Card> actionsInHand = new ArrayList<>();
         List<Card> treasuresInHand = new ArrayList<>();
         List<Card> victoriesInHand = new ArrayList<>();
-        
+
         for (Card card : state.currentPlayerHand().unplayedCards()) {
             switch (card.getCategory()) {
-                case ACTION: actionsInHand.add(card); break;
-                case MONEY: treasuresInHand.add(card); break;
-                case VICTORY: victoriesInHand.add(card); break;
+                case ACTION:
+                    actionsInHand.add(card);
+                    break;
+                case MONEY:
+                    treasuresInHand.add(card);
+                    break;
+                case VICTORY:
+                    victoriesInHand.add(card);
+                    break;
             }
         }
-        
+
         int maxHandRows = Math.max(actionsInHand.size(), Math.max(treasuresInHand.size(), victoriesInHand.size()));
         if (maxHandRows == 0) maxHandRows = 1; // Show at least the (none) row
         
@@ -340,7 +358,7 @@ public class Renderer {
         for (int i = 0; i < maxHandRows; i++) {
             // Add left padding to center the hand
             System.out.print(" ".repeat(handLeftPadding));
-            
+
             // Action column
             if (i < actionsInHand.size()) {
                 renderHandCell(actionsInHand.get(i), actionableHandCards, ansi().fgBrightBlue());
@@ -375,21 +393,21 @@ public class Renderer {
                 System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
             }
-            
+
             System.out.println();
         }
-        
+
         System.out.println();
         System.out.println();
         
         // Status bar
         int spaces = 2;
         String statusText = "Actions: " + state.availableActions() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                           "Buys: " + state.availableBuys() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                           "Money: " + state.spendableMoney();
+                "Buys: " + state.availableBuys() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
+                "Money: " + state.spendableMoney();
         int statusPadding = Math.max(0, (SCREEN_WIDTH - statusText.length()) / 2);
         System.out.print(" ".repeat(statusPadding));
-        
+
         System.out.print(ansi().fgBrightBlue().a("Actions: " + state.availableActions()).reset());
         System.out.print(" ".repeat(spaces) + "|" + " ".repeat(spaces));
         System.out.print(ansi().fgGreen().a("Buys: " + state.availableBuys()).reset());
@@ -401,9 +419,11 @@ public class Renderer {
     }
 
     /**
-     * Renders the current game state to console with additional debug information showing player decks and discards.
-     * 
-     * @param debugState Container with game state and internal player deck/discard information
+     * Renders the current game state to console with additional debug information
+     * showing player decks and discards.
+     *
+     * @param debugState Container with game state and internal player deck/discard
+     *                   information
      */
     public static void renderGameDebugMode(DebugGameState debugState) {
         renderGame(debugState.state());
@@ -495,4 +515,27 @@ public class Renderer {
         );
         renderGameWithDecisions(dummyState, playActionDecisions);
     }
+
+    /**
+     *
+     * Prints the final game results in a readable format, showing each player's
+     * score
+     * and the cards in their discard pile at the end of the game.
+     *
+     * @param result
+     */
+    public static void printGameResult(GameResult result) {
+        System.out.println("\n═══════════════════════════════════════════════");
+        System.out.println("                 Game Over!                  ");
+        System.out.println("═══════════════════════════════════════════════\n");
+        for (PlayerResult pr : result.playerResults()) {
+            System.out.println(pr.playerName() + " scored " + pr.score()
+                    + " points with the following cards in their discard pile:");
+            for (Card card : pr.endingDeck()) {
+                System.out.println("  - " + card);
+            }
+            System.out.println();
+        }
+    }
+
 }
