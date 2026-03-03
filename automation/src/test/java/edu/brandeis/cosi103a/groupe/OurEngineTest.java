@@ -2793,7 +2793,7 @@ public class OurEngineTest {
             assertTrue("Should display Player2 score", output.contains("scored 5"));
 
             // Check cards are displayed
-            assertTrue("Should mention cards in discard pile", output.contains("cards in their discard pile"));
+            assertTrue("Should mention cards", output.contains("with the following cards:"));
         } finally {
             System.setOut(originalOut);
         }
