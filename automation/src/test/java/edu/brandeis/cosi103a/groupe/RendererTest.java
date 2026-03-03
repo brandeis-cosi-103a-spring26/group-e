@@ -13,6 +13,7 @@ import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi103a.groupe.AIPlayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
