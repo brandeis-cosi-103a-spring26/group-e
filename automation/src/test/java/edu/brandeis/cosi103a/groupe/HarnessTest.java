@@ -225,9 +225,9 @@ public class HarnessTest {
         EndPhaseDecision decision = new EndPhaseDecision(TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(decision);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should return the single EndPhaseDecision", decision, result);
+        assertSame("Should return the single EndPhaseDecision", decision, result.getDecision());
         assertTrue("Should prompt to press enter", 
                    outputStream.toString().contains("Press enter to continue"));
     }
@@ -243,9 +243,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2, decision3);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should return the second decision", decision2, result);
+        assertSame("Should return the second decision", decision2, result.getDecision());
     }
     
     @Test
@@ -258,9 +258,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should return the first decision", decision1, result);
+        assertSame("Should return the first decision", decision1, result.getDecision());
     }
     
     @Test
@@ -274,9 +274,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2, decision3);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should return the last decision", decision3, result);
+        assertSame("Should return the last decision", decision3, result.getDecision());
     }
     
     @Test
@@ -289,9 +289,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should eventually return valid choice", decision2, result);
+        assertSame("Should eventually return valid choice", decision2, result.getDecision());
         assertTrue("Should display error for invalid choice", 
                    outputStream.toString().contains("not found") || outputStream.toString().contains("invalid"));
     }
@@ -306,9 +306,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should eventually return valid choice", decision1, result);
+        assertSame("Should eventually return valid choice", decision1, result.getDecision());
         assertTrue("Should display error for invalid card", 
                    outputStream.toString().contains("not found") || outputStream.toString().contains("invalid"));
     }
@@ -322,9 +322,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should handle invalid card name and return valid choice", decision1, result);
+        assertSame("Should handle invalid card name and return valid choice", decision1, result.getDecision());
         assertTrue("Should display error for invalid input", 
                    outputStream.toString().contains("not found") || outputStream.toString().contains("invalid"));
     }
@@ -371,9 +371,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should eventually return valid choice after multiple attempts", decision2, result);
+        assertSame("Should eventually return valid choice after multiple attempts", decision2, result.getDecision());
     }
     
     @Test
@@ -387,9 +387,9 @@ public class HarnessTest {
         
         ImmutableList<Decision> options = ImmutableList.of(playCard, buyCard, endPhase);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should correctly handle mixed decision types", endPhase, result);
+        assertSame("Should correctly handle mixed decision types", endPhase, result.getDecision());
     }
     
     // ========== Edge Cases ==========
@@ -421,30 +421,32 @@ public class HarnessTest {
         }
     }
 
-    // ========== wasAutoPlayRequested Tests ==========
+    // ========== autoPlay encoded in DecisionResult Tests ==========
 
     @Test
-    public void testWasAutoPlayRequested_InitiallyFalse() {
-        Harness.wasAutoPlayRequested(); // consume any leftover true from prior tests
-        assertFalse("Auto-play flag should be false after consuming", Harness.wasAutoPlayRequested());
+    public void testDecisionResult_NonAutoPlayInput_FlagIsFalse() {
+        // Any input other than 'A' must produce autoPlayRequested == false
+        PlayCardDecision play = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
+        ImmutableList<Decision> options = ImmutableList.of(play);
+        String input = "Method\n";
+        DecisionResult result = Harness.getDecisionFromConsole(options,
+                new Scanner(new ByteArrayInputStream(input.getBytes())));
+        assertFalse("Auto-play flag should be false for non-A inputs", result.isAutoPlayRequested());
     }
 
     @Test
-    public void testWasAutoPlayRequested_ResetsAfterRead() {
-        Harness.wasAutoPlayRequested(); // reset any prior state
-        // Trigger auto-play via the A command in Money phase
+    public void testDecisionResult_AutoPlayEncodedInReturnValue() {
+        // The 'A' command encodes auto-play directly in the returned DecisionResult;
+        // each call is independent — no global state involved.
         GameState moneyState = createMoneyPhaseState();
         Card bitcoin = new Card(Card.Type.BITCOIN, 1);
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoin);
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin);
         String input = "A\n";
-        Harness.getDecisionFromConsole(moneyState, options,
+        DecisionResult result = Harness.getDecisionFromConsole(moneyState, options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
-
-        assertTrue("wasAutoPlayRequested should return true after A command",
-                Harness.wasAutoPlayRequested());
-        assertFalse("wasAutoPlayRequested should return false on second call (one-shot reset)",
-                Harness.wasAutoPlayRequested());
+        assertTrue("Result should indicate auto-play was requested for 'A' command",
+                result.isAutoPlayRequested());
     }
 
     // ========== 'E' / 'end' command tests ==========
@@ -456,10 +458,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(play, endPhase);
         String input = "E\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("'E' should select the EndPhaseDecision", endPhase, result);
+        assertSame("'E' should select the EndPhaseDecision", endPhase, result.getDecision());
     }
 
     @Test
@@ -469,10 +471,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(buy, endPhase);
         String input = "end\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("'end' should select the EndPhaseDecision", endPhase, result);
+        assertSame("'end' should select the EndPhaseDecision", endPhase, result.getDecision());
     }
 
     @Test
@@ -481,10 +483,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
         String input = "E\nMethod\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return valid card decision", decision, result);
+        assertSame("Should eventually return valid card decision", decision, result.getDecision());
         assertTrue("Should show cannot end phase error",
                 outputStream.toString().contains("Cannot end phase"));
     }
@@ -493,18 +495,17 @@ public class HarnessTest {
 
     @Test
     public void testGetDecisionFromConsole_ACommand_InMoneyPhase_ReturnsFirstTreasure() {
-        Harness.wasAutoPlayRequested(); // reset any prior state
         GameState moneyState = createMoneyPhaseState();
         Card bitcoin = new Card(Card.Type.BITCOIN, 1);
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoin);
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin);
         String input = "A\n";
 
-        Decision result = Harness.getDecisionFromConsole(moneyState, options,
+        DecisionResult result = Harness.getDecisionFromConsole(moneyState, options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("'A' should return the first treasure card decision", playBitcoin, result);
-        assertTrue("Should set auto-play requested flag", Harness.wasAutoPlayRequested());
+        assertSame("'A' should return the first treasure card decision", playBitcoin, result.getDecision());
+        assertTrue("Should set auto-play requested flag", result.isAutoPlayRequested());
     }
 
     @Test
@@ -514,17 +515,16 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
         String input = "a\nMethod\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return valid decision", decision, result);
+        assertSame("Should eventually return valid decision", decision, result.getDecision());
         assertTrue("Should show auto-play only in Money phase error",
                 outputStream.toString().contains("Money phase"));
     }
 
     @Test
     public void testGetDecisionFromConsole_ACommand_NoTreasureAvailable_ShowsError() {
-        Harness.wasAutoPlayRequested(); // reset any prior state
         GameState moneyState = createMoneyPhaseState();
         // Options contain no PlayCardDecision for a treasure
         EndPhaseDecision endPhase = new EndPhaseDecision(TurnPhase.MONEY);
@@ -532,10 +532,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(buyCard, endPhase);
         String input = "A\nE\n";
 
-        Decision result = Harness.getDecisionFromConsole(moneyState, options,
+        DecisionResult result = Harness.getDecisionFromConsole(moneyState, options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should return end phase after A fails", endPhase, result);
+        assertSame("Should return end phase after A fails", endPhase, result.getDecision());
         assertTrue("Should show no treasure cards error",
                 outputStream.toString().contains("No treasure cards"));
     }
@@ -548,10 +548,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(buy);
         String input = "man bitcoin\nBitcoin\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return the buy decision", buy, result);
+        assertSame("Should eventually return the buy decision", buy, result.getDecision());
         // Description output should mention Bitcoin cost
         assertTrue("Should display card info after 'man' command",
                 outputStream.toString().contains("Cost:"));
@@ -564,10 +564,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(buy);
         String input = "man unknownxyz\nBitcoin\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return the buy decision", buy, result);
+        assertSame("Should eventually return the buy decision", buy, result.getDecision());
         assertTrue("Should show card not found message",
                 outputStream.toString().contains("Card not found"));
     }
@@ -580,10 +580,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
         String input = "\nMethod\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return valid choice", decision, result);
+        assertSame("Should eventually return valid choice", decision, result.getDecision());
         assertTrue("Should show error for empty input",
                 outputStream.toString().contains("Invalid input"));
     }
@@ -597,10 +597,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
         String input = "m\nMethod\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually find valid card after ambiguous input", decision, result);
+        assertSame("Should eventually find valid card after ambiguous input", decision, result.getDecision());
         assertTrue("Should show multiple matches error",
                 outputStream.toString().contains("multiple cards match"));
     }
@@ -614,10 +614,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(buy);
         String input = "Ethereum\nBitcoin\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should eventually return valid matching decision", buy, result);
+        assertSame("Should eventually return valid matching decision", buy, result.getDecision());
         assertTrue("Should show 'not available right now' message",
                 outputStream.toString().contains("not available right now"));
     }
@@ -630,10 +630,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(gain);
         String input = "Module\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should return the GainCardDecision for matching card type", gain, result);
+        assertSame("Should return the GainCardDecision for matching card type", gain, result.getDecision());
     }
 
     @Test
@@ -643,10 +643,10 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(trash);
         String input = "Refactor\n";
 
-        Decision result = Harness.getDecisionFromConsole(options,
+        DecisionResult result = Harness.getDecisionFromConsole(options,
                 new Scanner(new ByteArrayInputStream(input.getBytes())));
 
-        assertSame("Should return the TrashCardDecision for matching card", trash, result);
+        assertSame("Should return the TrashCardDecision for matching card", trash, result.getDecision());
     }
 
     @Test
@@ -677,9 +677,9 @@ public class HarnessTest {
         PlayCardDecision decision = new PlayCardDecision(new Card(Card.Type.METHOD, 1));
         ImmutableList<Decision> options = ImmutableList.of(decision);
         
-        Decision result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        DecisionResult result = Harness.getDecisionFromConsole(options, new Scanner(new ByteArrayInputStream(input.getBytes())));
         
-        assertSame("Should return the single non-EndPhase decision", decision, result);
+        assertSame("Should return the single non-EndPhase decision", decision, result.getDecision());
         // Should not show "press enter" prompt since it's not an EndPhaseDecision
         assertFalse("Should not show press enter prompt for non-EndPhase decisions",
                     outputStream.toString().contains("Press enter to continue"));

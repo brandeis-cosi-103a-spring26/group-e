@@ -19,7 +19,6 @@ import edu.brandeis.cosi.atg.decisions.*;
 public class Harness {
 
     private static Scanner scanner = new Scanner(System.in);
-    private static boolean autoPlayRequested = false;
 
     /**
      * Static map of card descriptions for display purposes.
@@ -315,9 +314,10 @@ public class Harness {
      *
      * @param options an immutable list of available {@link Decision} options for
      *                the user
-     * @return the {@link Decision} chosen by the user from the provided options
+     * @return a {@link DecisionResult} containing the chosen decision and whether
+     *         auto-play was requested
      */
-    public static Decision getDecisionFromConsole(ImmutableList<Decision> options) {
+    public static DecisionResult getDecisionFromConsole(ImmutableList<Decision> options) {
         return getDecisionFromConsole(null, options, scanner);
     }
 
@@ -330,22 +330,11 @@ public class Harness {
      * @param options      an immutable list of available {@link Decision} options
      *                     for the user
      * @param inputScanner the Scanner to use for reading user input
-     * @return the {@link Decision} chosen by the user from the provided options
+     * @return a {@link DecisionResult} containing the chosen decision and whether
+     *         auto-play was requested
      */
-    static Decision getDecisionFromConsole(ImmutableList<Decision> options, Scanner inputScanner) {
+    static DecisionResult getDecisionFromConsole(ImmutableList<Decision> options, Scanner inputScanner) {
         return getDecisionFromConsole(null, options, inputScanner);
-    }
-
-    /**
-     * Checks if the last decision request triggered auto-play mode.
-     * This method returns true once and then resets the flag.
-     * 
-     * @return true if auto-play was requested, false otherwise
-     */
-    public static boolean wasAutoPlayRequested() {
-        boolean result = autoPlayRequested;
-        autoPlayRequested = false;
-        return result;
     }
 
     /**
@@ -356,9 +345,10 @@ public class Harness {
      * @param state   the current game state (may be null)
      * @param options an immutable list of available {@link Decision} options for
      *                the user
-     * @return the {@link Decision} chosen by the user from the provided options
+     * @return a {@link DecisionResult} containing the chosen decision and whether
+     *         auto-play was requested
      */
-    public static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state,
+    public static DecisionResult getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state,
             ImmutableList<Decision> options) {
         return getDecisionFromConsole(state, options, scanner);
     }
@@ -373,9 +363,10 @@ public class Harness {
      * @param options      an immutable list of available {@link Decision} options
      *                     for the user
      * @param inputScanner the Scanner to use for reading user input
-     * @return the {@link Decision} chosen by the user from the provided options
+     * @return a {@link DecisionResult} containing the chosen decision and whether
+     *         auto-play was requested
      */
-    static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options,
+    static DecisionResult getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options,
             Scanner inputScanner) {
 
         // Defensively ensure we have at least one option; otherwise, we could loop
@@ -389,8 +380,11 @@ public class Harness {
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
             System.out.print(ansi().fg(WHITE).a("No choices available. Press enter to continue...").reset());
             inputScanner.nextLine(); // Wait for enter key
-            return options.get(0);
+            return new DecisionResult(options.get(0), false);
         }
+
+        // Track whether auto-play was requested during this decision
+        boolean autoPlayRequested = false;
 
         // Determine if we're in the Money phase
         boolean isMoneyPhase = (state != null
@@ -464,7 +458,7 @@ public class Harness {
                         Card card = ((PlayCardDecision) option).card();
                         if (card.getCategory() == Card.Type.Category.MONEY) {
                             choice = option;
-                            autoPlayRequested = true;
+                            autoPlayRequested = true; // local flag, returned in DecisionResult
                             break;
                         }
                     }
@@ -531,7 +525,7 @@ public class Harness {
             }
         }
 
-        return choice;
+        return new DecisionResult(choice, autoPlayRequested);
     }
 
 }

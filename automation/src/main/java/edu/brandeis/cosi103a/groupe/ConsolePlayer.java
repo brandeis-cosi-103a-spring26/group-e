@@ -65,10 +65,10 @@ public class ConsolePlayer extends AbstractPlayer {
         // Renderer.renderGame(state);
         Renderer.renderGameWithDecisions(state, options);
 
-        Decision choice = Harness.getDecisionFromConsole(state, options);
+        DecisionResult result = Harness.getDecisionFromConsole(state, options);
 
         // Check if user requested auto-play mode
-        if (Harness.wasAutoPlayRequested()) {
+        if (result.isAutoPlayRequested()) {
             autoPlayTreasures = true;
         }
 
@@ -77,6 +77,6 @@ public class ConsolePlayer extends AbstractPlayer {
             autoPlayTreasures = false;
         }
 
-        return choice;
+        return result.getDecision();
     }
 }
