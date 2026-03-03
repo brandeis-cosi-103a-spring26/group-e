@@ -1,13 +1,16 @@
 package edu.brandeis.cosi103a.groupe;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.List;
 
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 import org.fusesource.jansi.AnsiConsole;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.cards.Card;
@@ -17,6 +20,60 @@ public class Harness {
 
     private static Scanner scanner = new Scanner(System.in);
     private static boolean autoPlayRequested = false;
+
+    /**
+     * Static map of card descriptions for display purposes.
+     */
+    private static final Map<Card.Type, String> CARD_DESCRIPTIONS = ImmutableMap.<Card.Type, String>builder()
+        // Victory Cards
+        .put(Card.Type.BUG, 
+            "A victory card worth -1 automation points.\n\n" +
+            "This card is never playable, but subtracts 1 automation point when the game ends.")
+        .put(Card.Type.METHOD, 
+            "A victory card worth 1 automation point.\n\n" +
+            "This card is never playable, but grants 1 automation point when the game ends.")
+        .put(Card.Type.MODULE, 
+            "A victory card worth 3 automation points.\n\n" +
+            "This card is never playable, but grants 3 automation points when the game ends.")
+        .put(Card.Type.FRAMEWORK, 
+            "A victory card worth 6 automation points.\n\n" +
+            "This card is never playable, but grants 6 automation points when the game ends.")
+        // Money Cards
+        .put(Card.Type.BITCOIN, 
+            "A money card worth 1 money.\n\n" +
+            "This card is playable during the MONEY phase. When played, it grants 1 spendable money for the turn on which it was played.")
+        .put(Card.Type.ETHEREUM, 
+            "A money card worth 2 money.\n\n" +
+            "This card is playable during the MONEY phase. When played, it grants 2 spendable money for the turn on which it was played.")
+        .put(Card.Type.DOGECOIN, 
+            "A money card worth 3 money.\n\n" +
+            "This card is playable during the MONEY phase. When played, it grants 3 spendable money for the turn on which it was played.")
+        // Action Cards
+        .put(Card.Type.REFACTOR, 
+            "Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.\n\n" +
+            "Trashing a card removes it from the player's deck entirely. When this card is played, the player will be prompted with " +
+            "TrashCardDecisions for each card in their hand. Trashing is not optional, so the list of decisions will not include an " +
+            "EndPhaseDecision. After the player makes a trash decision, they will be prompted with GainCardDecisions representing the " +
+            "cards they can possibly gain - every card that costs up to 2 more than the trashed card. Gaining a card is also not optional. " +
+            "Gained cards are placed into the player's discard pile.")
+        .put(Card.Type.CODE_REVIEW, 
+            "+1 Card, +2 Actions.\n\n" +
+            "When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.")
+        .put(Card.Type.EVERGREEN_TEST, 
+            "(Attack card) +2 Cards; Each other player gains a Bug.\n\n" +
+            "When this card is played, the engine immediately adds a BUG to the discard pile of each other player.")
+        .build();
+
+    /**
+     * Gets the description for a given card type.
+     * 
+     * @param cardType The card type to get the description for
+     * @return The card description, or a default message if not found
+     */
+    public static String getCardDescription(Card.Type cardType) {
+        return CARD_DESCRIPTIONS.getOrDefault(cardType, "No description available.");
+    }
+
 
     /**
      * Prompts user for number/type of players
@@ -181,7 +238,7 @@ public class Harness {
      * Finds all card types that match the given input string (exact match or substring match)
      * Returns a list of matching Card.Type values
      */
-    private static java.util.List<Card.Type> findMatchingCardTypes(String input) {
+    private static List<Card.Type> findMatchingCardTypes(String input) {
         String normalizedInput = normalizeCardName(input);
         java.util.List<Card.Type> matches = new java.util.ArrayList<>();
         
@@ -199,7 +256,7 @@ public class Harness {
      * Attempts to match user input to a card in a decision.
      * Returns true only if the input uniquely identifies this card type among all Card.Type values.
      */
-    private static boolean matchesCard(String input, Card card, java.util.List<Card.Type> allMatches) {
+    private static boolean matchesCard(String input, Card card, List<Card.Type> allMatches) {
         // Only match if there's exactly one match across all card types and it's this card
         return allMatches.size() == 1 && allMatches.get(0) == card.type();
     }
@@ -208,7 +265,7 @@ public class Harness {
      * Attempts to match user input to a card type in a decision.
      * Returns true only if the input uniquely identifies this card type among all Card.Type values.
      */
-    private static boolean matchesCardType(String input, Card.Type cardType, java.util.List<Card.Type> allMatches) {
+    private static boolean matchesCardType(String input, Card.Type cardType, List<Card.Type> allMatches) {
         // Only match if there's exactly one match across all card types and it's this type
         return allMatches.size() == 1 && allMatches.get(0) == cardType;
     }
@@ -218,7 +275,7 @@ public class Harness {
      */
     private static void showCardDescription(String cardName) {
         // Try to find the card type using the same matching logic
-        java.util.List<Card.Type> matches = findMatchingCardTypes(cardName);
+        List<Card.Type> matches = findMatchingCardTypes(cardName);
         
         if (matches.isEmpty()) {
             System.out.println(ansi().fg(RED).a("✗ Card not found: " + cardName).reset());
@@ -236,7 +293,7 @@ public class Harness {
             System.out.println(ansi().fg(CYAN).a("\n═══ " + getDisplayName(foundType) + " ═══").reset());
             System.out.println(ansi().fg(YELLOW).a("Cost: $" + foundType.cost()).reset());
             System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
-            System.out.println(ansi().fg(WHITE).a("Description: " + ConsolePlayer.getCardDescription(foundType)).reset());
+            System.out.println(ansi().fg(WHITE).a("Description: " + getCardDescription(foundType)).reset());
             System.out.println();
         }
     }
@@ -385,7 +442,6 @@ public class Harness {
                         if (card.getCategory() == Card.Type.Category.MONEY) {
                             choice = option;
                             autoPlayRequested = true;
-                            // System.out.println(ansi().fg(GREEN).a("✓ Auto-playing all treasure cards...").reset());
                             break;
                         }
                     }
@@ -398,7 +454,7 @@ public class Harness {
             }
             
             // First, find all card types that match the input
-            java.util.List<Card.Type> allMatches = findMatchingCardTypes(input);
+            List<Card.Type> allMatches = findMatchingCardTypes(input);
             
             // Check if the input uniquely identifies a card
             if (allMatches.isEmpty()) {
