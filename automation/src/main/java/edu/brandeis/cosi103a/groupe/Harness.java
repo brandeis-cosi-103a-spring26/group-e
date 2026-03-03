@@ -254,24 +254,18 @@ public class Harness {
     }
 
     /**
-     * Attempts to match user input to a card in a decision.
-     * Returns true only if the input uniquely identifies this card type among all
-     * Card.Type values.
+     * Returns true only if {@code allMatches} uniquely identifies this card's type
+     * (i.e., exactly one match and it equals the card's type).
      */
-    private static boolean matchesCard(String input, Card card, List<Card.Type> allMatches) {
-        // Only match if there's exactly one match across all card types and it's this
-        // card
+    private static boolean matchesCard(Card card, List<Card.Type> allMatches) {
         return allMatches.size() == 1 && allMatches.get(0) == card.type();
     }
 
     /**
-     * Attempts to match user input to a card type in a decision.
-     * Returns true only if the input uniquely identifies this card type among all
-     * Card.Type values.
+     * Returns true only if {@code allMatches} uniquely identifies this card type
+     * (i.e., exactly one match and it equals {@code cardType}).
      */
-    private static boolean matchesCardType(String input, Card.Type cardType, List<Card.Type> allMatches) {
-        // Only match if there's exactly one match across all card types and it's this
-        // type
+    private static boolean matchesCardType(Card.Type cardType, List<Card.Type> allMatches) {
         return allMatches.size() == 1 && allMatches.get(0) == cardType;
     }
 
@@ -490,25 +484,25 @@ public class Harness {
             for (Decision option : options) {
                 if (option instanceof PlayCardDecision) {
                     Card card = ((PlayCardDecision) option).card();
-                    if (matchesCard(input, card, allMatches)) {
+                    if (matchesCard(card, allMatches)) {
                         choice = option;
                         break;
                     }
                 } else if (option instanceof TrashCardDecision) {
                     Card card = ((TrashCardDecision) option).card();
-                    if (matchesCard(input, card, allMatches)) {
+                    if (matchesCard(card, allMatches)) {
                         choice = option;
                         break;
                     }
                 } else if (option instanceof BuyDecision) {
                     Card.Type cardType = ((BuyDecision) option).cardType();
-                    if (matchesCardType(input, cardType, allMatches)) {
+                    if (matchesCardType(cardType, allMatches)) {
                         choice = option;
                         break;
                     }
                 } else if (option instanceof GainCardDecision) {
                     Card.Type cardType = ((GainCardDecision) option).cardType();
-                    if (matchesCardType(input, cardType, allMatches)) {
+                    if (matchesCardType(cardType, allMatches)) {
                         choice = option;
                         break;
                     }
