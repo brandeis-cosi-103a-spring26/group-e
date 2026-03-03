@@ -162,6 +162,13 @@ public class Harness {
         System.out.println(ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
 
         OurEngine engine = new OurEngine(players);
+        // Give every ConsolePlayer a live reference to the engine's turn log history
+        // so the log panel is visible and up-to-date on every render.
+        for (Player p : players) {
+            if (p instanceof ConsolePlayer) {
+                ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());
+            }
+        }
         try {
             engine.play();
         } catch (Exception e) {
