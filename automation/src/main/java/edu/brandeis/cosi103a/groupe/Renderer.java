@@ -383,27 +383,154 @@ public class Renderer {
                 availableBuys,
                 buyableCards);
         renderGame(dummyState);
+
+        // Dummy GameResult for visual testing of printGameResult
+        ImmutableList<Card> aliceDeck = ImmutableList.of(
+                new Card(Type.MODULE, 1),
+                new Card(Type.MODULE, 2),
+                new Card(Type.MODULE, 3),
+                new Card(Type.BITCOIN, 4),
+                new Card(Type.BITCOIN, 5),
+                new Card(Type.ETHEREUM, 6),
+                new Card(Type.METHOD, 7),
+                new Card(Type.REFACTOR, 8));
+        ImmutableList<Card> bobDeck = ImmutableList.of(
+                new Card(Type.MODULE, 9),
+                new Card(Type.MODULE, 10),
+                new Card(Type.BITCOIN, 11),
+                new Card(Type.BITCOIN, 12),
+                new Card(Type.BITCOIN, 13),
+                new Card(Type.DOGECOIN, 14),
+                new Card(Type.CODE_REVIEW, 15));
+        ImmutableList<Card> charlieDeck = ImmutableList.of(
+                new Card(Type.FRAMEWORK, 16),
+                new Card(Type.BITCOIN, 17),
+                new Card(Type.METHOD, 18),
+                new Card(Type.METHOD, 19));
+
+        PlayerResult prAlice =
+                new edu.brandeis.cosi.atg.state.PlayerResult("Alice", 18, aliceDeck);
+        PlayerResult prBob =
+                new edu.brandeis.cosi.atg.state.PlayerResult("Bob", 14, bobDeck);
+        PlayerResult prCharlie =
+                new edu.brandeis.cosi.atg.state.PlayerResult("Charlie", 18, charlieDeck);
+
+        GameResult dummyResult =
+                new edu.brandeis.cosi.atg.state.GameResult(ImmutableList.of(prAlice, prBob, prCharlie));
+        printGameResult(dummyResult);
     }
 
     /**
+     * Prints the final game results in a readable format. Displays:
+     * <ul>
+     *   <li>A winner announcement (handles ties)</li>
+     *   <li>A scoreboard ranked by score (descending)</li>
+     *   <li>Each player's final deck organized by card category with counts</li>
+     * </ul>
      *
-     * Prints the final game results in a readable format, showing each player's
-     * score
-     * and the cards in their discard pile at the end of the game.
-     *
-     * @param result
+     * @param result the final game result
      */
     public static void printGameResult(GameResult result) {
+        // ── Header ──────────────────────────────────────────────────────────
         System.out.println("\n═══════════════════════════════════════════════");
         System.out.println("                 Game Over!                  ");
         System.out.println("═══════════════════════════════════════════════\n");
+
+        // ── Determine winner(s) ─────────────────────────────────────────────
+        int maxScore = 0;
         for (PlayerResult pr : result.playerResults()) {
-            System.out.println(pr.playerName() + " scored " + pr.score()
-                    + " points with the following cards in their discard pile:");
-            for (Card card : pr.endingDeck()) {
-                System.out.println("  - " + card);
+            if (pr.score() > maxScore) maxScore = pr.score();
+        }
+        List<String> winnerNames = new ArrayList<>();
+        for (PlayerResult pr : result.playerResults()) {
+            if (pr.score() == maxScore) winnerNames.add(pr.playerName());
+        }
+
+        if (winnerNames.size() == 1) {
+            System.out.println(ansi().fgYellow().bold()
+                    .a("  *** Winner: " + winnerNames.get(0) + " with " + maxScore
+                            + " point" + (maxScore == 1 ? "" : "s") + "! ***")
+                    .reset());
+        } else {
+            String names = String.join(", ", winnerNames);
+            System.out.println(ansi().fgYellow().bold()
+                    .a("  *** It's a tie! Winners: " + names + " with " + maxScore
+                            + " point" + (maxScore == 1 ? "" : "s") + " each! ***")
+                    .reset());
+        }
+        System.out.println();
+
+        // ── Scoreboard (sorted descending) ──────────────────────────────────
+        System.out.println(ansi().fgBrightBlue().a("  ─── Scoreboard ───").reset());
+        List<PlayerResult> sortedResults = new ArrayList<>(result.playerResults());
+        sortedResults.sort((a, b) -> Integer.compare(b.score(), a.score()));
+        int rank = 1;
+        for (PlayerResult pr : sortedResults) {
+            String line = "  " + rank + ". " + pr.playerName() + "  —  scored " + pr.score()
+                    + " point" + (pr.score() == 1 ? "" : "s");
+            if (pr.score() == maxScore) {
+                System.out.println(ansi().fgYellow().a(line).reset());
+            } else {
+                System.out.println(line);
+            }
+            rank++;
+        }
+        System.out.println();
+
+        // ── Per-player deck breakdown ────────────────────────────────────────
+        System.out.println(ansi().fgBrightBlue().a("  ─── Final Decks ───").reset());
+        System.out.println();
+        for (PlayerResult pr : sortedResults) {
+            System.out.println(ansi().bold()
+                    .a("  " + pr.playerName() + " scored " + pr.score()
+                            + " points with the following cards:")
+                    .reset());
+
+            List<Card> deck = new ArrayList<>(pr.endingDeck());
+            if (deck.isEmpty()) {
+                System.out.println("    (no cards)");
+            } else {
+                List<Card> victories = new ArrayList<>();
+                List<Card> treasures = new ArrayList<>();
+                List<Card> actions   = new ArrayList<>();
+                for (Card card : deck) {
+                    switch (card.getCategory()) {
+                        case VICTORY: victories.add(card); break;
+                        case MONEY:   treasures.add(card); break;
+                        case ACTION:  actions.add(card);   break;
+                    }
+                }
+                if (!victories.isEmpty()) {
+                    System.out.println(ansi().fgGreen().a("    Victory Cards:").reset());
+                    printCardGroup(victories, Card.Type.Category.VICTORY);
+                }
+                if (!treasures.isEmpty()) {
+                    System.out.println(ansi().fgYellow().a("    Treasure Cards:").reset());
+                    printCardGroup(treasures, Card.Type.Category.MONEY);
+                }
+                if (!actions.isEmpty()) {
+                    System.out.println(ansi().fgBrightBlue().a("    Action Cards:").reset());
+                    printCardGroup(actions, Card.Type.Category.ACTION);
+                }
+                System.out.println("    Total: " + deck.size() + " card" + (deck.size() == 1 ? "" : "s"));
             }
             System.out.println();
+        }
+    }
+
+    /**
+     * Prints a group of cards with counts, colored by category.
+     * Cards with the same type are collapsed into a single line (e.g. "Bitcoin x3").
+     */
+    private static void printCardGroup(List<Card> cards, Card.Type.Category category) {
+        Map<Card.Type, Integer> counts = new java.util.LinkedHashMap<>();
+        for (Card card : cards) {
+            counts.merge(card.type(), 1, Integer::sum);
+        }
+        for (Map.Entry<Card.Type, Integer> entry : counts.entrySet()) {
+            String line = "      \u2022 " + displayName(entry.getKey())
+                    + (entry.getValue() > 1 ? " x" + entry.getValue() : "");
+            System.out.println(colorForCategory(category).a(line).reset());
         }
     }
 
