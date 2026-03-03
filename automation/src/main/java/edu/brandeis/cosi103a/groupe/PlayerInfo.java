@@ -29,7 +29,6 @@ public class PlayerInfo {
     private List<Card> discard;
     private TurnInfo turnInfo;
     private int score;
-    private boolean scoreCalculated;
     private boolean disqualified;
 
     // Constants
@@ -53,8 +52,7 @@ public class PlayerInfo {
         deck = new ArrayList<>();
         discard = new ArrayList<>();
         turnInfo = new TurnInfo();
-        score = 0;
-        scoreCalculated = false;
+        score = PLAYER_STARTING_METHODS; // Starting score from METHOD cards in deck
         disqualified = false;
         // Initialize the player's deck with starting cards, then shuffle
         for (int i = 0; i < PLAYER_STARTING_BITCOINS; i++) {
@@ -132,22 +130,30 @@ public class PlayerInfo {
     /**
      * Gains a new card (from a purchase or action effect).
      * The card is added directly to the discard pile.
+     * If the card is a victory card, the player's score is increased by its point value.
      * 
      * @param card The card to gain
      */
     public void gainCard(Card card) {
         discard.add(card);
+        if (card.getCategory() == Card.Type.Category.VICTORY) {
+            score += card.value();
+        }
     }
 
     /**
      * Trashes a card from the player's hand.
      * Removes the card from the unplayed cards in hand. Once removed,
      * the card is no longer in the player's possession.
+     * If the card is a victory card, the player's score is decreased by its point value.
      * 
      * @param card The card to trash (must be in unplayed cards)
      * @return true if the card was successfully removed, false if not found in hand
      */
     public boolean trashCard(Card card) {
+        if (card.getCategory() == Card.Type.Category.VICTORY) {
+            score -= card.value();
+        }
         return hand.removeFromUnplayed(card);
     }
 
@@ -277,34 +283,11 @@ public class PlayerInfo {
     }
 
     /**
-     * Calculates and stores the player's final score based on victory cards.
-     * Moves all cards from hand and deck to the discard pile, then sums the
-     * point values of all victory cards in the discard pile.
-     * Should be called at the end of the game.
+     * Gets the player's current score.
+     * Score is tracked incrementally as victory cards are gained or trashed.
+     * Initialized to 3 to account for the starting METHOD cards in the deck.
      * 
-     * This method is idempotent - calling it multiple times will not recalculate
-     * or change the score after the first call.
-     */
-    public void calculateScore() {
-        if (!scoreCalculated) {
-            // move cards to discard from hand and deck
-            hand.moveAllCardsTo(discard);
-            deck.forEach(discard::add);
-            deck.clear();
-            for (Card card : discard) {
-                if (card.getCategory() == Card.Type.Category.VICTORY) {
-                    score += card.value();
-                }
-            }
-        }
-        scoreCalculated = true;
-    }
-
-    /**
-     * Gets the player's calculated score.
-     * Returns 0 until calculateScore() has been called.
-     * 
-     * @return The player's score based on victory card point values
+     * @return The player's current score including starting METHOD cards and any victory cards gained/trashed
      */
     public int getScore() {
         return score;

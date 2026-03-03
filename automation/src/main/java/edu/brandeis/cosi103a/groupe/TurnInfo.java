@@ -36,15 +36,15 @@ public class TurnInfo {
      * Adjusts the number of actions by the specified amount.
      * Positive values increase actions (e.g., +2 from CODE_REVIEW card).
      * Negative values decrease actions (e.g., -1 when playing an action card).
-     * Only decreases if sufficient actions are available.
+     * If decreasing by more than available, actions are set to 0.
      * 
      * @param amount The amount to adjust actions by (can be positive or negative)
      */
     public void adjustActions(int amount) {
-        if (amount < 0 && numActions >= -amount) {
-            numActions += amount;
+        if (amount < 0 && numActions < -amount) {
+            numActions = 0;
         }
-        else if (amount > 0) {
+        else {
             numActions += amount;
         }
     }
@@ -88,15 +88,15 @@ public class TurnInfo {
      * Adjusts the number of buys by the specified amount.
      * Positive values increase buys (e.g., +1 from an action card).
      * Negative values decrease buys (e.g., -1 when purchasing a card).
-     * Only decreases if sufficient buys are available.
+     * If decreasing by more than available, buys are set to 0.
      * 
      * @param amount The amount to adjust buys by (can be positive or negative)
      */
     public void adjustBuys(int amount) {
-        if (amount < 0 && numBuys >= -amount) {
-            numBuys += amount;
+        if (amount < 0 && numBuys < -amount) {
+            numBuys = 0;
         }
-        else if (amount > 0) {
+        else {
             numBuys += amount;
         }
     }

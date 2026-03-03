@@ -56,8 +56,8 @@ public class TurnInfoTest {
 
     @Test
     public void testAdjustActions_DecreaseWithInsufficientActions() {
-        turnInfo.adjustActions(-2); // Try to subtract 2 from 1
-        assertEquals(1, turnInfo.getNumActions());
+        turnInfo.adjustActions(-2); // Try to subtract 2 from 1, should cap at 0
+        assertEquals(0, turnInfo.getNumActions());
     }
 
     @Test
@@ -170,8 +170,8 @@ public class TurnInfoTest {
 
     @Test
     public void testAdjustBuys_DecreaseWithInsufficientBuys() {
-        turnInfo.adjustBuys(-2); // Try to subtract 2 from 1
-        assertEquals(1, turnInfo.getNumBuys());
+        turnInfo.adjustBuys(-2); // Try to subtract 2 from 1, should cap at 0
+        assertEquals(0, turnInfo.getNumBuys());
     }
 
     @Test
