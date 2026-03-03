@@ -818,7 +818,7 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Returns an unmodifiable view of the complete turn history, including the
+     * Returns an unmodifiable view of the last 10 turn histories, including the
      * currently-in-progress turn. Entries are appended live as events occur,
      * so callers holding a reference will always see the latest state.
      */

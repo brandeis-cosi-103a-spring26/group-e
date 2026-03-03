@@ -231,7 +231,11 @@ public class Harness {
      * handles spaces and underscores)
      */
     private static String normalizeCardName(String input) {
-        return input.trim().toLowerCase().replace('_', ' ').replace("  ", " ");
+        // Trim, lowercase, convert underscores to spaces, then collapse all whitespace to a single space  
+        return input.trim()  
+            .toLowerCase()  
+            .replace('_', ' ')  
+            .replaceAll("\\s+", " ");  
     }
 
     /**

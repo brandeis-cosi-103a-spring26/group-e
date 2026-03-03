@@ -43,6 +43,9 @@ public class TurnLog {
      * @param entry a short description of the event (not null)
      */
     public void addEntry(String entry) {
+        if (entry == null) {
+            return;
+        }
         entries.add(entry);
     }
 
