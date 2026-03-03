@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 public class HandEVPlayer extends AbstractPlayer {
     
     // Track deck statistics to inform buy decisions
-    private static final int HAND_SIZE = 5; // Assuming a hand size of 5 for ev calculations
+    private static final int HAND_SIZE = 5; // Assuming a hand size of 5 for expected value calculations
     private int deckSize;
     private int totalMoneyInDeck;
 
