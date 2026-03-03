@@ -36,7 +36,7 @@ public class OurEngineTest {
     // ========== Helper Methods ==========
 
     /**
-     * Creates a list of AIPlayer instances.
+     * Creates a list of BigMoneyPlayer instances.
      */
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
