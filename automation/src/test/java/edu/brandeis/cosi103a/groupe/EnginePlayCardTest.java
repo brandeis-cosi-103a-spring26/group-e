@@ -40,7 +40,7 @@ public class EnginePlayCardTest {
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            players.add(new AIPlayer());
+            players.add(new BigMoneyPlayer());
         }
         return players;
     }

@@ -45,7 +45,7 @@ public class OurEngineTest {
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            players.add(new AIPlayer());
+            players.add(new BigMoneyPlayer());
         }
         return players;
     }
@@ -357,7 +357,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_FromNonEmptyDeck_AddsToHand() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -389,7 +389,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_EmptyDeck_ReshufflesDiscard() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -422,7 +422,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_EmptyDeckAndDiscard_NoChange() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -448,7 +448,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_Reshuffle_ClearsDiscard() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -475,7 +475,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_Reshuffle_ShufflesDeck() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -508,7 +508,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_MultipleDrawsWithReshuffles() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -552,7 +552,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_DrawsFromEndOfDeck() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -659,7 +659,7 @@ public class OurEngineTest {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_NullPlayerInList_ThrowsException() {
         List<Player> playersWithNull = new ArrayList<>();
-        playersWithNull.add(new AIPlayer());
+        playersWithNull.add(new BigMoneyPlayer());
         playersWithNull.add(null);
         new OurEngine(playersWithNull);
     }
@@ -667,7 +667,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_HandAlreadyHasCards_AddsCorrectly() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -701,7 +701,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_ReshufflePreservesAllCards() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
@@ -830,7 +830,7 @@ public class OurEngineTest {
     @Test
     public void testDrawCard_MultipleSequentialDraws_MaintainsCorrectState() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
-        Player testPlayer = new AIPlayer();
+        Player testPlayer = new BigMoneyPlayer();
         MutableHand hand = new MutableHand();
         List<Card> deck = new ArrayList<>();
         List<Card> discard = new ArrayList<>();
