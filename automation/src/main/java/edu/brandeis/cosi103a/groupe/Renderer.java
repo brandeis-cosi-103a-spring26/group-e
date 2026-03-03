@@ -33,7 +33,7 @@ public class Renderer {
      * Underscores are replaced with spaces (e.g. {@code CODE_REVIEW} → "Code
      * Review").
      */
-    private static String displayName(Card.Type cardType) {
+    public static String displayName(Card.Type cardType) {
         String raw = cardType.toString().toLowerCase().replace('_', ' ');
         String[] words = raw.split(" ");
         StringBuilder display = new StringBuilder();

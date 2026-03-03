@@ -212,22 +212,11 @@ public class Harness {
     }
 
     /**
-     * Converts a Card.Type to its display name (e.g., EVERGREEN_TEST -> "Evergreen
-     * Test")
+     * Delegates to Renderer.displayName to ensure a single source of truth  
+     * for card type display formatting.  
      */
     private static String getDisplayName(Card.Type cardType) {
-        String raw = cardType.toString().toLowerCase().replace('_', ' ');
-        String[] words = raw.split(" ");
-        StringBuilder display = new StringBuilder();
-        for (String word : words) {
-            if (word.isEmpty()) {
-                continue;
-            }
-            display.append(Character.toUpperCase(word.charAt(0)));
-            display.append(word.substring(1));
-            display.append(" ");
-        }
-        return display.toString().trim();
+        return Renderer.displayName(cardType);
     }
 
     /**
