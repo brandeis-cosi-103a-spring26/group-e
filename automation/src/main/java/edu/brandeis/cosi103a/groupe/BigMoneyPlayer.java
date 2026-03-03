@@ -43,7 +43,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
-    private Decision makeActionDecision(GameState state, ImmutableList<Decision> options) {
+    protected Decision makeActionDecision(GameState state, ImmutableList<Decision> options) {
         return options.get(0); // No actions in Big Money strategy, so just return first option
     }
 
@@ -54,7 +54,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
-    private Decision makeBuyDecision(GameState state, ImmutableList<Decision> options) {
+    protected Decision makeBuyDecision(GameState state, ImmutableList<Decision> options) {
         // Define preferred cards in order of preference (most expensive first)
         Card.Type[] preferredCards = {
             Card.Type.FRAMEWORK,
@@ -87,7 +87,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
-    private Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
+    protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
         return options.get(0); // No specific gain strategy yet, so just return first option
     }
 
@@ -98,7 +98,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
-    private Decision makeMoneyDecision(GameState state, ImmutableList<Decision> options) {
+    protected Decision makeMoneyDecision(GameState state, ImmutableList<Decision> options) {
         // Find and return first PlayCardDecision
         return options.stream()
             .filter(option -> option instanceof PlayCardDecision)
