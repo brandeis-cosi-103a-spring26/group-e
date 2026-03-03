@@ -3267,7 +3267,7 @@ public class OurEngineTest {
         // since only one qualified player remains
         List<Player> players = new ArrayList<>();
         players.add(new CheaterPlayer());
-        players.add(new AIPlayer());
+        players.add(new BigMoneyPlayer());
 
         OurEngine engine = new OurEngine(players);
         suppressOutput();
@@ -3285,7 +3285,7 @@ public class OurEngineTest {
         // PlayerViolationException should be handled internally; play() should not
         // propagate it to the caller
         List<Player> players = new ArrayList<>();
-        players.add(new AIPlayer());
+        players.add(new BigMoneyPlayer());
         players.add(new CheaterPlayer());
 
         OurEngine engine = new OurEngine(players);
