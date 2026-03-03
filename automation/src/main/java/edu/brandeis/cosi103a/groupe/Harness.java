@@ -25,44 +25,48 @@ public class Harness {
      * Static map of card descriptions for display purposes.
      */
     private static final Map<Card.Type, String> CARD_DESCRIPTIONS = ImmutableMap.<Card.Type, String>builder()
-        // Victory Cards
-        .put(Card.Type.BUG, 
-            "A victory card worth -1 automation points.\n\n" +
-            "This card is never playable, but subtracts 1 automation point when the game ends.")
-        .put(Card.Type.METHOD, 
-            "A victory card worth 1 automation point.\n\n" +
-            "This card is never playable, but grants 1 automation point when the game ends.")
-        .put(Card.Type.MODULE, 
-            "A victory card worth 3 automation points.\n\n" +
-            "This card is never playable, but grants 3 automation points when the game ends.")
-        .put(Card.Type.FRAMEWORK, 
-            "A victory card worth 6 automation points.\n\n" +
-            "This card is never playable, but grants 6 automation points when the game ends.")
-        // Money Cards
-        .put(Card.Type.BITCOIN, 
-            "A money card worth 1 money.\n\n" +
-            "This card is playable during the MONEY phase. When played, it grants 1 spendable money for the turn on which it was played.")
-        .put(Card.Type.ETHEREUM, 
-            "A money card worth 2 money.\n\n" +
-            "This card is playable during the MONEY phase. When played, it grants 2 spendable money for the turn on which it was played.")
-        .put(Card.Type.DOGECOIN, 
-            "A money card worth 3 money.\n\n" +
-            "This card is playable during the MONEY phase. When played, it grants 3 spendable money for the turn on which it was played.")
-        // Action Cards
-        .put(Card.Type.REFACTOR, 
-            "Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.\n\n" +
-            "Trashing a card removes it from the player's deck entirely. When this card is played, the player will be prompted with " +
-            "TrashCardDecisions for each card in their hand. Trashing is not optional, so the list of decisions will not include an " +
-            "EndPhaseDecision. After the player makes a trash decision, they will be prompted with GainCardDecisions representing the " +
-            "cards they can possibly gain - every card that costs up to 2 more than the trashed card. Gaining a card is also not optional. " +
-            "Gained cards are placed into the player's discard pile.")
-        .put(Card.Type.CODE_REVIEW, 
-            "+1 Card, +2 Actions.\n\n" +
-            "When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.")
-        .put(Card.Type.EVERGREEN_TEST, 
-            "(Attack card) +2 Cards; Each other player gains a Bug.\n\n" +
-            "When this card is played, the engine immediately adds a BUG to the discard pile of each other player.")
-        .build();
+            // Victory Cards
+            .put(Card.Type.BUG,
+                    "A victory card worth -1 automation points.\n\n" +
+                            "This card is never playable, but subtracts 1 automation point when the game ends.")
+            .put(Card.Type.METHOD,
+                    "A victory card worth 1 automation point.\n\n" +
+                            "This card is never playable, but grants 1 automation point when the game ends.")
+            .put(Card.Type.MODULE,
+                    "A victory card worth 3 automation points.\n\n" +
+                            "This card is never playable, but grants 3 automation points when the game ends.")
+            .put(Card.Type.FRAMEWORK,
+                    "A victory card worth 6 automation points.\n\n" +
+                            "This card is never playable, but grants 6 automation points when the game ends.")
+            // Money Cards
+            .put(Card.Type.BITCOIN,
+                    "A money card worth 1 money.\n\n" +
+                            "This card is playable during the MONEY phase. When played, it grants 1 spendable money for the turn on which it was played.")
+            .put(Card.Type.ETHEREUM,
+                    "A money card worth 2 money.\n\n" +
+                            "This card is playable during the MONEY phase. When played, it grants 2 spendable money for the turn on which it was played.")
+            .put(Card.Type.DOGECOIN,
+                    "A money card worth 3 money.\n\n" +
+                            "This card is playable during the MONEY phase. When played, it grants 3 spendable money for the turn on which it was played.")
+            // Action Cards
+            .put(Card.Type.REFACTOR,
+                    "Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.\n\n" +
+                            "Trashing a card removes it from the player's deck entirely. When this card is played, the player will be prompted with "
+                            +
+                            "TrashCardDecisions for each card in their hand. Trashing is not optional, so the list of decisions will not include an "
+                            +
+                            "EndPhaseDecision. After the player makes a trash decision, they will be prompted with GainCardDecisions representing the "
+                            +
+                            "cards they can possibly gain - every card that costs up to 2 more than the trashed card. Gaining a card is also not optional. "
+                            +
+                            "Gained cards are placed into the player's discard pile.")
+            .put(Card.Type.CODE_REVIEW,
+                    "+1 Card, +2 Actions.\n\n" +
+                            "When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.")
+            .put(Card.Type.EVERGREEN_TEST,
+                    "(Attack card) +2 Cards; Each other player gains a Bug.\n\n" +
+                            "When this card is played, the engine immediately adds a BUG to the discard pile of each other player.")
+            .build();
 
     /**
      * Gets the description for a given card type.
@@ -73,7 +77,6 @@ public class Harness {
     public static String getCardDescription(Card.Type cardType) {
         return CARD_DESCRIPTIONS.getOrDefault(cardType, "No description available.");
     }
-
 
     /**
      * Prompts user for number/type of players
@@ -210,7 +213,8 @@ public class Harness {
     }
 
     /**
-     * Converts a Card.Type to its display name (e.g., EVERGREEN_TEST -> "Evergreen Test")
+     * Converts a Card.Type to its display name (e.g., EVERGREEN_TEST -> "Evergreen
+     * Test")
      */
     private static String getDisplayName(Card.Type cardType) {
         String raw = cardType.toString().toLowerCase().replace('_', ' ');
@@ -228,45 +232,51 @@ public class Harness {
     }
 
     /**
-     * Normalizes a user input string for card name matching (case-insensitive, handles spaces and underscores)
+     * Normalizes a user input string for card name matching (case-insensitive,
+     * handles spaces and underscores)
      */
     private static String normalizeCardName(String input) {
         return input.trim().toLowerCase().replace('_', ' ').replace("  ", " ");
     }
 
     /**
-     * Finds all card types that match the given input string (exact match or substring match)
+     * Finds all card types that match the given input string (exact match or
+     * substring match)
      * Returns a list of matching Card.Type values
      */
     private static List<Card.Type> findMatchingCardTypes(String input) {
         String normalizedInput = normalizeCardName(input);
         java.util.List<Card.Type> matches = new java.util.ArrayList<>();
-        
+
         for (Card.Type type : Card.Type.values()) {
             String displayName = getDisplayName(type).toLowerCase();
             if (displayName.equals(normalizedInput) || displayName.contains(normalizedInput)) {
                 matches.add(type);
             }
         }
-        
+
         return matches;
     }
 
     /**
      * Attempts to match user input to a card in a decision.
-     * Returns true only if the input uniquely identifies this card type among all Card.Type values.
+     * Returns true only if the input uniquely identifies this card type among all
+     * Card.Type values.
      */
     private static boolean matchesCard(String input, Card card, List<Card.Type> allMatches) {
-        // Only match if there's exactly one match across all card types and it's this card
+        // Only match if there's exactly one match across all card types and it's this
+        // card
         return allMatches.size() == 1 && allMatches.get(0) == card.type();
     }
 
     /**
      * Attempts to match user input to a card type in a decision.
-     * Returns true only if the input uniquely identifies this card type among all Card.Type values.
+     * Returns true only if the input uniquely identifies this card type among all
+     * Card.Type values.
      */
     private static boolean matchesCardType(String input, Card.Type cardType, List<Card.Type> allMatches) {
-        // Only match if there's exactly one match across all card types and it's this type
+        // Only match if there's exactly one match across all card types and it's this
+        // type
         return allMatches.size() == 1 && allMatches.get(0) == cardType;
     }
 
@@ -276,7 +286,7 @@ public class Harness {
     private static void showCardDescription(String cardName) {
         // Try to find the card type using the same matching logic
         List<Card.Type> matches = findMatchingCardTypes(cardName);
-        
+
         if (matches.isEmpty()) {
             System.out.println(ansi().fg(RED).a("✗ Card not found: " + cardName).reset());
         } else if (matches.size() > 1) {
@@ -312,11 +322,13 @@ public class Harness {
     }
 
     /**
-     * Prompts the user to select a {@link Decision} from the provided options using the specified Scanner.
+     * Prompts the user to select a {@link Decision} from the provided options using
+     * the specified Scanner.
      * If the only available option is an {@link EndPhaseDecision}, the user is
      * prompted to press enter to continue and that decision is returned.
      *
-     * @param options an immutable list of available {@link Decision} options for the user
+     * @param options      an immutable list of available {@link Decision} options
+     *                     for the user
      * @param inputScanner the Scanner to use for reading user input
      * @return the {@link Decision} chosen by the user from the provided options
      */
@@ -341,26 +353,30 @@ public class Harness {
      * If the only available option is an {@link EndPhaseDecision}, the user is
      * prompted to press enter to continue and that decision is returned.
      *
-     * @param state the current game state (may be null)
+     * @param state   the current game state (may be null)
      * @param options an immutable list of available {@link Decision} options for
      *                the user
      * @return the {@link Decision} chosen by the user from the provided options
      */
-    public static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options) {
+    public static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state,
+            ImmutableList<Decision> options) {
         return getDecisionFromConsole(state, options, scanner);
     }
 
     /**
-     * Prompts the user to select a {@link Decision} from the provided options using the specified Scanner.
+     * Prompts the user to select a {@link Decision} from the provided options using
+     * the specified Scanner.
      * If the only available option is an {@link EndPhaseDecision}, the user is
      * prompted to press enter to continue and that decision is returned.
      *
-     * @param state the current game state (may be null)
-     * @param options an immutable list of available {@link Decision} options for the user
+     * @param state        the current game state (may be null)
+     * @param options      an immutable list of available {@link Decision} options
+     *                     for the user
      * @param inputScanner the Scanner to use for reading user input
      * @return the {@link Decision} chosen by the user from the provided options
      */
-    static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options, Scanner inputScanner) {
+    static Decision getDecisionFromConsole(edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options,
+            Scanner inputScanner) {
 
         // Defensively ensure we have at least one option; otherwise, we could loop
         // forever.
@@ -377,12 +393,14 @@ public class Harness {
         }
 
         // Determine if we're in the Money phase
-        boolean isMoneyPhase = (state != null && state.phase() == edu.brandeis.cosi.atg.state.GameState.TurnPhase.MONEY);
+        boolean isMoneyPhase = (state != null
+                && state.phase() == edu.brandeis.cosi.atg.state.GameState.TurnPhase.MONEY);
 
         // // Print available options
         // System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
         // for (int i = 0; i < options.size(); i++) {
-        //     System.out.println(ansi().fg(YELLOW).a("  " + (i + 1) + ". " + options.get(i).getDescription()).reset());
+        // System.out.println(ansi().fg(YELLOW).a(" " + (i + 1) + ". " +
+        // options.get(i).getDescription()).reset());
         // }
 
         // Prompt user for input until a valid choice is made
@@ -390,18 +408,22 @@ public class Harness {
         while (choice == null) {
             // Only prompt if not in auto-play mode
             if (isMoneyPhase) {
-                System.out.print(ansi().fg(GREEN).a("Enter card name, A to play all treasures, E to end phase, or 'man <cardname>' for info: ").reset());
+                System.out.print(ansi().fg(GREEN)
+                        .a("Enter card name, A to play all treasures, E to end phase, or 'man <cardname>' for info: ")
+                        .reset());
             } else {
-                System.out.print(ansi().fg(GREEN).a("Enter card name, E to end phase, or 'man <cardname>' for info: ").reset());
+                System.out.print(
+                        ansi().fg(GREEN).a("Enter card name, E to end phase, or 'man <cardname>' for info: ").reset());
             }
             String input = inputScanner.nextLine().trim();
-            
+
             // Handle empty input
             if (input.isEmpty()) {
-                System.out.println(ansi().fg(RED).a("✗ Invalid input. Please enter a card name, E, or 'man <cardname>'.").reset());
+                System.out.println(
+                        ansi().fg(RED).a("✗ Invalid input. Please enter a card name, E, or 'man <cardname>'.").reset());
                 continue;
             }
-            
+
             // Handle "man cardname" for card descriptions
             if (input.toLowerCase().startsWith("man ")) {
                 String cardName = input.substring(4).trim();
@@ -412,7 +434,7 @@ public class Harness {
                 }
                 continue;
             }
-            
+
             // Handle "E" for end phase
             if (input.equalsIgnoreCase("e") || input.equalsIgnoreCase("end")) {
                 // Find EndPhaseDecision in options
@@ -427,14 +449,15 @@ public class Harness {
                 }
                 continue;
             }
-            
+
             // Handle "A" for auto-play all treasures in Money phase
             if (input.equalsIgnoreCase("a") || input.equalsIgnoreCase("auto")) {
                 if (!isMoneyPhase) {
-                    System.out.println(ansi().fg(RED).a("✗ Auto-play is only available during the Money phase.").reset());
+                    System.out
+                            .println(ansi().fg(RED).a("✗ Auto-play is only available during the Money phase.").reset());
                     continue;
                 }
-                
+
                 // Find the first treasure card to play and signal auto-play mode
                 for (Decision option : options) {
                     if (option instanceof PlayCardDecision) {
@@ -446,16 +469,16 @@ public class Harness {
                         }
                     }
                 }
-                
+
                 if (choice == null) {
                     System.out.println(ansi().fg(RED).a("✗ No treasure cards available to play.").reset());
                 }
                 continue;
             }
-            
+
             // First, find all card types that match the input
             List<Card.Type> allMatches = findMatchingCardTypes(input);
-            
+
             // Check if the input uniquely identifies a card
             if (allMatches.isEmpty()) {
                 System.out.println(ansi().fg(RED).a("✗ Card not found matching: '" + input + "'. Try again.").reset());
@@ -472,7 +495,7 @@ public class Harness {
                 System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
                 continue;
             }
-            
+
             // Exactly one card matches - try to find it in the available decisions
             for (Decision option : options) {
                 if (option instanceof PlayCardDecision) {
@@ -501,9 +524,10 @@ public class Harness {
                     }
                 }
             }
-            
+
             if (choice == null) {
-                System.out.println(ansi().fg(RED).a("✗ Invalid choice: Card '" + getDisplayName(allMatches.get(0)) + "' is not available right now.").reset());
+                System.out.println(ansi().fg(RED).a("✗ Invalid choice: Card '" + getDisplayName(allMatches.get(0))
+                        + "' is not available right now.").reset());
             }
         }
 
