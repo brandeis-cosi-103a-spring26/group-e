@@ -442,16 +442,6 @@ public class Renderer {
     }
 
     /**
-     * Renders the current game state side-by-side with a turn log panel on the
-     * right. The main board is rendered at {@link #SCREEN_WIDTH} visible columns;
-     * the log panel occupies {@link #LOG_PANEL_WIDTH} additional columns and shows
-     * the current turn (live) plus up to two completed previous turns.
-     *
-     * @param state   current game state
-     * @param options available decisions (used for actionable-card markers)
-     * @param logs    the engine's turn log list (shared live reference)
-     */
-    /**
      * Renders the current game state side-by-side with a turn log panel.
      * Delegates to the 4-arg overload with a default of 2 players.
      *
@@ -487,8 +477,11 @@ public class Renderer {
         try {
             renderGameWithDecisions(state, options);
         } finally {
+            // Ensure we restore the real System.out and then close the capture stream.
             System.out.flush();
             System.setOut(realOut);
+            capture.flush();
+            capture.close();
         }
 
         // Split captured output into lines, normalising CRLF → LF.
