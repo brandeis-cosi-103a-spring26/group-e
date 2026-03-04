@@ -126,7 +126,7 @@ public class Harness {
                 maxAI);
         for (int i = 0; i < numAI; i++) {
             System.out.println(ansi().fg(MAGENTA).a("  ✓ AI player " + (i + 1) + " added").reset());
-            players.add(new AIPlayer());
+            players.add(new BigMoneyPlayer());
         }
 
         // Ensure at least 2 players total
@@ -152,7 +152,7 @@ public class Harness {
             int additionalAI = additionalPlayers - additionalHuman;
             for (int i = 0; i < additionalAI; i++) {
                 System.out.println(ansi().fg(MAGENTA).a("  ✓ AI player " + (numAI + i + 1) + " added").reset());
-                players.add(new AIPlayer());
+                players.add(new BigMoneyPlayer());
             }
             numAI += additionalAI;
         }

@@ -13,12 +13,16 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Comprehensive unit tests for the AIPlayer class.
+ * Comprehensive unit tests for the HandEVPlayer class.
  * Tests decision-making logic for all game phases and various scenarios.
+ * 
+ * HandEVPlayer behaves like BigMoneyPlayer except for makeBuyDecision():
+ * it only buys Framework when expected hand value >= Framework cost (8).
+ * Expected hand value = HAND_SIZE (5) * totalMoneyInDeck / deckSize
  */
-public class AIPlayerTest {
+public class HandEVPlayerTest {
 
-    private AIPlayer player;
+    private HandEVPlayer player;
     private Card bitcoinCard;
     private Card ethereumCard;
     private Card dogecoinCard;
@@ -27,7 +31,7 @@ public class AIPlayerTest {
 
     @Before
     public void setUp() {
-        player = new AIPlayer();
+        player = new HandEVPlayer();
         
         // Create sample cards for testing
         bitcoinCard = new Card(Card.Type.BITCOIN, 1);
@@ -64,8 +68,8 @@ public class AIPlayerTest {
 
     @Test
     public void testConstructor_CreatesPlayerSuccessfully() {
-        AIPlayer newPlayer = new AIPlayer();
-        assertNotNull("AIPlayer should be created", newPlayer);
+        HandEVPlayer newPlayer = new HandEVPlayer();
+        assertNotNull("HandEVPlayer should be created", newPlayer);
     }
 
     @Test
@@ -77,9 +81,9 @@ public class AIPlayerTest {
 
     @Test
     public void testConstructor_GeneratesUniqueNames() {
-        AIPlayer player1 = new AIPlayer();
-        AIPlayer player2 = new AIPlayer();
-        AIPlayer player3 = new AIPlayer();
+        HandEVPlayer player1 = new HandEVPlayer();
+        HandEVPlayer player2 = new HandEVPlayer();
+        HandEVPlayer player3 = new HandEVPlayer();
         
         String name1 = player1.getName();
         String name2 = player2.getName();
@@ -163,10 +167,17 @@ public class AIPlayerTest {
         assertSame("Should return EndPhaseDecision when it's the only option", endPhase, result);
     }
 
-    // ========== makeDecision - BUY Phase Tests ==========
+    // ========== makeDecision - BUY Phase Tests (HandEVPlayer-specific) ==========
 
     @Test
-    public void testMakeDecision_BuyPhase_PrefersFramework() {
+    public void testMakeDecision_BuyPhase_SkipsFramework_WhenEVTooLow() {
+        // Create a fresh player with low expected value
+        // Starting deck: 7 Bitcoins (value 1 each) + 3 Methods (value 0)
+        // Total money = 7, deck size = 10
+        // EV per card = 7/10 = 0.7
+        // Expected hand value = 5 * 0.7 = 3.5 < 8 (Framework cost)
+        // Should NOT buy Framework
+        HandEVPlayer testPlayer = new HandEVPlayer();
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
@@ -174,34 +185,70 @@ public class AIPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyFramework, buyEthereum, endPhase);
         
-        Decision result = player.makeDecision(state, options);
+        Decision result = testPlayer.makeDecision(state, options);
         
-        assertSame("Should prefer FRAMEWORK over other cards", buyFramework, result);
+        // With starting deck (EV too low), should skip Framework and buy next best (Ethereum)
+        assertNotSame("Should NOT buy FRAMEWORK when EV is too low", buyFramework, result);
+        // Should buy Ethereum (next in preference order)
+        assertSame("Should buy ETHEREUM instead", buyEthereum, result);
     }
 
     @Test
-    public void testMakeDecision_BuyPhase_PrefersDogecoinOverEthereum() {
+    public void testMakeDecision_BuyPhase_BuysFramework_AfterBuyingEnoughMoney() {
+        // Simulate buying enough money cards to reach the threshold
+        // After buying several high-value treasures, EV should be high enough
+        HandEVPlayer testPlayer = new HandEVPlayer();
+        GameState state = createMockGameState(GameState.TurnPhase.BUY);
+        
+        // Simulate buying 10 Dogecoins (value 3 each = 30 total)
+        // deckSize = 10, totalMoney = 7 (starting)
+        // After 10 Dogecoins: deckSize = 20, totalMoney = 7 + 30 = 37
+        // EV per card = 37.0/20 = 1.85
+        // Expected hand value = 5 * 1.85 = 9.25 >= 8
+        for (int i = 0; i < 10; i++) {
+            testPlayer.makeDecision(state, ImmutableList.of(
+                new BuyDecision(Card.Type.DOGECOIN),
+                new EndPhaseDecision(GameState.TurnPhase.BUY)
+            ));
+        }
+        
+        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(buyFramework, buyDogecoin, endPhase);
+        
+        Decision result = testPlayer.makeDecision(state, options);
+        
+        assertSame("Should buy FRAMEWORK after accumulating enough money cards", buyFramework, result);
+    }
+
+    @Test
+    public void testMakeDecision_BuyPhase_PrefersDogecoinOverEthereum_WhenFrameworkSkipped() {
+        HandEVPlayer testPlayer = new HandEVPlayer();
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
+        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, endPhase);
+        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework, endPhase);
         
-        Decision result = player.makeDecision(state, options);
+        Decision result = testPlayer.makeDecision(state, options);
         
-        assertSame("Should prefer DOGECOIN over ETHEREUM", buyDogecoin, result);
+        // With low EV, should skip Framework and prefer DOGECOIN
+        assertSame("Should prefer DOGECOIN when Framework is skipped", buyDogecoin, result);
     }
 
     @Test
     public void testMakeDecision_BuyPhase_PrefersEthereumOverBitcoin() {
+        HandEVPlayer testPlayer = new HandEVPlayer();
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, endPhase);
         
-        Decision result = player.makeDecision(state, options);
+        Decision result = testPlayer.makeDecision(state, options);
         
         assertSame("Should prefer ETHEREUM over BITCOIN", buyEthereum, result);
     }
@@ -243,42 +290,46 @@ public class AIPlayerTest {
     }
 
     @Test
-    public void testMakeDecision_BuyPhase_FrameworkFirstInList() {
+    public void testMakeDecision_BuyPhase_DeckStatisticsTracking() {
+        // Verify that deck statistics are correctly tracked across multiple buys
+        HandEVPlayer testPlayer = new HandEVPlayer();
+        GameState state = createMockGameState(GameState.TurnPhase.BUY);
+        
+        // First buy: Bitcoin (value 1)
+        testPlayer.makeDecision(state, ImmutableList.of(
+            new BuyDecision(Card.Type.BITCOIN),
+            new EndPhaseDecision(GameState.TurnPhase.BUY)
+        ));
+        
+        // Second buy: Ethereum (value 2)
+        testPlayer.makeDecision(state, ImmutableList.of(
+            new BuyDecision(Card.Type.ETHEREUM),
+            new EndPhaseDecision(GameState.TurnPhase.BUY)
+        ));
+        
+        // Third buy: Dogecoin (value 3)
+        Decision result = testPlayer.makeDecision(state, ImmutableList.of(
+            new BuyDecision(Card.Type.DOGECOIN),
+            new BuyDecision(Card.Type.BITCOIN),
+            new EndPhaseDecision(GameState.TurnPhase.BUY)
+        ));
+        
+        // Should still prefer Dogecoin
+        assertTrue("Should buy a money card", result instanceof BuyDecision);
+        assertEquals("Should prefer DOGECOIN", Card.Type.DOGECOIN, ((BuyDecision) result).cardType());
+    }
+
+    @Test
+    public void testMakeDecision_BuyPhase_FrameworkFirstInList_ButEVTooLow() {
+        HandEVPlayer testPlayer = new HandEVPlayer();
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyFramework, buyDogecoin);
         
-        Decision result = player.makeDecision(state, options);
+        Decision result = testPlayer.makeDecision(state, options);
         
-        assertSame("Should prefer FRAMEWORK even when it's first", buyFramework, result);
-    }
-
-    @Test
-    public void testMakeDecision_BuyPhase_FrameworkLastInList() {
-        GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
-        BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
-        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyFramework);
-        
-        Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should prefer FRAMEWORK even when it's last", buyFramework, result);
-    }
-
-    @Test
-    public void testMakeDecision_BuyPhase_AllPreferredCardsAvailable() {
-        GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
-        BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
-        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
-        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
-        
-        Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should prefer FRAMEWORK when all are available", buyFramework, result);
+        assertSame("Should skip FRAMEWORK even when first due to low EV", buyDogecoin, result);
     }
 
     @Test
@@ -436,26 +487,23 @@ public class AIPlayerTest {
     }
 
     @Test
-    public void testMakeDecision_BuyPhase_PreferenceOrder() {
-        // Test that the preference order is: FRAMEWORK > DOGECOIN > ETHEREUM > BITCOIN
+    public void testMakeDecision_BuyPhase_PreferenceOrder_WithLowEV() {
+        // Test that the preference order is: DOGECOIN > ETHEREUM > BITCOIN when Framework is skipped
+        HandEVPlayer testPlayer = new HandEVPlayer();
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         
-        // Test Framework is preferred over all
+        // Test Dogecoin is preferred over Ethereum and Bitcoin (Framework skipped due to low EV)
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         
         ImmutableList<Decision> options1 = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
-        assertEquals("FRAMEWORK should be preferred", buyFramework, player.makeDecision(state, options1));
-        
-        // Test Dogecoin is preferred over Ethereum and Bitcoin (no Framework)
-        ImmutableList<Decision> options2 = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin);
-        assertEquals("DOGECOIN should be preferred", buyDogecoin, player.makeDecision(state, options2));
+        assertEquals("DOGECOIN should be preferred when Framework skipped", buyDogecoin, testPlayer.makeDecision(state, options1));
         
         // Test Ethereum is preferred over Bitcoin (no Framework or Dogecoin)
-        ImmutableList<Decision> options3 = ImmutableList.of(buyBitcoin, buyEthereum);
-        assertEquals("ETHEREUM should be preferred", buyEthereum, player.makeDecision(state, options3));
+        ImmutableList<Decision> options2 = ImmutableList.of(buyBitcoin, buyEthereum);
+        assertEquals("ETHEREUM should be preferred", buyEthereum, testPlayer.makeDecision(state, options2));
     }
 
     @Test
@@ -519,5 +567,27 @@ public class AIPlayerTest {
         
         assertNotNull("Should return a non-null decision", result);
         assertSame("Should return the EndPhaseDecision", endPhase, result);
+    }
+
+    @Test
+    public void testMakeDecision_BuyPhase_NonMoneyCardDoesNotAffectEV() {
+        // Verify that buying non-money cards (like Method) doesn't increase totalMoney
+        HandEVPlayer testPlayer = new HandEVPlayer();
+        GameState state = createMockGameState(GameState.TurnPhase.BUY);
+        
+        // Buy a Method card (victory card, not money)
+        testPlayer.makeDecision(state, ImmutableList.of(
+            new BuyDecision(Card.Type.METHOD),
+            new EndPhaseDecision(GameState.TurnPhase.BUY)
+        ));
+        
+        // Framework should still be skipped (EV hasn't improved)
+        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buyFramework, buyDogecoin);
+        
+        Decision result = testPlayer.makeDecision(state, options);
+        
+        assertSame("Should still skip FRAMEWORK after buying victory card", buyDogecoin, result);
     }
 }
