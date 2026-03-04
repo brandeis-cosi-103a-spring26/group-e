@@ -2,6 +2,7 @@ package edu.brandeis.cosi103a.groupe;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,14 @@ public class OurEngine implements Engine {
     private MutableCardStacks shop; // Mutable version of CardStacks, convert to an immutable CardStacks with
                                     // `shop.toImmutableCardStacks()`
     private int cardIdCounter = 1;
+
+    // --- Turn logging ---
+    private int turnNumber = 0;
+    private TurnLog currentTurnLog = null;
+    private final List<TurnLog> allTurnLogs = new ArrayList<>();
+    // Tracks treasure cards played during the money phase for the log summary.
+    private Map<Card.Type, Integer> treasuresPlayedThisTurn = new LinkedHashMap<>();
+    private int moneyFromTreasuresThisTurn = 0;
 
     // Constants
     private static final int MAX_PLAYERS = 4;
@@ -126,6 +135,15 @@ public class OurEngine implements Engine {
         while (!isGameOver()) {
             // get next player, sets phase to ACTION, and resets actions, money, and buys
             activePlayer = getNextPlayer();
+            turnNumber++;
+            currentTurnLog = new TurnLog(turnNumber, activePlayer.getName());
+            allTurnLogs.add(currentTurnLog);
+            // Keep memory usage bounded to the last 10 turns
+            if (allTurnLogs.size() > 10) {
+                allTurnLogs.remove(0);
+            }
+            treasuresPlayedThisTurn = new LinkedHashMap<>();
+            moneyFromTreasuresThisTurn = 0;
             phase = GameState.TurnPhase.ACTION;
             numActions = 1;
             numMoney = 0;
@@ -139,12 +157,6 @@ public class OurEngine implements Engine {
                     // Build decision options and game state
                     ImmutableList<Decision> options = buildDecisionOptions();
                     GameState gs = buildGameState();
-
-                    // Render the current game state to the console
-                    // (only runs on console player turns for now to avoid excessive rendering)
-                    if (activePlayer instanceof ConsolePlayer) {
-                        Renderer.renderGame(gs);
-                    }
 
                     // Get decision from active player
                     Decision decision = activePlayer.makeDecision(gs, options);
@@ -190,6 +202,9 @@ public class OurEngine implements Engine {
         // Draw new hand of 5 cards
         for (int i = 0; i < HAND_SIZE; i++) {
             drawCard(activePlayer);
+        }
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("Drew " + HAND_SIZE + " cards");
         }
     }
 
@@ -262,7 +277,12 @@ public class OurEngine implements Engine {
         // Go to the next phase based on the current phase
         switch (decision.phase()) {
             case ACTION -> phase = GameState.TurnPhase.MONEY;
-            case MONEY -> phase = GameState.TurnPhase.BUY;
+            case MONEY -> {
+                if (currentTurnLog != null && !treasuresPlayedThisTurn.isEmpty()) {
+                    currentTurnLog.addEntry(buildMoneyLogEntry());
+                }
+                phase = GameState.TurnPhase.BUY;
+            }
             case BUY -> phase = GameState.TurnPhase.CLEANUP;
             default -> throw new UnsupportedOperationException("Cannot end phase from current phase");
         }
@@ -313,6 +333,10 @@ public class OurEngine implements Engine {
             throw new IllegalStateException("No actions remaining for active player");
         }
 
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("Played " + cardDisplayName(type));
+        }
+
         switch (type) {
             case CODE_REVIEW -> executeActionCodeReview();
             case REFACTOR -> executeActionRefactor();
@@ -335,12 +359,15 @@ public class OurEngine implements Engine {
      *                                       supported.
      */
     private void processPlayMoneyCard(Card.Type type) throws UnsupportedOperationException {
+        int value = 0;
         switch (type) {
-            case BITCOIN -> numMoney += 1;
-            case ETHEREUM -> numMoney += 2;
-            case DOGECOIN -> numMoney += 3;
+            case BITCOIN -> { numMoney += 1; value = 1; }
+            case ETHEREUM -> { numMoney += 2; value = 2; }
+            case DOGECOIN -> { numMoney += 3; value = 3; }
             default -> throw new UnsupportedOperationException("Unsupported money card type");
         }
+        treasuresPlayedThisTurn.merge(type, 1, Integer::sum);
+        moneyFromTreasuresThisTurn += value;
     }
 
     // --- ACTION IMPLEMENTATIONS ---
@@ -353,6 +380,9 @@ public class OurEngine implements Engine {
     private void executeActionCodeReview() {
         drawCard(activePlayer);
         numActions += 2;
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("  +1 Card, +2 Actions");
+        }
     }
 
     /**
@@ -385,6 +415,9 @@ public class OurEngine implements Engine {
 
         // Cast to TrashCardDecision and process the trashing of the card
         TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("  Trashed " + cardDisplayName(trashCardDecision.card().type()));
+        }
         processTrashCardDecision(trashCardDecision);
 
         int cardCost = trashCardDecision.card().cost();
@@ -418,6 +451,9 @@ public class OurEngine implements Engine {
         }
 
         GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("  Gained " + cardDisplayName(gainCardDecision.cardType()));
+        }
         processGainingCard(gainCardDecision.cardType(), activePlayer);
         phase = TurnPhase.ACTION; // Reset phase to action
 
@@ -433,6 +469,9 @@ public class OurEngine implements Engine {
         // Draws 2 cards for current player
         drawCard(activePlayer);
         drawCard(activePlayer);
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("  +2 Cards; each other player gains a Bug");
+        }
 
         // For each other player, add a BUG card to their discard pile in turn order
         // starting from the next player
@@ -527,6 +566,9 @@ public class OurEngine implements Engine {
 
         // Update shop and add card to player's discard pile
         processGainingCard(type, activePlayer);
+        if (currentTurnLog != null) {
+            currentTurnLog.addEntry("Bought " + cardDisplayName(type));
+        }
     }
 
     /**
@@ -763,6 +805,9 @@ public class OurEngine implements Engine {
 
         if (deck.isEmpty()) {
             // Shuffle discard into deck
+            if (currentTurnLog != null && player == activePlayer && !discard.isEmpty()) {
+                currentTurnLog.addEntry("Shuffled cards");
+            }
             deck.addAll(discard);
             discard.clear();
             java.util.Collections.shuffle(deck);
@@ -770,6 +815,41 @@ public class OurEngine implements Engine {
         if (!deck.isEmpty()) {
             hand.addToUnplayed(deck.remove(deck.size() - 1));
         }
+    }
+
+    /**
+     * Returns an unmodifiable view of the last 10 turn histories, including the
+     * currently-in-progress turn. Entries are appended live as events occur,
+     * so callers holding a reference will always see the latest state.
+     */
+    public List<TurnLog> getTurnLogs() {
+        return java.util.Collections.unmodifiableList(allTurnLogs);
+    }
+
+    /** Returns the total number of players in this game. */
+    public int getNumPlayers() {
+        return players.size();
+    }
+
+    /**
+     * Converts a {@link Card.Type} to a human-readable Title Case name,
+     * e.g. {@code CODE_REVIEW → "Code Review"}.
+     */
+    private static String cardDisplayName(Card.Type type) {
+        return Renderer.displayName(type);
+    }
+
+    /**
+     * Builds the money-phase summary log entry, e.g.
+     * {@code "Played 3 Bitcoin and 1 Ethereum (+5)"}.
+     */
+    private String buildMoneyLogEntry() {
+        List<String> parts = new ArrayList<>();
+        for (Map.Entry<Card.Type, Integer> e : treasuresPlayedThisTurn.entrySet()) {
+            parts.add(e.getValue() + " " + cardDisplayName(e.getKey()));
+        }
+        return "Played " + String.join(" and ", parts)
+                + " (+" + moneyFromTreasuresThisTurn + ")";
     }
 
 }
