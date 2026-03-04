@@ -161,6 +161,18 @@ public class Harness {
         System.out.println(ansi().fg(YELLOW).bold().a("    Starting Game...").reset());
         System.out.println(ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
 
+        // Instructions
+        System.out.println(ansi().fg(CYAN).a("── How to Play ─────────────────────────────────").reset());
+        System.out.println(ansi().fg(RED).a("  *").fg(WHITE).a(" indicates a card that can be acted upon").reset());
+        System.out.println(ansi().fg(WHITE).a("    (played, bought, gained, or trashed)").reset());
+        System.out.println();
+        System.out.println(ansi().fg(YELLOW).a("  ❯").fg(WHITE).a(" To select a card, type its name or any unique").reset());
+        System.out.println(ansi().fg(WHITE).a("    substring  (e.g. type ").fg(CYAN).a("bit").fg(WHITE).a(" for Bitcoin)").reset());
+        System.out.println(ansi().fg(CYAN).a("────────────────────────────────────────────────\n").reset());
+
+        System.out.print(ansi().fg(WHITE).a("Press enter to start the game...").reset());
+        scanner.nextLine();
+
         OurEngine engine = new OurEngine(players);
         // Give every ConsolePlayer a live reference to the engine's turn log history
         // and the player count so the log panel shows one full previous round.
