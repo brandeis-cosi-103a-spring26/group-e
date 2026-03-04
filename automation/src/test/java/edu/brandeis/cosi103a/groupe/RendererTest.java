@@ -13,7 +13,6 @@ import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
-import edu.brandeis.cosi103a.groupe.AIPlayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -686,7 +685,7 @@ public class RendererTest {
     @Test
     public void testRenderGameDebugMode_DisplaysDebugHeaders() {
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
-        AIPlayer player = new AIPlayer();
+        BigMoneyPlayer player = new BigMoneyPlayer();
         DebugGameState debugState = new DebugGameState(
             state,
             ImmutableMap.of(player, ImmutableList.<Card>of()),
@@ -703,7 +702,7 @@ public class RendererTest {
     @Test
     public void testRenderGameDebugMode_DisplaysPlayerDecks() {
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
-        AIPlayer player = new AIPlayer();
+        BigMoneyPlayer player = new BigMoneyPlayer();
         Card bitcoin = new Card(Card.Type.BITCOIN, 1);
         Card method = new Card(Card.Type.METHOD, 2);
         DebugGameState debugState = new DebugGameState(
@@ -725,7 +724,7 @@ public class RendererTest {
     @Test
     public void testRenderGameDebugMode_DisplaysPlayerDiscards() {
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
-        AIPlayer player = new AIPlayer();
+        BigMoneyPlayer player = new BigMoneyPlayer();
         Card refactor = new Card(Card.Type.REFACTOR, 1);
         DebugGameState debugState = new DebugGameState(
             state,
@@ -744,7 +743,7 @@ public class RendererTest {
     @Test
     public void testRenderGameDebugMode_EmptyDecksAndDiscards() {
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
-        AIPlayer player = new AIPlayer();
+        BigMoneyPlayer player = new BigMoneyPlayer();
         DebugGameState debugState = new DebugGameState(
             state,
             ImmutableMap.of(player, ImmutableList.<Card>of()),
