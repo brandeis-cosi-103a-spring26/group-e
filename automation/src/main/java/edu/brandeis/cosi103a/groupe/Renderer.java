@@ -451,8 +451,33 @@ public class Renderer {
      * @param options available decisions (used for actionable-card markers)
      * @param logs    the engine's turn log list (shared live reference)
      */
+    /**
+     * Renders the current game state side-by-side with a turn log panel.
+     * Delegates to the 4-arg overload with a default of 2 players.
+     *
+     * @param state   current game state
+     * @param options available decisions (used for actionable-card markers)
+     * @param logs    the engine's turn log list (shared live reference)
+     */
     public static void renderGameWithDecisions(GameState state, List<Decision> options,
             List<TurnLog> logs) {
+        renderGameWithDecisions(state, options, logs, 2);
+    }
+
+    /**
+     * Renders the current game state side-by-side with a turn log panel on the
+     * right. The log panel shows the current turn (live) plus one full previous
+     * round of turns (i.e. the last {@code numPlayers} completed turns), so every
+     * player can see what happened on their own last turn.
+     *
+     * @param state      current game state
+     * @param options    available decisions (used for actionable-card markers)
+     * @param logs       the engine's turn log list (shared live reference)
+     * @param numPlayers total number of players; controls how many past turns are
+     *                   shown alongside the current turn
+     */
+    public static void renderGameWithDecisions(GameState state, List<Decision> options,
+            List<TurnLog> logs, int numPlayers) {
         // Capture the main panel output into a buffer so we can merge it with the
         // log panel line-by-line.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -477,8 +502,8 @@ public class Renderer {
             mainLines.remove(mainLines.size() - 1);
         }
 
-        // Build the log panel.
-        List<String> logLines = buildLogPanelLines(logs);
+        // Build the log panel: one full previous round + current turn.
+        List<String> logLines = buildLogPanelLines(logs, numPlayers);
 
         // Print main panel and log panel side by side.
         int maxRows = Math.max(mainLines.size(), logLines.size());
@@ -520,15 +545,17 @@ public class Renderer {
     }
 
     /**
-     * Builds the lines of the right-hand turn log panel. Shows up to the last
-     * three turns (two completed + current). The current (last) turn is shown in
-     * full colour; older turns are dimmed.
+     * Builds the lines of the right-hand turn log panel. Shows the current turn
+     * plus the previous {@code numPlayers} turns (one full round), so every player
+     * can see their own last turn. The current turn is shown in full colour; older
+     * turns are dimmed.
      *
-     * @param logs the engine's live turn log list
+     * @param logs       the engine's live turn log list
+     * @param numPlayers total number of players; determines the window size
      * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH}
      *         visible characters wide
      */
-    private static List<String> buildLogPanelLines(List<TurnLog> logs) {
+    private static List<String> buildLogPanelLines(List<TurnLog> logs, int numPlayers) {
         List<String> lines = new ArrayList<>();
 
         // Panel header bar
@@ -542,8 +569,9 @@ public class Renderer {
             return lines;
         }
 
-        // Show last 3 turns: up to 2 previous + current.
-        int startIdx = Math.max(0, logs.size() - 3);
+        // Show the current turn + one full previous round (numPlayers turns back).
+        int windowSize = numPlayers + 1;
+        int startIdx = Math.max(0, logs.size() - windowSize);
         for (int t = startIdx; t < logs.size(); t++) {
             TurnLog log = logs.get(t);
             boolean isCurrent = (t == logs.size() - 1);

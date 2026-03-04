@@ -826,6 +826,11 @@ public class OurEngine implements Engine {
         return java.util.Collections.unmodifiableList(allTurnLogs);
     }
 
+    /** Returns the total number of players in this game. */
+    public int getNumPlayers() {
+        return players.size();
+    }
+
     /**
      * Converts a {@link Card.Type} to a human-readable Title Case name,
      * e.g. {@code CODE_REVIEW → "Code Review"}.

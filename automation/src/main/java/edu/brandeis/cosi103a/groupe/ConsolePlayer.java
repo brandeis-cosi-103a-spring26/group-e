@@ -32,6 +32,22 @@ public class ConsolePlayer extends AbstractPlayer {
     }
 
     /**
+     * Total number of players in the game; controls how many past turns are shown
+     * in the log panel (one full previous round + current turn).
+     */
+    private int numPlayers = 2;
+
+    /**
+     * Sets the number of players so the log panel can show a complete previous
+     * round. Should be called alongside {@link #setTurnLogs(List)}.
+     *
+     * @param numPlayers total players in the game
+     */
+    public void setNumPlayers(int numPlayers) {
+        this.numPlayers = numPlayers;
+    }
+
+    /**
      * Makes a decision based on user input from the console.
      * 
      * @param state   The current game state.
@@ -82,7 +98,7 @@ public class ConsolePlayer extends AbstractPlayer {
         // Not in auto-play mode or no treasures available - get user input
         // Render the current game state to the console
         // Renderer.renderGame(state);
-        Renderer.renderGameWithDecisions(state, options, turnLogs);
+        Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
 
         DecisionResult result = Harness.getDecisionFromConsole(state, options);
 

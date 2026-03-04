@@ -163,10 +163,11 @@ public class Harness {
 
         OurEngine engine = new OurEngine(players);
         // Give every ConsolePlayer a live reference to the engine's turn log history
-        // so the log panel is visible and up-to-date on every render.
+        // and the player count so the log panel shows one full previous round.
         for (Player p : players) {
             if (p instanceof ConsolePlayer) {
                 ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());
+                ((ConsolePlayer) p).setNumPlayers(engine.getNumPlayers());
             }
         }
         try {
