@@ -1,11 +1,13 @@
 package edu.brandeis.cosi103a.groupe;
 
-import com.google.common.collect.ImmutableList;
-import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi.atg.cards.Card;
+
+import com.google.common.collect.ImmutableList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +16,14 @@ public class ConsolePlayer extends AbstractPlayer {
     private boolean autoPlayTreasures = false;
 
     /**
-     * Live reference to the engine's turn log history; set after engine creation via {@link
-     * #setTurnLogs(List)}. All turns from all players are visible.
+     * Live reference to the engine's turn log history; set after engine creation
+     * via {@link #setTurnLogs(List)}. All turns from all players are visible.
      */
     private List<TurnLog> turnLogs = new ArrayList<>();
 
     /**
-     * Sets the shared turn log list from the engine. Should be called once after the engine is
-     * constructed and before the game starts.
+     * Sets the shared turn log list from the engine. Should be called once after
+     * the engine is constructed and before the game starts.
      *
      * @param logs the engine's live turn log list
      */
@@ -30,14 +32,14 @@ public class ConsolePlayer extends AbstractPlayer {
     }
 
     /**
-     * Total number of players in the game; controls how many past turns are shown in the log panel
-     * (one full previous round + current turn).
+     * Total number of players in the game; controls how many past turns are shown
+     * in the log panel (one full previous round + current turn).
      */
     private int numPlayers = 2;
 
     /**
-     * Sets the number of players so the log panel can show a complete previous round. Should be
-     * called alongside {@link #setTurnLogs(List)}.
+     * Sets the number of players so the log panel can show a complete previous
+     * round. Should be called alongside {@link #setTurnLogs(List)}.
      *
      * @param numPlayers total players in the game
      */
@@ -47,8 +49,8 @@ public class ConsolePlayer extends AbstractPlayer {
 
     /**
      * Makes a decision based on user input from the console.
-     *
-     * @param state The current game state.
+     * 
+     * @param state   The current game state.
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
@@ -57,18 +59,14 @@ public class ConsolePlayer extends AbstractPlayer {
 
         // If the only option is to end the action phase due to no actions remaining, we
         // can skip prompting the user and just return that decision
-        if (state.phase() == TurnPhase.ACTION
-                && options.size() == 1
-                && options.get(0) instanceof EndPhaseDecision
+        if (state.phase() == TurnPhase.ACTION && options.size() == 1 && options.get(0) instanceof EndPhaseDecision
                 && state.availableActions() == 0) {
             return options.get(0);
         }
 
         // If the only option is to end the buy phase due to no buys remaining, we can
         // skip prompting the user and just return that decision
-        if (state.phase() == TurnPhase.BUY
-                && options.size() == 1
-                && options.get(0) instanceof EndPhaseDecision
+        if (state.phase() == TurnPhase.BUY && options.size() == 1 && options.get(0) instanceof EndPhaseDecision
                 && state.availableBuys() == 0) {
             return options.get(0);
         }

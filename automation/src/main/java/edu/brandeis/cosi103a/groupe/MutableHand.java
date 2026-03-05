@@ -1,16 +1,21 @@
 package edu.brandeis.cosi103a.groupe;
 
-import com.google.common.collect.ImmutableList;
-import edu.brandeis.cosi.atg.cards.Card;
-import edu.brandeis.cosi.atg.state.Hand;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.ImmutableList;
+
+import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.state.Hand;
+
 public class MutableHand {
-    @Nonnull List<Card> unplayedCards = new ArrayList<>();
-    @Nonnull List<Card> playedCards = new ArrayList<>();
+    @Nonnull
+    List<Card> unplayedCards = new ArrayList<>();
+    @Nonnull
+    List<Card> playedCards = new ArrayList<>();
 
     public List<Card> getUnplayedCards() {
         return List.copyOf(unplayedCards);
@@ -79,8 +84,9 @@ public class MutableHand {
     }
 
     /**
-     * Moves all cards from both unplayed and played to the provided destination list. Clears both
-     * internal lists after moving.
+     * Moves all cards from both unplayed and played to the provided destination
+     * list.
+     * Clears both internal lists after moving.
      *
      * @param destination The list to move all cards to (e.g., discard pile)
      */
@@ -94,15 +100,18 @@ public class MutableHand {
         playedCards.clear();
     }
 
-    /** Moves all unplayed cards to the played pile. Useful for certain card effects. */
+    /**
+     * Moves all unplayed cards to the played pile.
+     * Useful for certain card effects.
+     */
     public void playAllCards() {
         playedCards.addAll(unplayedCards);
         unplayedCards.clear();
     }
 
     /**
-     * Clears both unplayed and played card lists. Use with caution - typically you want
-     * moveAllCardsTo instead.
+     * Clears both unplayed and played card lists.
+     * Use with caution - typically you want moveAllCardsTo instead.
      */
     public void clear() {
         unplayedCards.clear();
@@ -136,4 +145,5 @@ public class MutableHand {
     public boolean contains(Card card) {
         return unplayedCards.contains(card) || playedCards.contains(card);
     }
+
 }

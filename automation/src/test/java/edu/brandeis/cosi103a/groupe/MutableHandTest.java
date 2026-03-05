@@ -1,17 +1,18 @@
 package edu.brandeis.cosi103a.groupe;
 
-import static org.junit.Assert.*;
-
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.state.Hand;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
 /**
- * Exhaustive unit tests for the MutableHand class. Tests all public methods with normal cases, edge
- * cases, and error conditions.
+ * Exhaustive unit tests for the MutableHand class.
+ * Tests all public methods with normal cases, edge cases, and error conditions.
  */
 public class MutableHandTest {
 
@@ -242,12 +243,8 @@ public class MutableHandTest {
         assertNotNull("Immutable hand should not be null", immutableHand);
         assertEquals("Unplayed cards should match", 1, immutableHand.unplayedCards().size());
         assertEquals("Played cards should match", 1, immutableHand.playedCards().size());
-        assertTrue(
-                "Should contain method1 in unplayed",
-                immutableHand.unplayedCards().contains(method1));
-        assertTrue(
-                "Should contain bitcoin1 in played",
-                immutableHand.playedCards().contains(bitcoin1));
+        assertTrue("Should contain method1 in unplayed", immutableHand.unplayedCards().contains(method1));
+        assertTrue("Should contain bitcoin1 in played", immutableHand.playedCards().contains(bitcoin1));
     }
 
     @Test
@@ -268,12 +265,8 @@ public class MutableHandTest {
         hand.addToUnplayed(method1);
 
         // Immutable hand should not change
-        assertEquals(
-                "Immutable hand should still have 1 unplayed card",
-                1,
-                immutableHand.unplayedCards().size());
-        assertEquals(
-                "Mutable hand should have 2 unplayed cards", 2, hand.getUnplayedCards().size());
+        assertEquals("Immutable hand should still have 1 unplayed card", 1, immutableHand.unplayedCards().size());
+        assertEquals("Mutable hand should have 2 unplayed cards", 2, hand.getUnplayedCards().size());
     }
 
     // ========== removeFromUnplayed Tests ==========
@@ -312,8 +305,7 @@ public class MutableHandTest {
 
         assertFalse("Should return false (card is in played, not unplayed)", removed);
         assertEquals("Hand should still have 1 card", 1, hand.size());
-        assertTrue(
-                "Card should still be in played cards", hand.getPlayedCards().contains(bitcoin1));
+        assertTrue("Card should still be in played cards", hand.getPlayedCards().contains(bitcoin1));
     }
 
     @Test
@@ -365,9 +357,7 @@ public class MutableHandTest {
 
         assertFalse("Should return false (card is in unplayed, not played)", removed);
         assertEquals("Hand should still have 1 card", 1, hand.size());
-        assertTrue(
-                "Card should still be in unplayed cards",
-                hand.getUnplayedCards().contains(bitcoin1));
+        assertTrue("Card should still be in unplayed cards", hand.getUnplayedCards().contains(bitcoin1));
     }
 
     // ========== moveAllCardsTo Tests ==========
@@ -689,13 +679,11 @@ public class MutableHandTest {
         Hand immutable2 = hand.toImmutableHand();
 
         // Verify immutable1 is unchanged
-        assertEquals(
-                "First immutable should have 1 unplayed", 1, immutable1.unplayedCards().size());
+        assertEquals("First immutable should have 1 unplayed", 1, immutable1.unplayedCards().size());
         assertEquals("First immutable should have 1 played", 1, immutable1.playedCards().size());
 
         // Verify immutable2 reflects new state
-        assertEquals(
-                "Second immutable should have 1 unplayed", 1, immutable2.unplayedCards().size());
+        assertEquals("Second immutable should have 1 unplayed", 1, immutable2.unplayedCards().size());
         assertEquals("Second immutable should have 2 played", 2, immutable2.playedCards().size());
     }
 
@@ -752,10 +740,8 @@ public class MutableHandTest {
         hand.playCard(bitcoin1); // Play only bitcoin1
 
         assertTrue("bitcoin1 should be in played", hand.getPlayedCards().contains(bitcoin1));
-        assertFalse(
-                "bitcoin1 should not be in unplayed", hand.getUnplayedCards().contains(bitcoin1));
-        assertTrue(
-                "bitcoin2 should still be in unplayed", hand.getUnplayedCards().contains(bitcoin2));
+        assertFalse("bitcoin1 should not be in unplayed", hand.getUnplayedCards().contains(bitcoin1));
+        assertTrue("bitcoin2 should still be in unplayed", hand.getUnplayedCards().contains(bitcoin2));
         assertFalse("bitcoin2 should not be in played", hand.getPlayedCards().contains(bitcoin2));
         assertEquals("Should still have 2 cards total", 2, hand.size());
     }
@@ -833,10 +819,8 @@ public class MutableHandTest {
         // Play the remaining BITCOIN card
         hand.playCard(bitcoin4);
         assertTrue("bitcoin4 should now be played", hand.getPlayedCards().contains(bitcoin4));
-        assertEquals(
-                "Should have 2 played BITCOINs",
-                2,
-                hand.getPlayedCards().stream().filter(c -> c.type() == Card.Type.BITCOIN).count());
+        assertEquals("Should have 2 played BITCOINs", 2, hand.getPlayedCards().stream()
+                .filter(c -> c.type() == Card.Type.BITCOIN).count());
 
         // Verify all cards are correctly positioned
         List<Card> allCards = hand.getAllCards();

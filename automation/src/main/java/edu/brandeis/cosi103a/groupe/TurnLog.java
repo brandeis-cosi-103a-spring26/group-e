@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Records the events of a single player's turn for display in the turn log panel.
+ * Records the events of a single player's turn for display in the turn log
+ * panel.
  *
- * <p>A TurnLog is created at the start of each turn and entries are appended live as events occur
- * (cards played, shuffles, draws, buys, etc.). The engine owns and mutates TurnLog instances; all
- * players share a read-only view of the history.
+ * <p>A TurnLog is created at the start of each turn and entries are appended
+ * live as events occur (cards played, shuffles, draws, buys, etc.). The engine
+ * owns and mutates TurnLog instances; all players share a read-only view of the
+ * history.
  */
 public class TurnLog {
 
@@ -28,7 +30,9 @@ public class TurnLog {
         this.playerName = playerName;
     }
 
-    /** Returns the header line for this turn, e.g. {@code "Turn 3 - Player-2"}. */
+    /**
+     * Returns the header line for this turn, e.g. {@code "Turn 3 - Player-2"}.
+     */
     public String getHeader() {
         return "Turn " + turnNumber + " - " + playerName;
     }
@@ -45,7 +49,10 @@ public class TurnLog {
         entries.add(entry);
     }
 
-    /** Returns an unmodifiable view of this turn's log entries in the order they were added. */
+    /**
+     * Returns an unmodifiable view of this turn's log entries in the order they
+     * were added.
+     */
     public List<String> getEntries() {
         return Collections.unmodifiableList(entries);
     }
