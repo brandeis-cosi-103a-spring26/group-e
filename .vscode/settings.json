@@ -3,7 +3,5 @@
     "java.compile.nullAnalysis.mode": "automatic",
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
-    ],
-    "editor.formatOnSave": false,
-    "editor.indentSize": 4
+    ]
 }

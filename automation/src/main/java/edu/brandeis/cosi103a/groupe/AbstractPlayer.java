@@ -1,9 +1,10 @@
 package edu.brandeis.cosi103a.groupe;
 
-import com.google.common.collect.ImmutableList;
-import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.state.GameState;
+
+import com.google.common.collect.ImmutableList;
 
 public abstract class AbstractPlayer implements Player {
 

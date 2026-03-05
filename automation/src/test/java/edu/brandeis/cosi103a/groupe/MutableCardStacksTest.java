@@ -1,16 +1,16 @@
 package edu.brandeis.cosi103a.groupe;
 
-import static org.junit.Assert.*;
-
-import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.state.CardStacks;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 /**
- * Comprehensive unit tests for the MutableCardStacks class. Tests initialization, card count
- * management, and shop queries.
+ * Comprehensive unit tests for the MutableCardStacks class.
+ * Tests initialization, card count management, and shop queries.
  */
 public class MutableCardStacksTest {
 
@@ -20,9 +20,11 @@ public class MutableCardStacksTest {
 
     @Before
     public void setUp() {
-        standardActionCards =
-                ImmutableSet.of(
-                        Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST);
+        standardActionCards = ImmutableSet.of(
+            Card.Type.CODE_REVIEW,
+            Card.Type.REFACTOR,
+            Card.Type.EVERGREEN_TEST
+        );
 
         singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
         emptyActionCards = ImmutableSet.of();
@@ -42,29 +44,20 @@ public class MutableCardStacksTest {
         // Verify victory cards
         assertEquals("METHOD should be 14", 14, stacks.getNumAvailable(Card.Type.METHOD));
         assertEquals("MODULE should be 8", 8, stacks.getNumAvailable(Card.Type.MODULE));
-        assertEquals(
-                "FRAMEWORK should be 8 for 2 players",
-                8,
-                stacks.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("FRAMEWORK should be 8 for 2 players", 8, stacks.getNumAvailable(Card.Type.FRAMEWORK));
         assertEquals("BUG should be 20 (2*10)", 20, stacks.getNumAvailable(Card.Type.BUG));
 
         // Verify action cards
         assertEquals("CODE_REVIEW should be 10", 10, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
         assertEquals("REFACTOR should be 10", 10, stacks.getNumAvailable(Card.Type.REFACTOR));
-        assertEquals(
-                "EVERGREEN_TEST should be 10",
-                10,
-                stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("EVERGREEN_TEST should be 10", 10, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
     public void testConstructor_ThreePlayers_InitializesCorrectly() {
         MutableCardStacks stacks = new MutableCardStacks(3, standardActionCards);
 
-        assertEquals(
-                "FRAMEWORK should be 12 for 3 players",
-                12,
-                stacks.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("FRAMEWORK should be 12 for 3 players", 12, stacks.getNumAvailable(Card.Type.FRAMEWORK));
         assertEquals("BUG should be 30 (3*10)", 30, stacks.getNumAvailable(Card.Type.BUG));
     }
 
@@ -72,10 +65,7 @@ public class MutableCardStacksTest {
     public void testConstructor_FourPlayers_InitializesCorrectly() {
         MutableCardStacks stacks = new MutableCardStacks(4, standardActionCards);
 
-        assertEquals(
-                "FRAMEWORK should be 12 for 4 players",
-                12,
-                stacks.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("FRAMEWORK should be 12 for 4 players", 12, stacks.getNumAvailable(Card.Type.FRAMEWORK));
         assertEquals("BUG should be 40 (4*10)", 40, stacks.getNumAvailable(Card.Type.BUG));
     }
 
@@ -84,14 +74,8 @@ public class MutableCardStacksTest {
         MutableCardStacks stacks = new MutableCardStacks(2, singleActionCard);
 
         assertEquals("CODE_REVIEW should be 10", 10, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
-        assertEquals(
-                "REFACTOR should be 0 (not included)",
-                0,
-                stacks.getNumAvailable(Card.Type.REFACTOR));
-        assertEquals(
-                "EVERGREEN_TEST should be 0 (not included)",
-                0,
-                stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("REFACTOR should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals("EVERGREEN_TEST should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
@@ -104,8 +88,7 @@ public class MutableCardStacksTest {
         // Verify no action cards
         assertEquals("CODE_REVIEW should be 0", 0, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
         assertEquals("REFACTOR should be 0", 0, stacks.getNumAvailable(Card.Type.REFACTOR));
-        assertEquals(
-                "EVERGREEN_TEST should be 0", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("EVERGREEN_TEST should be 0", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -125,9 +108,9 @@ public class MutableCardStacksTest {
 
     @Test(expected = NullPointerException.class)
     public void testConstructor_NullElementInActionCardsForGame() {
-        // ImmutableSet.of() raises the NullPointerException if null is included, so we expect that
-        // instead of IllegalArgumentException
-        ImmutableSet<Card.Type> invalidActionCards = ImmutableSet.of(Card.Type.CODE_REVIEW, null);
+        // ImmutableSet.of() raises the NullPointerException if null is included, so we expect that instead of IllegalArgumentException
+        ImmutableSet<Card.Type> invalidActionCards =
+                ImmutableSet.of(Card.Type.CODE_REVIEW, null);
         new MutableCardStacks(2, invalidActionCards);
     }
 
@@ -152,10 +135,7 @@ public class MutableCardStacksTest {
     public void testGetCount_NonExistentCard_ReturnsZero() {
         MutableCardStacks stacks = new MutableCardStacks(2, emptyActionCards);
 
-        assertEquals(
-                "Non-existent action card should return 0",
-                0,
-                stacks.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals("Non-existent action card should return 0", 0, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
     }
 
     @Test
@@ -163,10 +143,7 @@ public class MutableCardStacksTest {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
 
         stacks.decrementCount(Card.Type.BITCOIN);
-        assertEquals(
-                "BITCOIN should be 59 after decrement",
-                59,
-                stacks.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("BITCOIN should be 59 after decrement", 59, stacks.getNumAvailable(Card.Type.BITCOIN));
     }
 
     // ========== decrementCount Tests ==========
@@ -184,15 +161,10 @@ public class MutableCardStacksTest {
         MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
 
         for (int i = 0; i < 5; i++) {
-            assertTrue(
-                    "Decrement " + (i + 1) + " should succeed",
-                    stacks.decrementCount(Card.Type.ETHEREUM));
+            assertTrue("Decrement " + (i + 1) + " should succeed", stacks.decrementCount(Card.Type.ETHEREUM));
         }
 
-        assertEquals(
-                "ETHEREUM should be 35 after 5 decrements",
-                35,
-                stacks.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("ETHEREUM should be 35 after 5 decrements", 35, stacks.getNumAvailable(Card.Type.ETHEREUM));
     }
 
     @Test
@@ -201,17 +173,15 @@ public class MutableCardStacksTest {
 
         // Decrement CODE_REVIEW from 10 to 0
         for (int i = 0; i < 10; i++) {
-            assertTrue(
-                    "Decrement " + (i + 1) + " should succeed",
-                    stacks.decrementCount(Card.Type.CODE_REVIEW));
+            assertTrue("Decrement " + (i + 1) + " should succeed",
+                      stacks.decrementCount(Card.Type.CODE_REVIEW));
         }
 
         assertEquals("CODE_REVIEW should be 0", 0, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
 
         // Next decrement should fail
-        assertFalse(
-                "Decrement should fail when count is 0",
-                stacks.decrementCount(Card.Type.CODE_REVIEW));
+        assertFalse("Decrement should fail when count is 0",
+                   stacks.decrementCount(Card.Type.CODE_REVIEW));
         assertEquals("Count should remain 0", 0, stacks.getNumAvailable(Card.Type.CODE_REVIEW));
     }
 
@@ -219,9 +189,8 @@ public class MutableCardStacksTest {
     public void testDecrementCount_NonExistentCard_ReturnsFalse() {
         MutableCardStacks stacks = new MutableCardStacks(2, emptyActionCards);
 
-        assertFalse(
-                "Decrement should fail for non-existent card",
-                stacks.decrementCount(Card.Type.CODE_REVIEW));
+        assertFalse("Decrement should fail for non-existent card",
+                   stacks.decrementCount(Card.Type.CODE_REVIEW));
     }
 
     @Test
@@ -233,14 +202,8 @@ public class MutableCardStacksTest {
 
         stacks.decrementCount(Card.Type.DOGECOIN);
 
-        assertEquals(
-                "BITCOIN should be unchanged",
-                bitcoinBefore,
-                stacks.getNumAvailable(Card.Type.BITCOIN));
-        assertEquals(
-                "ETHEREUM should be unchanged",
-                ethereumBefore,
-                stacks.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("BITCOIN should be unchanged", bitcoinBefore, stacks.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("ETHEREUM should be unchanged", ethereumBefore, stacks.getNumAvailable(Card.Type.ETHEREUM));
     }
 
     // ========== availableCardsForCost Tests ==========
@@ -336,8 +299,7 @@ public class MutableCardStacksTest {
         ImmutableSet<Card.Type> afterDepletion = stacks.availableCardsForCost(5);
 
         assertEquals("Should have one fewer card available", sizeBefore - 1, afterDepletion.size());
-        assertFalse(
-                "Should not include depleted MODULE", afterDepletion.contains(Card.Type.MODULE));
+        assertFalse("Should not include depleted MODULE", afterDepletion.contains(Card.Type.MODULE));
     }
 
     // ========== toImmutableCardStacks Tests ==========
@@ -355,14 +317,10 @@ public class MutableCardStacksTest {
         assertNotNull("Should return non-null CardStacks", immutable);
 
         // Verify that the snapshot has the same counts as the mutable source
-        assertEquals(
-                "Snapshot should have same BITCOIN count as mutable stacks",
-                expectedBitcoin,
-                immutable.getNumAvailable(Card.Type.BITCOIN));
-        assertEquals(
-                "Snapshot should have same METHOD count as mutable stacks",
-                expectedMethod,
-                immutable.getNumAvailable(Card.Type.METHOD));
+        assertEquals("Snapshot should have same BITCOIN count as mutable stacks",
+                expectedBitcoin, immutable.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Snapshot should have same METHOD count as mutable stacks",
+                expectedMethod, immutable.getNumAvailable(Card.Type.METHOD));
     }
 
     @Test
@@ -383,14 +341,10 @@ public class MutableCardStacksTest {
         assertNotNull("Should return non-null CardStacks after modifications", immutable);
 
         // Verify that the snapshot reflects the modified counts
-        assertEquals(
-                "Snapshot should have updated BITCOIN count",
-                expectedBitcoin,
-                immutable.getNumAvailable(Card.Type.BITCOIN));
-        assertEquals(
-                "Snapshot should have updated FRAMEWORK count",
-                expectedFramework,
-                immutable.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("Snapshot should have updated BITCOIN count",
+                expectedBitcoin, immutable.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Snapshot should have updated FRAMEWORK count",
+                expectedFramework, immutable.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
@@ -410,20 +364,16 @@ public class MutableCardStacksTest {
         assertNotNull("Second call should return non-null", second);
 
         // Second snapshot should match the current mutable state
-        assertEquals(
-                "Second snapshot should match mutable BITCOIN count",
+        assertEquals("Second snapshot should match mutable BITCOIN count",
                 stacks.getNumAvailable(Card.Type.BITCOIN),
                 second.getNumAvailable(Card.Type.BITCOIN));
 
         // First snapshot should remain unchanged (immutability)
-        assertEquals(
-                "First snapshot should remain unchanged after mutable stacks are modified",
-                firstBitcoin,
-                first.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("First snapshot should remain unchanged after mutable stacks are modified",
+                firstBitcoin, first.getNumAvailable(Card.Type.BITCOIN));
 
         // And the two snapshots should differ when the underlying mutable stacks change
-        assertNotEquals(
-                "First and second snapshots should differ after a decrement",
+        assertNotEquals("First and second snapshots should differ after a decrement",
                 first.getNumAvailable(Card.Type.BITCOIN),
                 second.getNumAvailable(Card.Type.BITCOIN));
     }
@@ -456,49 +406,33 @@ public class MutableCardStacksTest {
         // Cards that scale with player count
         assertEquals("2-player BUG should be 20", 20, twoPlayer.getNumAvailable(Card.Type.BUG));
         assertEquals("4-player BUG should be 40", 40, fourPlayer.getNumAvailable(Card.Type.BUG));
-        assertEquals(
-                "2-player FRAMEWORK should be 8",
-                8,
-                twoPlayer.getNumAvailable(Card.Type.FRAMEWORK));
-        assertEquals(
-                "4-player FRAMEWORK should be 12",
-                12,
-                fourPlayer.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("2-player FRAMEWORK should be 8", 8, twoPlayer.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("4-player FRAMEWORK should be 12", 12, fourPlayer.getNumAvailable(Card.Type.FRAMEWORK));
 
         // Cards that don't scale
-        assertEquals(
-                "BITCOIN should be same for both",
-                twoPlayer.getNumAvailable(Card.Type.BITCOIN),
-                fourPlayer.getNumAvailable(Card.Type.BITCOIN));
-        assertEquals(
-                "METHOD should be same for both",
-                twoPlayer.getNumAvailable(Card.Type.METHOD),
-                fourPlayer.getNumAvailable(Card.Type.METHOD));
+        assertEquals("BITCOIN should be same for both",
+                    twoPlayer.getNumAvailable(Card.Type.BITCOIN),
+                    fourPlayer.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("METHOD should be same for both",
+                    twoPlayer.getNumAvailable(Card.Type.METHOD),
+                    fourPlayer.getNumAvailable(Card.Type.METHOD));
     }
 
     @Test
     public void testDifferentActionCardSets_OnlyIncludeSpecified() {
-        MutableCardStacks withCodeReview =
-                new MutableCardStacks(2, ImmutableSet.of(Card.Type.CODE_REVIEW));
-        MutableCardStacks withRefactor =
-                new MutableCardStacks(2, ImmutableSet.of(Card.Type.REFACTOR));
+        MutableCardStacks withCodeReview = new MutableCardStacks(2,
+            ImmutableSet.of(Card.Type.CODE_REVIEW));
+        MutableCardStacks withRefactor = new MutableCardStacks(2,
+            ImmutableSet.of(Card.Type.REFACTOR));
 
-        assertEquals(
-                "CODE_REVIEW should be 10 in first",
-                10,
-                withCodeReview.getNumAvailable(Card.Type.CODE_REVIEW));
-        assertEquals(
-                "REFACTOR should be 0 in first",
-                0,
-                withCodeReview.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals("CODE_REVIEW should be 10 in first", 10,
+                    withCodeReview.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals("REFACTOR should be 0 in first", 0,
+                    withCodeReview.getNumAvailable(Card.Type.REFACTOR));
 
-        assertEquals(
-                "CODE_REVIEW should be 0 in second",
-                0,
-                withRefactor.getNumAvailable(Card.Type.CODE_REVIEW));
-        assertEquals(
-                "REFACTOR should be 10 in second",
-                10,
-                withRefactor.getNumAvailable(Card.Type.REFACTOR));
+        assertEquals("CODE_REVIEW should be 0 in second", 0,
+                    withRefactor.getNumAvailable(Card.Type.CODE_REVIEW));
+        assertEquals("REFACTOR should be 10 in second", 10,
+                    withRefactor.getNumAvailable(Card.Type.REFACTOR));
     }
 }

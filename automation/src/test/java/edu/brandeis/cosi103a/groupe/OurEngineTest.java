@@ -1,26 +1,28 @@
 package edu.brandeis.cosi103a.groupe;
 
-import static org.junit.Assert.*;
-
-import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.PlayerResult;
+import com.google.common.collect.ImmutableList;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
- * Comprehensive unit tests for the OurEngine class. Tests constructor validation, game mechanics,
- * game state queries, and orchestration logic.
+ * Comprehensive unit tests for the OurEngine class.
+ * Tests constructor validation, game mechanics, game state queries, and
+ * orchestration logic.
  */
 public class OurEngineTest {
 
@@ -37,7 +39,9 @@ public class OurEngineTest {
 
     // ========== Helper Methods ==========
 
-    /** Creates a list of BigMoneyPlayer instances. */
+    /**
+     * Creates a list of BigMoneyPlayer instances.
+     */
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -46,7 +50,9 @@ public class OurEngineTest {
         return players;
     }
 
-    /** Uses reflection to access a private field from an object. */
+    /**
+     * Uses reflection to access a private field from an object.
+     */
     @SuppressWarnings("unchecked")
     private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
@@ -54,7 +60,9 @@ public class OurEngineTest {
         return (T) field.get(obj);
     }
 
-    /** Uses reflection to set a private field in an object. */
+    /**
+     * Uses reflection to set a private field in an object.
+     */
     private void setPrivateField(Object obj, String fieldName, Object value) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
@@ -115,10 +123,8 @@ public class OurEngineTest {
         List<Player> players = getPrivateField(engine, "players");
 
         // Active player should be the last player (so getNextPlayer returns first)
-        assertEquals(
-                "Active player should be last player initially",
-                players.get(players.size() - 1),
-                activePlayer);
+        assertEquals("Active player should be last player initially",
+                players.get(players.size() - 1), activePlayer);
     }
 
     @Test
@@ -175,10 +181,8 @@ public class OurEngineTest {
 
         for (Player p : twoPlayers) {
             List<Card> deck = decks.get(p);
-            assertEquals(
-                    "Each player should have 5 cards remaining in deck (10 total - 5 drawn)",
-                    5,
-                    deck.size());
+            assertEquals("Each player should have 5 cards remaining in deck (10 total - 5 drawn)",
+                    5, deck.size());
         }
     }
 
@@ -199,8 +203,10 @@ public class OurEngineTest {
             int bitcoinCount = 0;
             int methodCount = 0;
             for (Card card : allCards) {
-                if (card.type() == Card.Type.BITCOIN) bitcoinCount++;
-                else if (card.type() == Card.Type.METHOD) methodCount++;
+                if (card.type() == Card.Type.BITCOIN)
+                    bitcoinCount++;
+                else if (card.type() == Card.Type.METHOD)
+                    methodCount++;
             }
 
             assertEquals("Each player should have 7 BITCOIN cards", 7, bitcoinCount);
@@ -214,8 +220,7 @@ public class OurEngineTest {
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
 
         for (Player p : twoPlayers) {
-            assertTrue(
-                    "Discard pile should start empty for " + p.getName(),
+            assertTrue("Discard pile should start empty for " + p.getName(),
                     discards.get(p).isEmpty());
         }
     }
@@ -252,24 +257,18 @@ public class OurEngineTest {
         assertEquals("METHOD should have 14", 14, shop.getNumAvailable(Card.Type.METHOD));
         assertEquals("MODULE should have 8", 8, shop.getNumAvailable(Card.Type.MODULE));
         assertEquals("FRAMEWORK should have 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
-        assertEquals(
-                "BUG should have 20 (2 players * 10)", 20, shop.getNumAvailable(Card.Type.BUG));
+        assertEquals("BUG should have 20 (2 players * 10)", 20, shop.getNumAvailable(Card.Type.BUG));
         assertEquals("REFACTOR should have 10", 10, shop.getNumAvailable(Card.Type.REFACTOR));
         assertEquals("CODE_REVIEW should have 10", 10, shop.getNumAvailable(Card.Type.CODE_REVIEW));
-        assertEquals(
-                "EVERGREEN_TEST should have 10",
-                10,
-                shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("EVERGREEN_TEST should have 10", 10, shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
     }
 
     @Test
-    public void testConstructor_InitializesShopWithCorrectQuantities_FourPlayers()
-            throws Exception {
+    public void testConstructor_InitializesShopWithCorrectQuantities_FourPlayers() throws Exception {
         OurEngine engine = new OurEngine(fourPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
-        assertEquals(
-                "BUG should have 40 (4 players * 10)", 40, shop.getNumAvailable(Card.Type.BUG));
+        assertEquals("BUG should have 40 (4 players * 10)", 40, shop.getNumAvailable(Card.Type.BUG));
     }
 
     @Test
@@ -317,21 +316,17 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testMutableCardStacks_GetNumAvailable_CardExists_ReturnsQuantity()
-            throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardExists_ReturnsQuantity() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
         assertEquals("BITCOIN quantity should be 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
-        assertEquals(
-                "ETHEREUM quantity should be 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
-        assertEquals(
-                "FRAMEWORK quantity should be 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("ETHEREUM quantity should be 40", 40, shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("FRAMEWORK quantity should be 8", 8, shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     @Test
-    public void testMutableCardStacks_GetNumAvailable_CardQuantityZero_ReturnsZero()
-            throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_CardQuantityZero_ReturnsZero() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
         // Deplete FRAMEWORK by repeatedly calling decrementCount
@@ -339,9 +334,7 @@ public class OurEngineTest {
             shop.decrementCount(Card.Type.FRAMEWORK);
         }
 
-        assertEquals(
-                "Should return 0 for card with 0 quantity",
-                0,
+        assertEquals("Should return 0 for card with 0 quantity", 0,
                 shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
@@ -355,8 +348,8 @@ public class OurEngineTest {
             shop.decrementCount(Card.Type.FRAMEWORK);
         }
 
-        assertEquals(
-                "Should return 0 for sold out card", 0, shop.getNumAvailable(Card.Type.FRAMEWORK));
+        assertEquals("Should return 0 for sold out card", 0,
+                shop.getNumAvailable(Card.Type.FRAMEWORK));
     }
 
     // ========== Game Mechanics Tests - drawCard ==========
@@ -383,8 +376,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -418,8 +410,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -445,8 +436,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -475,8 +465,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -505,8 +494,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -539,8 +527,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
 
         // Draw 3 cards (empties deck)
@@ -584,8 +571,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -633,8 +619,8 @@ public class OurEngineTest {
 
         Player fourth = engine.getNextPlayer();
 
-        assertEquals(
-                "Should rotate back to first player after full rotation", players.get(0), fourth);
+        assertEquals("Should rotate back to first player after full rotation",
+                players.get(0), fourth);
     }
 
     @Test
@@ -662,8 +648,8 @@ public class OurEngineTest {
         // Test 10 rotations (5 full cycles)
         for (int i = 0; i < 10; i++) {
             Player current = engine.getNextPlayer();
-            assertEquals(
-                    "Rotation " + i + " should return correct player", players.get(i % 2), current);
+            assertEquals("Rotation " + i + " should return correct player",
+                    players.get(i % 2), current);
             setPrivateField(engine, "activePlayer", current);
         }
     }
@@ -703,8 +689,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -738,8 +723,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
         drawCard.invoke(engine, testPlayer);
 
@@ -764,8 +748,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testMutableCardStacks_GetNumAvailable_AfterModification_ReturnsUpdatedValue()
-            throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_AfterModification_ReturnsUpdatedValue() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
@@ -774,8 +757,7 @@ public class OurEngineTest {
             shop.decrementCount(Card.Type.BITCOIN);
         }
 
-        assertEquals(
-                "Should return modified quantity", 25, shop.getNumAvailable(Card.Type.BITCOIN));
+        assertEquals("Should return modified quantity", 25, shop.getNumAvailable(Card.Type.BITCOIN));
     }
 
     @Test
@@ -786,10 +768,8 @@ public class OurEngineTest {
 
         // Verify order is preserved
         for (int i = 0; i < orderedPlayers.size(); i++) {
-            assertEquals(
-                    "Player at position " + i + " should match",
-                    orderedPlayers.get(i),
-                    enginePlayers.get(i));
+            assertEquals("Player at position " + i + " should match",
+                    orderedPlayers.get(i), enginePlayers.get(i));
         }
     }
 
@@ -804,8 +784,7 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testMutableCardStacks_GetNumAvailable_AllCardTypes_ReturnCorrectInitialValues()
-            throws Exception {
+    public void testMutableCardStacks_GetNumAvailable_AllCardTypes_ReturnCorrectInitialValues() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
@@ -831,8 +810,8 @@ public class OurEngineTest {
 
         // Verify counter is incremented properly (should be at least 20 for 2 players *
         // 10 cards)
-        assertTrue(
-                "Card ID counter should be incremented beyond initial cards", cardIdCounter > 20);
+        assertTrue("Card ID counter should be incremented beyond initial cards",
+                cardIdCounter > 20);
 
         // Verify the highest ID is one less than the counter
         int maxId = 0;
@@ -844,7 +823,8 @@ public class OurEngineTest {
                 maxId = Math.max(maxId, card.id());
             }
         }
-        assertEquals("Highest card ID should be one less than counter", cardIdCounter - 1, maxId);
+        assertEquals("Highest card ID should be one less than counter",
+                cardIdCounter - 1, maxId);
     }
 
     @Test
@@ -869,8 +849,7 @@ public class OurEngineTest {
         discards.put(testPlayer, discard);
 
         // Call drawCard using reflection
-        java.lang.reflect.Method drawCard =
-                engine.getClass().getDeclaredMethod("drawCard", Player.class);
+        java.lang.reflect.Method drawCard = engine.getClass().getDeclaredMethod("drawCard", Player.class);
         drawCard.setAccessible(true);
 
         // Draw 5 cards
@@ -886,27 +865,23 @@ public class OurEngineTest {
     // ========== Decision Building Tests - buildActionDecisions ==========
 
     @Test
-    public void testBuildActionDecisions_NoActionsAvailable_OnlyEndPhaseDecision()
-            throws Exception {
+    public void testBuildActionDecisions_NoActionsAvailable_OnlyEndPhaseDecision() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         setPrivateField(engine, "numActions", 0);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildActionDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildActionDecisions");
 
         assertEquals("Should have exactly 1 decision", 1, decisions.size());
-        assertTrue(
-                "Should be EndPhaseDecision",
+        assertTrue("Should be EndPhaseDecision",
                 decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
 
-        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision =
-                (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions
+                .get(0);
         assertEquals("Should end ACTION phase", GameState.TurnPhase.ACTION, endDecision.phase());
     }
 
     @Test
-    public void testBuildActionDecisions_HasActionsButNoActionCards_OnlyEndPhaseDecision()
-            throws Exception {
+    public void testBuildActionDecisions_HasActionsButNoActionCards_OnlyEndPhaseDecision() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
         Player activePlayer = getPrivateField(engine, "activePlayer");
         Map<Player, MutableHand> hands = getPrivateField(engine, "hands");
@@ -919,18 +894,15 @@ public class OurEngineTest {
 
         setPrivateField(engine, "numActions", 1);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildActionDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildActionDecisions");
 
         assertEquals("Should have exactly 1 decision", 1, decisions.size());
-        assertTrue(
-                "Should be EndPhaseDecision",
+        assertTrue("Should be EndPhaseDecision",
                 decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
     }
 
     @Test
-    public void testBuildActionDecisions_HasActionsAndActionCards_IncludesPlayCardDecisions()
-            throws Exception {
+    public void testBuildActionDecisions_HasActionsAndActionCards_IncludesPlayCardDecisions() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
         // Get the first actual player from the players list
@@ -952,8 +924,7 @@ public class OurEngineTest {
 
         setPrivateField(engine, "numActions", 2);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildActionDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildActionDecisions");
 
         // Should have 2 PlayCardDecisions + 1 EndPhaseDecision = 3
         assertEquals("Should have 3 decisions (2 play + 1 end)", 3, decisions.size());
@@ -994,14 +965,11 @@ public class OurEngineTest {
 
         setPrivateField(engine, "numActions", 5);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildActionDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildActionDecisions");
 
         // Verify EndPhaseDecision is present
-        boolean hasEndPhase =
-                decisions.stream()
-                        .anyMatch(
-                                d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        boolean hasEndPhase = decisions.stream()
+                .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
         assertTrue("Should always include EndPhaseDecision", hasEndPhase);
     }
 
@@ -1019,16 +987,14 @@ public class OurEngineTest {
         hand.addToUnplayed(new Card(Card.Type.METHOD, 1));
         hand.addToUnplayed(new Card(Card.Type.MODULE, 2));
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildMoneyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildMoneyDecisions");
 
         assertEquals("Should have exactly 1 decision", 1, decisions.size());
-        assertTrue(
-                "Should be EndPhaseDecision",
+        assertTrue("Should be EndPhaseDecision",
                 decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
 
-        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision =
-                (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions
+                .get(0);
         assertEquals("Should end MONEY phase", GameState.TurnPhase.MONEY, endDecision.phase());
     }
 
@@ -1048,8 +1014,7 @@ public class OurEngineTest {
         hand.addToUnplayed(ethereum);
         hand.addToUnplayed(dogecoin);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildMoneyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildMoneyDecisions");
 
         // Should have 3 PlayCardDecisions + 1 EndPhaseDecision = 4
         assertEquals("Should have 4 decisions (3 play + 1 end)", 4, decisions.size());
@@ -1083,8 +1048,7 @@ public class OurEngineTest {
         hand.addToUnplayed(new Card(Card.Type.ETHEREUM, 3));
         hand.addToUnplayed(new Card(Card.Type.BUG, 4)); // Victory, not money
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildMoneyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildMoneyDecisions");
 
         // Should have 2 PlayCardDecisions (for BITCOIN and ETHEREUM) + 1
         // EndPhaseDecision = 3
@@ -1095,12 +1059,9 @@ public class OurEngineTest {
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.PlayCardDecision) {
                 playCount++;
-                edu.brandeis.cosi.atg.decisions.PlayCardDecision playDecision =
-                        (edu.brandeis.cosi.atg.decisions.PlayCardDecision) d;
-                assertEquals(
-                        "PlayCard should be for money category",
-                        Card.Type.Category.MONEY,
-                        playDecision.card().getCategory());
+                edu.brandeis.cosi.atg.decisions.PlayCardDecision playDecision = (edu.brandeis.cosi.atg.decisions.PlayCardDecision) d;
+                assertEquals("PlayCard should be for money category",
+                        Card.Type.Category.MONEY, playDecision.card().getCategory());
             }
         }
         assertEquals("Should have exactly 2 PlayCardDecisions", 2, playCount);
@@ -1118,14 +1079,11 @@ public class OurEngineTest {
         hand.addToUnplayed(new Card(Card.Type.BITCOIN, 1));
         hand.addToUnplayed(new Card(Card.Type.ETHEREUM, 2));
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildMoneyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildMoneyDecisions");
 
         // Verify EndPhaseDecision is present
-        boolean hasEndPhase =
-                decisions.stream()
-                        .anyMatch(
-                                d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        boolean hasEndPhase = decisions.stream()
+                .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
         assertTrue("Should always include EndPhaseDecision", hasEndPhase);
     }
 
@@ -1137,16 +1095,14 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 0);
         setPrivateField(engine, "numMoney", 10);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         assertEquals("Should have exactly 1 decision", 1, decisions.size());
-        assertTrue(
-                "Should be EndPhaseDecision",
+        assertTrue("Should be EndPhaseDecision",
                 decisions.get(0) instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
 
-        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision =
-                (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions.get(0);
+        edu.brandeis.cosi.atg.decisions.EndPhaseDecision endDecision = (edu.brandeis.cosi.atg.decisions.EndPhaseDecision) decisions
+                .get(0);
         assertEquals("Should end BUY phase", GameState.TurnPhase.BUY, endDecision.phase());
     }
 
@@ -1156,8 +1112,7 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 0);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // With 0 money, can still buy BITCOIN (cost 0), ETHEREUM (cost 3), and DOGECOIN
         // (cost 6) are too expensive
@@ -1168,10 +1123,8 @@ public class OurEngineTest {
         boolean hasBitcoin = false;
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
-                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision =
-                        (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
-                assertTrue(
-                        "All buy options should be affordable with 0 money",
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertTrue("All buy options should be affordable with 0 money",
                         buyDecision.cardType().cost() <= 0);
                 if (buyDecision.cardType() == Card.Type.BITCOIN) {
                     hasBitcoin = true;
@@ -1187,20 +1140,17 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 3); // Can afford cards costing 0-3
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Verify we have BuyDecisions for affordable cards
-        boolean hasBuyDecisions =
-                decisions.stream()
-                        .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision);
+        boolean hasBuyDecisions = decisions.stream()
+                .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision);
         assertTrue("Should include BuyDecisions for affordable cards", hasBuyDecisions);
 
         // Verify all BuyDecisions are for cards we can afford
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
-                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision =
-                        (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
                 assertTrue("Card should be affordable", buyDecision.cardType().cost() <= 3);
             }
         }
@@ -1219,18 +1169,14 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 10); // Can afford anything
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Verify no BuyDecision for BITCOIN
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
-                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision =
-                        (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
-                assertNotEquals(
-                        "Should not include out-of-stock BITCOIN",
-                        Card.Type.BITCOIN,
-                        buyDecision.cardType());
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertNotEquals("Should not include out-of-stock BITCOIN",
+                        Card.Type.BITCOIN, buyDecision.cardType());
             }
         }
     }
@@ -1241,16 +1187,13 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 2); // Can only afford cards costing 0-2
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Verify no BuyDecision for expensive cards
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
-                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision =
-                        (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
-                assertTrue(
-                        "Should not include cards more expensive than available money",
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                assertTrue("Should not include cards more expensive than available money",
                         buyDecision.cardType().cost() <= 2);
             }
         }
@@ -1262,14 +1205,11 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 2);
         setPrivateField(engine, "numMoney", 5);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Verify EndPhaseDecision is present
-        boolean hasEndPhase =
-                decisions.stream()
-                        .anyMatch(
-                                d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        boolean hasEndPhase = decisions.stream()
+                .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
         assertTrue("Should always include EndPhaseDecision", hasEndPhase);
     }
 
@@ -1279,17 +1219,14 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 0);
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Can only afford cards with cost 0, but those might not exist or be in stock
         // At minimum should have EndPhaseDecision
         assertTrue("Should have at least 1 decision (EndPhase)", decisions.size() >= 1);
 
-        boolean hasEndPhase =
-                decisions.stream()
-                        .anyMatch(
-                                d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
+        boolean hasEndPhase = decisions.stream()
+                .anyMatch(d -> d instanceof edu.brandeis.cosi.atg.decisions.EndPhaseDecision);
         assertTrue("Should include EndPhaseDecision", hasEndPhase);
     }
 
@@ -1299,15 +1236,13 @@ public class OurEngineTest {
         setPrivateField(engine, "numBuys", 1);
         setPrivateField(engine, "numMoney", 1); // BITCOIN costs 0, so affordable
 
-        List<edu.brandeis.cosi.atg.decisions.Decision> decisions =
-                invokePrivateMethod(engine, "buildBuyDecisions");
+        List<edu.brandeis.cosi.atg.decisions.Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions");
 
         // Verify BITCOIN is included (cost 0)
         boolean hasBitcoin = false;
         for (edu.brandeis.cosi.atg.decisions.Decision d : decisions) {
             if (d instanceof edu.brandeis.cosi.atg.decisions.BuyDecision) {
-                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision =
-                        (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
+                edu.brandeis.cosi.atg.decisions.BuyDecision buyDecision = (edu.brandeis.cosi.atg.decisions.BuyDecision) d;
                 if (buyDecision.cardType() == Card.Type.BITCOIN) {
                     hasBitcoin = true;
                     break;
@@ -1319,10 +1254,11 @@ public class OurEngineTest {
 
     // ========== Helper Method for Reflection ==========
 
-    /** Invokes a private method using reflection. */
+    /**
+     * Invokes a private method using reflection.
+     */
     @SuppressWarnings("unchecked")
-    private <T> T invokePrivateMethod(Object obj, String methodName, Object... args)
-            throws Exception {
+    private <T> T invokePrivateMethod(Object obj, String methodName, Object... args) throws Exception {
         Class<?>[] paramTypes = new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
             paramTypes[i] = args[i].getClass();
@@ -1350,17 +1286,14 @@ public class OurEngineTest {
 
         // Create and process decision
         TrashCardDecision decision = new TrashCardDecision(cardToTrash);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
         // Verify card was removed
         assertEquals("Hand size should decrease by 1", initialSize - 1, hand.size());
-        assertFalse(
-                "Card should not be in unplayed cards",
-                hand.getUnplayedCards().contains(cardToTrash));
+        assertFalse("Card should not be in unplayed cards", hand.getUnplayedCards().contains(cardToTrash));
     }
 
     @Test
@@ -1382,9 +1315,8 @@ public class OurEngineTest {
 
         // Trash the middle card
         TrashCardDecision decision = new TrashCardDecision(card2);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -1409,9 +1341,8 @@ public class OurEngineTest {
 
         // Trash the only card
         TrashCardDecision decision = new TrashCardDecision(onlyCard);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -1434,20 +1365,16 @@ public class OurEngineTest {
 
         // Attempt to trash it - should throw IllegalStateException
         TrashCardDecision decision = new TrashCardDecision(cardNotInHand);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
             // Verify it's the right exception
-            assertTrue(
-                    "Should throw IllegalStateException",
-                    e.getCause() instanceof IllegalStateException);
-            assertTrue(
-                    "Error message should mention card not found",
+            assertTrue("Should throw IllegalStateException", e.getCause() instanceof IllegalStateException);
+            assertTrue("Error message should mention card not found",
                     e.getCause().getMessage().contains("not found"));
             throw e;
         }
@@ -1469,17 +1396,14 @@ public class OurEngineTest {
 
         // Attempt to trash it - should fail since it's in played, not unplayed
         TrashCardDecision decision = new TrashCardDecision(card);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalStateException",
-                    e.getCause() instanceof IllegalStateException);
+            assertTrue("Should throw IllegalStateException", e.getCause() instanceof IllegalStateException);
             throw e;
         }
     }
@@ -1498,17 +1422,14 @@ public class OurEngineTest {
 
         // Attempt to trash from empty hand
         TrashCardDecision decision = new TrashCardDecision(card);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalStateException",
-                    e.getCause() instanceof IllegalStateException);
+            assertTrue("Should throw IllegalStateException", e.getCause() instanceof IllegalStateException);
             throw e;
         }
     }
@@ -1532,9 +1453,8 @@ public class OurEngineTest {
 
         // Trash bitcoin1 specifically
         TrashCardDecision decision = new TrashCardDecision(bitcoin1);
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processTrashCardDecision", TrashCardDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processTrashCardDecision",
+                TrashCardDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
@@ -1559,23 +1479,16 @@ public class OurEngineTest {
         int initialDiscardSize = discards.get(player).size();
 
         // Gain an ETHEREUM card
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.ETHEREUM, player);
 
         // Verify shop count decremented
-        assertEquals(
-                "Shop count should decrease by 1",
-                initialShopCount - 1,
-                shop.getNumAvailable(Card.Type.ETHEREUM));
+        assertEquals("Shop count should decrease by 1", initialShopCount - 1, shop.getNumAvailable(Card.Type.ETHEREUM));
 
         // Verify card added to discard
-        assertEquals(
-                "Discard size should increase by 1",
-                initialDiscardSize + 1,
-                discards.get(player).size());
+        assertEquals("Discard size should increase by 1", initialDiscardSize + 1, discards.get(player).size());
 
         // Verify card is ETHEREUM and has unique ID
         Card gainedCard = discards.get(player).get(discards.get(player).size() - 1);
@@ -1601,9 +1514,8 @@ public class OurEngineTest {
         }
 
         // Gain the last REFACTOR
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.REFACTOR, player);
 
@@ -1629,9 +1541,8 @@ public class OurEngineTest {
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int initialDiscardSize = discards.get(player).size();
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
 
         // Gain 3 BITCOIN cards
@@ -1640,8 +1551,7 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.BITCOIN, player);
 
         // Verify 3 cards added
-        assertEquals(
-                "Three cards should be added", initialDiscardSize + 3, discards.get(player).size());
+        assertEquals("Three cards should be added", initialDiscardSize + 3, discards.get(player).size());
 
         // Verify all have unique IDs
         List<Integer> ids = new ArrayList<>();
@@ -1669,9 +1579,8 @@ public class OurEngineTest {
         int initialDiscard1 = discards.get(player1).size();
         int initialDiscard2 = discards.get(player2).size();
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
 
         // Player 1 gains METHOD, Player 2 gains MODULE
@@ -1679,14 +1588,8 @@ public class OurEngineTest {
         method.invoke(engine, Card.Type.MODULE, player2);
 
         // Verify correct discard piles were modified
-        assertEquals(
-                "Player 1 discard should increase by 1",
-                initialDiscard1 + 1,
-                discards.get(player1).size());
-        assertEquals(
-                "Player 2 discard should increase by 1",
-                initialDiscard2 + 1,
-                discards.get(player2).size());
+        assertEquals("Player 1 discard should increase by 1", initialDiscard1 + 1, discards.get(player1).size());
+        assertEquals("Player 2 discard should increase by 1", initialDiscard2 + 1, discards.get(player2).size());
 
         // Verify correct card types
         Card player1LastCard = discards.get(player1).get(discards.get(player1).size() - 1);
@@ -1710,9 +1613,8 @@ public class OurEngineTest {
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain CODE_REVIEW (should be silent no-op)
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.CODE_REVIEW, player);
 
@@ -1736,9 +1638,8 @@ public class OurEngineTest {
         int initialDiscardSize = discards.get(player).size();
 
         // Attempt to gain FRAMEWORK (should be silent no-op)
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
         method.invoke(engine, Card.Type.FRAMEWORK, player);
 
@@ -1754,23 +1655,15 @@ public class OurEngineTest {
         Map<Player, List<Card>> discards = getPrivateField(engine, "discards");
         int initialDiscardSize = discards.get(player).size();
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processGainingCard", Card.Type.class, Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("processGainingCard", Card.Type.class,
+                Player.class);
         method.setAccessible(true);
 
         // Test all card types
         Card.Type[] allTypes = {
-            Card.Type.BITCOIN,
-            Card.Type.ETHEREUM,
-            Card.Type.DOGECOIN,
-            Card.Type.METHOD,
-            Card.Type.MODULE,
-            Card.Type.FRAMEWORK,
-            Card.Type.BUG,
-            Card.Type.CODE_REVIEW,
-            Card.Type.REFACTOR,
-            Card.Type.EVERGREEN_TEST
+                Card.Type.BITCOIN, Card.Type.ETHEREUM, Card.Type.DOGECOIN,
+                Card.Type.METHOD, Card.Type.MODULE, Card.Type.FRAMEWORK,
+                Card.Type.BUG, Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST
         };
 
         for (Card.Type type : allTypes) {
@@ -1805,18 +1698,16 @@ public class OurEngineTest {
         List<Card> cardsInHandBefore = new ArrayList<>(hand.getUnplayedCards());
 
         // Invoke executeCleanupPhase using reflection
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
         method.setAccessible(true);
         method.invoke(engine);
 
         // Verify all cards were discarded and new hand drawn
         assertEquals("Hand should have exactly 5 cards after cleanup", 5, hand.size());
-        assertEquals(
-                "Discard should contain previous hand cards",
-                initialDiscardSize + initialHandSize,
-                discard.size());
-        assertEquals("Deck should have 5 fewer cards", initialDeckSize - 5, deck.size());
+        assertEquals("Discard should contain previous hand cards",
+                initialDiscardSize + initialHandSize, discard.size());
+        assertEquals("Deck should have 5 fewer cards",
+                initialDeckSize - 5, deck.size());
 
         // Verify the old cards are in discard
         for (Card card : cardsInHandBefore) {
@@ -1857,8 +1748,7 @@ public class OurEngineTest {
         int totalCardsBeforeCleanup = hand.size() + discard.size();
 
         // Invoke executeCleanupPhase
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
         method.setAccessible(true);
         method.invoke(engine);
 
@@ -1867,8 +1757,7 @@ public class OurEngineTest {
 
         // Verify total cards preserved (some in hand, rest in deck or discard)
         int totalCardsAfterCleanup = hand.size() + deck.size() + discard.size();
-        assertEquals(
-                "Total cards should be preserved", totalCardsBeforeCleanup, totalCardsAfterCleanup);
+        assertEquals("Total cards should be preserved", totalCardsBeforeCleanup, totalCardsAfterCleanup);
     }
 
     @Test
@@ -1894,16 +1783,13 @@ public class OurEngineTest {
         int initialDiscardSize = discard.size();
 
         // Invoke executeCleanupPhase
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("executeCleanupPhase");
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("executeCleanupPhase");
         method.setAccessible(true);
         method.invoke(engine);
 
         // Verify all cards (played and unplayed) were discarded
-        assertEquals(
-                "All cards should be discarded including played ones",
-                initialDiscardSize + totalCardsInHand,
-                discard.size());
+        assertEquals("All cards should be discarded including played ones",
+                initialDiscardSize + totalCardsInHand, discard.size());
         assertEquals("Hand should have exactly 5 new cards", 5, hand.size());
     }
 
@@ -1916,14 +1802,14 @@ public class OurEngineTest {
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
         GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals("Should transition from ACTION to MONEY", GameState.TurnPhase.MONEY, newPhase);
+        assertEquals("Should transition from ACTION to MONEY",
+                GameState.TurnPhase.MONEY, newPhase);
     }
 
     @Test
@@ -1933,14 +1819,14 @@ public class OurEngineTest {
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
         GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals("Should transition from MONEY to BUY", GameState.TurnPhase.BUY, newPhase);
+        assertEquals("Should transition from MONEY to BUY",
+                GameState.TurnPhase.BUY, newPhase);
     }
 
     @Test
@@ -1950,15 +1836,14 @@ public class OurEngineTest {
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
         method.invoke(engine, decision);
 
         GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals(
-                "Should transition from BUY to CLEANUP", GameState.TurnPhase.CLEANUP, newPhase);
+        assertEquals("Should transition from BUY to CLEANUP",
+                GameState.TurnPhase.CLEANUP, newPhase);
     }
 
     @Test(expected = java.lang.reflect.InvocationTargetException.class)
@@ -1969,20 +1854,17 @@ public class OurEngineTest {
         // Try to end MONEY phase while in ACTION phase
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw IllegalArgumentException for phase mismatch");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalArgumentException",
+            assertTrue("Should throw IllegalArgumentException",
                     e.getCause() instanceof IllegalArgumentException);
-            assertTrue(
-                    "Error message should mention phase mismatch",
+            assertTrue("Error message should mention phase mismatch",
                     e.getCause().getMessage().contains("does not match"));
             throw e;
         }
@@ -1995,20 +1877,17 @@ public class OurEngineTest {
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.CLEANUP);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw UnsupportedOperationException for CLEANUP phase");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw UnsupportedOperationException",
+            assertTrue("Should throw UnsupportedOperationException",
                     e.getCause() instanceof UnsupportedOperationException);
-            assertTrue(
-                    "Error message should mention cannot end phase",
+            assertTrue("Error message should mention cannot end phase",
                     e.getCause().getMessage().contains("Cannot end phase"));
             throw e;
         }
@@ -2021,17 +1900,15 @@ public class OurEngineTest {
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.GAIN);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("processEndPhaseDecision", EndPhaseDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processEndPhaseDecision", EndPhaseDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw UnsupportedOperationException for GAIN phase");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw UnsupportedOperationException",
+            assertTrue("Should throw UnsupportedOperationException",
                     e.getCause() instanceof UnsupportedOperationException);
             throw e;
         }
@@ -2099,19 +1976,17 @@ public class OurEngineTest {
 
         BuyDecision decision = new BuyDecision(Card.Type.MODULE);
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("processBuyDecision", BuyDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw IllegalStateException for insufficient money");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalStateException",
+            assertTrue("Should throw IllegalStateException",
                     e.getCause() instanceof IllegalStateException);
-            assertTrue(
-                    "Error message should mention not enough money",
+            assertTrue("Error message should mention not enough money",
                     e.getCause().getMessage().toLowerCase().contains("not enough money"));
             throw e;
         }
@@ -2127,19 +2002,17 @@ public class OurEngineTest {
 
         BuyDecision decision = new BuyDecision(Card.Type.BITCOIN);
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("processBuyDecision", BuyDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw IllegalStateException for no buys remaining");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalStateException",
+            assertTrue("Should throw IllegalStateException",
                     e.getCause() instanceof IllegalStateException);
-            assertTrue(
-                    "Error message should mention no buys",
+            assertTrue("Error message should mention no buys",
                     e.getCause().getMessage().toLowerCase().contains("no buys"));
             throw e;
         }
@@ -2161,19 +2034,17 @@ public class OurEngineTest {
 
         BuyDecision decision = new BuyDecision(Card.Type.MODULE);
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("processBuyDecision", BuyDecision.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod(
+                "processBuyDecision", BuyDecision.class);
         method.setAccessible(true);
 
         try {
             method.invoke(engine, decision);
             fail("Should throw IllegalStateException for out of stock card");
         } catch (java.lang.reflect.InvocationTargetException e) {
-            assertTrue(
-                    "Should throw IllegalStateException",
+            assertTrue("Should throw IllegalStateException",
                     e.getCause() instanceof IllegalStateException);
-            assertTrue(
-                    "Error message should mention out of stock",
+            assertTrue("Error message should mention out of stock",
                     e.getCause().getMessage().toLowerCase().contains("out of stock"));
             throw e;
         }
@@ -2237,7 +2108,9 @@ public class OurEngineTest {
 
     // ========== makeValidDecision Tests ==========
 
-    /** Mock Player that returns a predetermined decision */
+    /**
+     * Mock Player that returns a predetermined decision
+     */
     private static class MockPlayer implements Player {
         private Decision decisionToReturn;
 
@@ -2267,11 +2140,11 @@ public class OurEngineTest {
 
         MockPlayer mockPlayer = new MockPlayer(validDecision);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
-        Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
 
         assertEquals("Should return the valid decision", validDecision, result);
     }
@@ -2289,17 +2162,17 @@ public class OurEngineTest {
         PlayCardDecision decision3 = new PlayCardDecision(card3);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
 
-        ImmutableList<Decision> validDecisions =
-                ImmutableList.of(decision1, decision2, decision3, endPhase);
+        ImmutableList<Decision> validDecisions = ImmutableList.of(decision1,
+                decision2, decision3, endPhase);
 
         // Mock player chooses decision2
         MockPlayer mockPlayer = new MockPlayer(decision2);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
-        Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
 
         assertEquals("Should return the selected decision", decision2, result);
     }
@@ -2312,23 +2185,23 @@ public class OurEngineTest {
         PlayCardDecision decision = new PlayCardDecision(card);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
 
-        ImmutableList<Decision> validDecisions = ImmutableList.of(decision, endPhase);
+        ImmutableList<Decision> validDecisions = ImmutableList.of(decision,
+                endPhase);
 
         // Mock player chooses to end phase
         MockPlayer mockPlayer = new MockPlayer(endPhase);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
-        Decision result = (Decision) method.invoke(engine, mockPlayer, validDecisions);
+        Decision result = (Decision) method.invoke(engine, mockPlayer,
+                validDecisions);
 
         assertEquals("Should return EndPhaseDecision", endPhase, result);
     }
 
     @Test
-    public void testMakeValidDecision_InvalidDecision_ThrowsPlayerViolationException()
-            throws Exception {
+    public void testMakeValidDecision_InvalidDecision_ThrowsPlayerViolationException() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
         Card validCard = new Card(Card.Type.BITCOIN, 12001);
@@ -2342,9 +2215,8 @@ public class OurEngineTest {
         // Mock player returns invalid decision
         MockPlayer mockPlayer = new MockPlayer(invalidDecision);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
 
         try {
@@ -2352,18 +2224,15 @@ public class OurEngineTest {
             fail("Should throw PlayerViolationException for invalid decision");
         } catch (java.lang.reflect.InvocationTargetException e) {
             // Should throw PlayerViolationException from makeValidDecision
-            assertTrue(
-                    "Should throw PlayerViolationException",
+            assertTrue("Should throw PlayerViolationException",
                     e.getCause() instanceof edu.brandeis.cosi.atg.engine.PlayerViolationException);
-            assertTrue(
-                    "Error message should mention invalid decision",
+            assertTrue("Error message should mention invalid decision",
                     e.getCause().getMessage().toLowerCase().contains("invalid"));
         }
     }
 
     @Test
-    public void testMakeValidDecision_NullDecision_ThrowsPlayerViolationException()
-            throws Exception {
+    public void testMakeValidDecision_NullDecision_ThrowsPlayerViolationException() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
         Card card = new Card(Card.Type.BITCOIN, 13001);
@@ -2373,9 +2242,8 @@ public class OurEngineTest {
         // Mock player returns null
         MockPlayer mockPlayer = new MockPlayer(null);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
 
         try {
@@ -2383,8 +2251,7 @@ public class OurEngineTest {
             fail("Should throw PlayerViolationException for null decision");
         } catch (java.lang.reflect.InvocationTargetException e) {
             // null is not in validDecisions, so should throw PlayerViolationException
-            assertTrue(
-                    "Should throw PlayerViolationException",
+            assertTrue("Should throw PlayerViolationException",
                     e.getCause() instanceof edu.brandeis.cosi.atg.engine.PlayerViolationException);
         }
     }
@@ -2398,9 +2265,8 @@ public class OurEngineTest {
         // Mock player returns null (can't make valid decision from empty list)
         MockPlayer mockPlayer = new MockPlayer(null);
 
-        java.lang.reflect.Method method =
-                engine.getClass()
-                        .getDeclaredMethod("makeValidDecision", Player.class, ImmutableList.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("makeValidDecision", Player.class,
+                ImmutableList.class);
         method.setAccessible(true);
 
         // This edge case documents current behavior - likely triggers handleCheating
@@ -2438,18 +2304,13 @@ public class OurEngineTest {
         assertFalse("Player should start non-disqualified", disqualifiedPlayers.get(cheater));
 
         // Call handleCheating using reflection
-        java.lang.reflect.Method handleCheating =
-                engine.getClass()
-                        .getDeclaredMethod(
-                                "handleCheating",
-                                Player.class,
-                                edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
+        java.lang.reflect.Method handleCheating = engine.getClass()
+                .getDeclaredMethod("handleCheating", Player.class,
+                        edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
         handleCheating.setAccessible(true);
-        handleCheating.invoke(
-                engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
+        handleCheating.invoke(engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
 
-        assertTrue(
-                "Player should be disqualified after cheating", disqualifiedPlayers.get(cheater));
+        assertTrue("Player should be disqualified after cheating", disqualifiedPlayers.get(cheater));
     }
 
     @Test
@@ -2460,22 +2321,16 @@ public class OurEngineTest {
         Player innocent2 = threePlayers.get(2);
 
         // Call handleCheating using reflection
-        java.lang.reflect.Method handleCheating =
-                engine.getClass()
-                        .getDeclaredMethod(
-                                "handleCheating",
-                                Player.class,
-                                edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
+        java.lang.reflect.Method handleCheating = engine.getClass()
+                .getDeclaredMethod("handleCheating", Player.class,
+                        edu.brandeis.cosi.atg.engine.PlayerViolationException.class);
         handleCheating.setAccessible(true);
-        handleCheating.invoke(
-                engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
+        handleCheating.invoke(engine, cheater, new edu.brandeis.cosi.atg.engine.PlayerViolationException("test"));
 
         Map<Player, Boolean> disqualifiedPlayers = getPrivateField(engine, "disqualifiedPlayers");
         assertTrue("Cheater should be disqualified", disqualifiedPlayers.get(cheater));
-        assertFalse(
-                "Other player 1 should not be disqualified", disqualifiedPlayers.get(innocent1));
-        assertFalse(
-                "Other player 2 should not be disqualified", disqualifiedPlayers.get(innocent2));
+        assertFalse("Other player 1 should not be disqualified", disqualifiedPlayers.get(innocent1));
+        assertFalse("Other player 2 should not be disqualified", disqualifiedPlayers.get(innocent2));
     }
 
     @Test
@@ -2508,8 +2363,7 @@ public class OurEngineTest {
         setPrivateField(engine, "activePlayer", players.get(0));
 
         Player next = engine.getNextPlayer();
-        assertEquals(
-                "Should skip both disqualified players and return player 3", players.get(3), next);
+        assertEquals("Should skip both disqualified players and return player 3", players.get(3), next);
     }
 
     @Test
@@ -2525,10 +2379,8 @@ public class OurEngineTest {
         setPrivateField(engine, "activePlayer", players.get(2));
 
         Player next = engine.getNextPlayer();
-        assertEquals(
-                "Should wrap around and skip disqualified player 0, returning player 1",
-                players.get(1),
-                next);
+        assertEquals("Should wrap around and skip disqualified player 0, returning player 1",
+                players.get(1), next);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -2574,8 +2426,7 @@ public class OurEngineTest {
         disqualifiedPlayers.put(players.get(0), true);
         disqualifiedPlayers.put(players.get(1), true);
 
-        assertTrue(
-                "Game should be over when all but one player is disqualified", engine.isGameOver());
+        assertTrue("Game should be over when all but one player is disqualified", engine.isGameOver());
     }
 
     @Test
@@ -2595,8 +2446,7 @@ public class OurEngineTest {
     public void testIsGameOver_NoPlayersDisqualified_ReturnsFalse() throws Exception {
         OurEngine engine = new OurEngine(twoPlayers);
 
-        assertFalse(
-                "Game should not be over when no players are disqualified", engine.isGameOver());
+        assertFalse("Game should not be over when no players are disqualified", engine.isGameOver());
     }
 
     @Test
@@ -2656,13 +2506,9 @@ public class OurEngineTest {
         discards.get(player).add(new Card(Card.Type.FRAMEWORK, 3)); // 6 points
 
         // Verify we added exactly 3 cards
-        assertEquals(
-                "Should have 3 cards in discard before score calculation",
-                3,
-                discards.get(player).size());
+        assertEquals("Should have 3 cards in discard before score calculation", 3, discards.get(player).size());
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2700,8 +2546,7 @@ public class OurEngineTest {
         hands.get(player).addToUnplayed(new Card(Card.Type.METHOD, 1)); // 1 point
         hands.get(player).addToUnplayed(new Card(Card.Type.FRAMEWORK, 2)); // 6 points
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2728,8 +2573,7 @@ public class OurEngineTest {
         decks.get(player).add(new Card(Card.Type.METHOD, 1)); // 1 point
         decks.get(player).add(new Card(Card.Type.MODULE, 2)); // 3 points
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2757,8 +2601,7 @@ public class OurEngineTest {
         hands.get(player).addToUnplayed(new Card(Card.Type.MODULE, 2)); // 3 points
         decks.get(player).add(new Card(Card.Type.FRAMEWORK, 3)); // 6 points
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2790,8 +2633,7 @@ public class OurEngineTest {
         decks.get(player).add(new Card(Card.Type.ETHEREUM, 5)); // Money, 0 points
         decks.get(player).add(new Card(Card.Type.FRAMEWORK, 6)); // Victory, 6 points
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2820,8 +2662,7 @@ public class OurEngineTest {
         hands.get(player).addToUnplayed(new Card(Card.Type.REFACTOR, 2));
         decks.get(player).add(new Card(Card.Type.ETHEREUM, 3));
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2843,8 +2684,7 @@ public class OurEngineTest {
         decks.get(player).clear();
         hands.get(player).clear();
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2871,8 +2711,7 @@ public class OurEngineTest {
             discards.get(player).add(new Card(Card.Type.METHOD, i));
         }
 
-        java.lang.reflect.Method method =
-                engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
+        java.lang.reflect.Method method = engine.getClass().getDeclaredMethod("calculatePlayerScore", Player.class);
         method.setAccessible(true);
         int score = (int) method.invoke(engine, player);
 
@@ -2899,8 +2738,7 @@ public class OurEngineTest {
 
             String output = outputStream.toString();
             assertTrue("Should display 'Game Over!'", output.contains("Game Over!"));
-            assertTrue(
-                    "Should display header separator",
+            assertTrue("Should display header separator",
                     output.contains("═══════════════════════════════════════════════"));
         } finally {
             System.setOut(originalOut);
@@ -2967,8 +2805,7 @@ public class OurEngineTest {
         Card module = new Card(Card.Type.MODULE, 2);
         Card framework = new Card(Card.Type.FRAMEWORK, 3);
 
-        PlayerResult pr =
-                new PlayerResult("Player1", 8, ImmutableList.of(methodCard, module, framework));
+        PlayerResult pr = new PlayerResult("Player1", 8, ImmutableList.of(methodCard, module, framework));
         GameResult result = new GameResult(ImmutableList.of(pr));
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -3106,18 +2943,14 @@ public class OurEngineTest {
             GameResult result = (GameResult) method.invoke(engine);
 
             // Results should be sorted by score descending (player2 first)
-            assertEquals(
-                    "First player should be the one with higher score",
-                    player2.getName(),
-                    result.playerResults().get(0).playerName());
-            assertEquals(
-                    "First player score should be 6", 6, result.playerResults().get(0).score());
-            assertEquals(
-                    "Second player should be the one with lower score",
-                    player1.getName(),
-                    result.playerResults().get(1).playerName());
-            assertEquals(
-                    "Second player score should be 1", 1, result.playerResults().get(1).score());
+            assertEquals("First player should be the one with higher score",
+                    player2.getName(), result.playerResults().get(0).playerName());
+            assertEquals("First player score should be 6",
+                    6, result.playerResults().get(0).score());
+            assertEquals("Second player should be the one with lower score",
+                    player1.getName(), result.playerResults().get(1).playerName());
+            assertEquals("Second player score should be 1",
+                    1, result.playerResults().get(1).score());
         } finally {
             System.setOut(originalOut);
         }
@@ -3157,24 +2990,18 @@ public class OurEngineTest {
             GameResult result = (GameResult) method.invoke(engine);
 
             // Should be sorted: player2 (6), player1 (3), player3 (1)
-            assertEquals(
-                    "First should be player2 with 6 points",
-                    player2.getName(),
-                    result.playerResults().get(0).playerName());
-            assertEquals(
-                    "First player score should be 6", 6, result.playerResults().get(0).score());
-            assertEquals(
-                    "Second should be player1 with 3 points",
-                    player1.getName(),
-                    result.playerResults().get(1).playerName());
-            assertEquals(
-                    "Second player score should be 3", 3, result.playerResults().get(1).score());
-            assertEquals(
-                    "Third should be player3 with 1 point",
-                    player3.getName(),
-                    result.playerResults().get(2).playerName());
-            assertEquals(
-                    "Third player score should be 1", 1, result.playerResults().get(2).score());
+            assertEquals("First should be player2 with 6 points",
+                    player2.getName(), result.playerResults().get(0).playerName());
+            assertEquals("First player score should be 6",
+                    6, result.playerResults().get(0).score());
+            assertEquals("Second should be player1 with 3 points",
+                    player1.getName(), result.playerResults().get(1).playerName());
+            assertEquals("Second player score should be 3",
+                    3, result.playerResults().get(1).score());
+            assertEquals("Third should be player3 with 1 point",
+                    player3.getName(), result.playerResults().get(2).playerName());
+            assertEquals("Third player score should be 1",
+                    1, result.playerResults().get(2).score());
         } finally {
             System.setOut(originalOut);
         }
@@ -3217,11 +3044,10 @@ public class OurEngineTest {
             assertEquals("All 3 cards should be in discard", 3, discards.get(player).size());
 
             // GameResult should have all cards in endingDeck
-            PlayerResult pr =
-                    result.playerResults().stream()
-                            .filter(p -> p.playerName().equals(player.getName()))
-                            .findFirst()
-                            .orElse(null);
+            PlayerResult pr = result.playerResults().stream()
+                    .filter(p -> p.playerName().equals(player.getName()))
+                    .findFirst()
+                    .orElse(null);
             assertNotNull("Should find player result", pr);
             assertEquals("PlayerResult should have all 3 cards", 3, pr.endingDeck().size());
         } finally {
@@ -3262,22 +3088,19 @@ public class OurEngineTest {
             GameResult result = (GameResult) endGameMethod.invoke(engine);
 
             // Find this player's result
-            PlayerResult pr =
-                    result.playerResults().stream()
-                            .filter(p -> p.playerName().equals(player.getName()))
-                            .findFirst()
-                            .orElse(null);
+            PlayerResult pr = result.playerResults().stream()
+                    .filter(p -> p.playerName().equals(player.getName()))
+                    .findFirst()
+                    .orElse(null);
 
             assertNotNull("Should find player result", pr);
             assertEquals("Should have 2 cards in ending deck", 2, pr.endingDeck().size());
 
             // Verify the cards are present (they should be in discard after
             // calculatePlayerScore)
-            assertTrue(
-                    "Should contain method card",
+            assertTrue("Should contain method card",
                     pr.endingDeck().stream().anyMatch(c -> c.id() == 100));
-            assertTrue(
-                    "Should contain module card",
+            assertTrue("Should contain module card",
                     pr.endingDeck().stream().anyMatch(c -> c.id() == 101));
         } finally {
             System.setOut(originalOut);
@@ -3339,8 +3162,8 @@ public class OurEngineTest {
     // ========== play() Integration Tests ==========
 
     /**
-     * A player that always returns null from makeDecision, triggering PlayerViolationException and
-     * disqualification.
+     * A player that always returns null from makeDecision, triggering
+     * PlayerViolationException and disqualification.
      */
     private static class CheaterPlayer implements Player {
         @Override
@@ -3396,10 +3219,8 @@ public class OurEngineTest {
         suppressOutput();
         try {
             GameResult result = engine.play();
-            assertEquals(
-                    "GameResult should contain the same number of players as input",
-                    twoPlayers.size(),
-                    result.playerResults().size());
+            assertEquals("GameResult should contain the same number of players as input",
+                    twoPlayers.size(), result.playerResults().size());
         } finally {
             restoreOutput();
         }
@@ -3413,8 +3234,7 @@ public class OurEngineTest {
             GameResult result = engine.play();
             List<PlayerResult> results = result.playerResults();
             for (int i = 0; i < results.size() - 1; i++) {
-                assertTrue(
-                        "Results should be sorted in descending order by score",
+                assertTrue("Results should be sorted in descending order by score",
                         results.get(i).score() >= results.get(i + 1).score());
             }
         } finally {
@@ -3433,8 +3253,7 @@ public class OurEngineTest {
                 resultNames.add(pr.playerName());
             }
             for (Player p : twoPlayers) {
-                assertTrue(
-                        "All input player names should appear in the result",
+                assertTrue("All input player names should appear in the result",
                         resultNames.contains(p.getName()));
             }
         } finally {
@@ -3455,8 +3274,7 @@ public class OurEngineTest {
         try {
             GameResult result = engine.play();
             assertNotNull("Game should still return a result when a player cheats", result);
-            assertEquals(
-                    "Result should still contain all players", 2, result.playerResults().size());
+            assertEquals("Result should still contain all players", 2, result.playerResults().size());
         } finally {
             restoreOutput();
         }

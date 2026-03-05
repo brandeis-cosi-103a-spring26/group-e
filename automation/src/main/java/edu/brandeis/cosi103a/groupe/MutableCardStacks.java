@@ -1,16 +1,22 @@
 package edu.brandeis.cosi103a.groupe;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import edu.brandeis.cosi.atg.cards.Card.Type;
-import edu.brandeis.cosi.atg.state.CardStacks;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Nonnull;
 
-/** Mutable version of CardStacks. Convert to CardStacks with {@link #toImmutableCardStacks()}. */
-public class MutableCardStacks {
+import java.util.HashMap;
+import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
+import edu.brandeis.cosi.atg.cards.Card.Type;
+import edu.brandeis.cosi.atg.state.CardStacks;
+
+/**
+ * Mutable version of CardStacks.
+ * Convert to CardStacks with {@link #toImmutableCardStacks()}.
+ */
+public class MutableCardStacks {
+    
     private Map<Type, Integer> shop;
 
     // Starting shop quantities
@@ -26,22 +32,19 @@ public class MutableCardStacks {
 
     private static final int ACTION_COUNT = 10;
 
+
     /**
-     * Initializes the mutable card stacks with the starting quantities for each card type based on
-     * the number of players and the action cards included in the game.
-     *
-     * @param numPlayers The number of players in the game, which affects the quantity of certain
-     *     cards like BUG and FRAMEWORK
+     * Initializes the mutable card stacks with the starting quantities for each card type
+     * based on the number of players and the action cards included in the game.
+     * @param numPlayers The number of players in the game, which affects the quantity of certain cards like BUG and FRAMEWORK
      * @param actionCardsForGame The set of action card types that will be included in the game
-     * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or
-     *     contains null/invalid types
+     * @throws IllegalArgumentException if numPlayers is invalid or actionCardsForGame is null or contains null/invalid types
      */
     public MutableCardStacks(int numPlayers, @Nonnull ImmutableSet<Type> actionCardsForGame) {
         if (numPlayers < 2 || numPlayers > 4) {
-            throw new IllegalArgumentException(
-                    "numPlayers must be between 2 and 4, got: " + numPlayers);
+            throw new IllegalArgumentException("numPlayers must be between 2 and 4, got: " + numPlayers);
         }
-
+        
         shop = new HashMap<>();
 
         // Starting treasures
@@ -54,40 +57,30 @@ public class MutableCardStacks {
         shop.put(Type.MODULE, MODULE_COUNT);
         shop.put(Type.BUG, numPlayers * BUG_COUNT_PER_PLAYER);
         // Set FRAMEWORK count based on the number of players.
-        shop.put(
-                Type.FRAMEWORK,
-                (numPlayers == 2)
-                        ? FRAMEWORK_COUNT_TWO_PLAYERS
-                        : FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
+        shop.put(Type.FRAMEWORK, (numPlayers == 2) ? FRAMEWORK_COUNT_TWO_PLAYERS : FRAMEWORK_COUNT_THREE_FOUR_PLAYERS);
 
         // Starting actions
         for (Type actionType : actionCardsForGame) {
             // Guard against non-action cards
             if (actionType.category() != Type.Category.ACTION) {
-                throw new IllegalArgumentException(
-                        "actionCardsForGame must only contain ACTION cards, got: "
-                                + actionType
-                                + " (category: "
-                                + actionType.category()
-                                + ")");
+                throw new IllegalArgumentException("actionCardsForGame must only contain ACTION cards, got: " + actionType + " (category: " + actionType.category() + ")");
             }
             shop.put(actionType, ACTION_COUNT);
         }
+        
     }
 
     /**
-     * Converts this mutable card stacks to an immutable CardStacks instance for use in the game
-     * state.
-     *
+     * Converts this mutable card stacks to an immutable CardStacks instance for use in the game state.
      * @return Immutable CardStacks instance representing the current shop state
      */
     public CardStacks toImmutableCardStacks() {
         return new CardStacks(ImmutableMap.copyOf(shop));
     }
 
+
     /**
      * Gets the count of a specific card type in the shop.
-     *
      * @param type The card type to check
      * @return The count of the specified card type, or 0 if it's not in the shop
      */
@@ -97,10 +90,8 @@ public class MutableCardStacks {
 
     /**
      * Decrements the count of a specific card type in the shop by 1, if available.
-     *
      * @param type The card type to decrement
-     * @return true if the count was successfully decremented, false if the card type is not
-     *     available or count is already 0
+     * @return true if the count was successfully decremented, false if the card type is not available or count is already 0
      */
     public boolean decrementCount(Type type) {
         int currentCount = shop.getOrDefault(type, 0);
@@ -112,9 +103,7 @@ public class MutableCardStacks {
     }
 
     /**
-     * Returns a set of card types that are available for gain based on the current shop state and
-     * the given cost.
-     *
+     * Returns a set of card types that are available for gain based on the current shop state and the given cost.
      * @param cost The cost threshold for available cards
      * @return An immutable set of card types that are available for gain at or below the given cost
      */
@@ -130,4 +119,5 @@ public class MutableCardStacks {
         }
         return availableCards.build();
     }
+
 }
