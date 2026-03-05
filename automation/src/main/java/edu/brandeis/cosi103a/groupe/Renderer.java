@@ -2,26 +2,25 @@ package edu.brandeis.cosi103a.groupe;
 
 import static org.fusesource.jansi.Ansi.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.regex.Pattern;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
+import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.cards.Card.Type;
+import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.CardStacks;
+import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.PlayerResult;
-import edu.brandeis.cosi.atg.state.CardStacks;
-import edu.brandeis.cosi.atg.state.GameResult;
-import edu.brandeis.cosi.atg.cards.Card;
-import edu.brandeis.cosi.atg.cards.Card.Type;
-import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi.atg.decisions.*;
-import java.util.Set;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 public class Renderer {
 
@@ -36,9 +35,8 @@ public class Renderer {
     private static final Pattern ANSI_ESCAPE = Pattern.compile("\\033\\[[0-9;]*[A-Za-z]");
 
     /**
-     * Converts a {@link Card.Type} enum value to a human-readable Title Case name.
-     * Underscores are replaced with spaces (e.g. {@code CODE_REVIEW} → "Code
-     * Review").
+     * Converts a {@link Card.Type} enum value to a human-readable Title Case name. Underscores are
+     * replaced with spaces (e.g. {@code CODE_REVIEW} → "Code Review").
      */
     public static String displayName(Card.Type cardType) {
         String raw = cardType.toString().toLowerCase().replace('_', ' ');
@@ -56,8 +54,8 @@ public class Renderer {
     }
 
     /**
-     * Returns an {@link org.fusesource.jansi.Ansi} instance set to the display
-     * color for the given card category.
+     * Returns an {@link org.fusesource.jansi.Ansi} instance set to the display color for the given
+     * card category.
      */
     private static org.fusesource.jansi.Ansi colorForCategory(Card.Type.Category category) {
         switch (category) {
@@ -73,8 +71,8 @@ public class Renderer {
     }
 
     /**
-     * Pads {@code text} with trailing spaces to exactly {@code width} chars, or
-     * truncates if longer.
+     * Pads {@code text} with trailing spaces to exactly {@code width} chars, or truncates if
+     * longer.
      */
     private static String fixedWidth(String text, int width) {
         if (text.length() > width) {
@@ -84,19 +82,16 @@ public class Renderer {
     }
 
     /**
-     * Prints one supply column cell: the '*' actionable marker (or a blank
-     * placeholder),
-     * one space, then the pile text (count + name + cost) padded to
-     * {@link #COLUMN_WIDTH}.
+     * Prints one supply column cell: the '*' actionable marker (or a blank placeholder), one space,
+     * then the pile text (count + name + cost) padded to {@link #COLUMN_WIDTH}.
      *
-     * @param cardType   the card type being displayed
-     * @param count      number of copies remaining in this pile
-     * @param actionable whether this pile has an available decision (e.g.
-     *                   BuyDecision)
-     * @param color      the ANSI color to use for the pile text
+     * @param cardType the card type being displayed
+     * @param count number of copies remaining in this pile
+     * @param actionable whether this pile has an available decision (e.g. BuyDecision)
+     * @param color the ANSI color to use for the pile text
      */
-    private static void renderSupplyCell(Card.Type cardType, int count,
-            boolean actionable, org.fusesource.jansi.Ansi color) {
+    private static void renderSupplyCell(
+            Card.Type cardType, int count, boolean actionable, org.fusesource.jansi.Ansi color) {
         System.out.print(actionable ? ansi().fgRed().a("*").reset() : " ");
         System.out.print(" ");
         String pile = count + " " + displayName(cardType) + " ($" + cardType.cost() + ")";
@@ -104,8 +99,8 @@ public class Renderer {
     }
 
     /**
-     * Prints a blank supply column cell of the correct width so subsequent columns
-     * remain aligned when a category has fewer rows than others.
+     * Prints a blank supply column cell of the correct width so subsequent columns remain aligned
+     * when a category has fewer rows than others.
      */
     private static void renderEmptySupplyCell() {
         System.out.print(" "); // marker placeholder
@@ -114,23 +109,22 @@ public class Renderer {
     }
 
     /**
-     * Prints one hand column cell: the '* ' actionable marker (or ' '), then the
-     * card name padded to {@link #COLUMN_WIDTH}.
+     * Prints one hand column cell: the '* ' actionable marker (or ' '), then the card name padded
+     * to {@link #COLUMN_WIDTH}.
      *
-     * @param card            the card to display
+     * @param card the card to display
      * @param actionableCards set of cards that have an available decision
-     * @param color           the ANSI color to use for the card name
+     * @param color the ANSI color to use for the card name
      */
-    private static void renderHandCell(Card card, Set<Card> actionableCards,
-            org.fusesource.jansi.Ansi color) {
+    private static void renderHandCell(
+            Card card, Set<Card> actionableCards, org.fusesource.jansi.Ansi color) {
         System.out.print(actionableCards.contains(card) ? ansi().fgRed().a("* ").reset() : "  ");
         System.out.print(color.a(fixedWidth(displayName(card.type()), COLUMN_WIDTH)).reset());
     }
 
     /**
-     * Renders the current game state to the console with no decision indicators.
-     * Equivalent to calling {@link #renderGameWithDecisions(GameState, List)} with
-     * an empty list.
+     * Renders the current game state to the console with no decision indicators. Equivalent to
+     * calling {@link #renderGameWithDecisions(GameState, List)} with an empty list.
      *
      * @param state the current game state to render
      */
@@ -139,13 +133,12 @@ public class Renderer {
     }
 
     /**
-     * Renders the current game state to console, including indicators for which
-     * cards in hand and supply are actionable based on the provided decisions.
-     * 
-     * @param state   Current game state to render
-     * @param options List of available decisions for the current player - used to
-     *                determine which cards are actionable and should be marked with
-     * *
+     * Renders the current game state to console, including indicators for which cards in hand and
+     * supply are actionable based on the provided decisions.
+     *
+     * @param state Current game state to render
+     * @param options List of available decisions for the current player - used to determine which
+     *     cards are actionable and should be marked with *
      */
     public static void renderGameWithDecisions(GameState state, List<Decision> options) {
         // Build sets of actionable cards from the available decisions
@@ -267,7 +260,8 @@ public class Renderer {
         // need an extra MARKER_PREFIX gap in addition to SUPPLY_GAP.
         System.out.print(" "); // marker placeholder
         System.out.print(" "); // space
-        System.out.print(ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", COLUMN_WIDTH)).reset());
+        System.out.print(
+                ansi().fgBrightBlue().bold().a(fixedWidth("ACTIONS", COLUMN_WIDTH)).reset());
         System.out.print(" ".repeat(SUPPLY_GAP + MARKER_PREFIX));
         System.out.print(ansi().fgYellow().bold().a(fixedWidth("TREASURES", COLUMN_WIDTH)).reset());
         System.out.print(" ".repeat(SUPPLY_GAP + MARKER_PREFIX));
@@ -276,19 +270,26 @@ public class Renderer {
 
         System.out.print(" "); // marker placeholder
         System.out.print(" "); // space
-        System.out.println("─".repeat(COLUMN_WIDTH) + " ".repeat(SUPPLY_GAP + MARKER_PREFIX) +
-                "─".repeat(COLUMN_WIDTH) + " ".repeat(SUPPLY_GAP + MARKER_PREFIX) +
-                "─".repeat(COLUMN_WIDTH));
+        System.out.println(
+                "─".repeat(COLUMN_WIDTH)
+                        + " ".repeat(SUPPLY_GAP + MARKER_PREFIX)
+                        + "─".repeat(COLUMN_WIDTH)
+                        + " ".repeat(SUPPLY_GAP + MARKER_PREFIX)
+                        + "─".repeat(COLUMN_WIDTH));
 
         // Display supply cards in three columns, one row per card
-        int maxRows = Math.max(actionCards.size(), Math.max(treasureCards.size(), victoryCards.size()));
+        int maxRows =
+                Math.max(actionCards.size(), Math.max(treasureCards.size(), victoryCards.size()));
         for (int i = 0; i < maxRows; i++) {
 
             // Action column
             if (i < actionCards.size()) {
                 Card.Type cardType = actionCards.get(i);
-                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
-                        actionableSupplyTypes.contains(cardType), ansi().fgBrightBlue());
+                renderSupplyCell(
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
+                        actionableSupplyTypes.contains(cardType),
+                        ansi().fgBrightBlue());
             } else {
                 renderEmptySupplyCell();
             }
@@ -297,8 +298,11 @@ public class Renderer {
             // Treasure column
             if (i < treasureCards.size()) {
                 Card.Type cardType = treasureCards.get(i);
-                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
-                        actionableSupplyTypes.contains(cardType), ansi().fgYellow());
+                renderSupplyCell(
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
+                        actionableSupplyTypes.contains(cardType),
+                        ansi().fgYellow());
             } else {
                 renderEmptySupplyCell();
             }
@@ -307,11 +311,13 @@ public class Renderer {
             // Victory column (BUG renders in magenta; all others in green)
             if (i < victoryCards.size()) {
                 Card.Type cardType = victoryCards.get(i);
-                org.fusesource.jansi.Ansi color = (cardType == Card.Type.BUG)
-                        ? ansi().fgMagenta()
-                        : ansi().fgGreen();
-                renderSupplyCell(cardType, state.buyableCards().getNumAvailable(cardType),
-                        actionableSupplyTypes.contains(cardType), color);
+                org.fusesource.jansi.Ansi color =
+                        (cardType == Card.Type.BUG) ? ansi().fgMagenta() : ansi().fgGreen();
+                renderSupplyCell(
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
+                        actionableSupplyTypes.contains(cardType),
+                        color);
             } else {
                 renderEmptySupplyCell();
             }
@@ -371,9 +377,11 @@ public class Renderer {
             }
         }
 
-        int maxHandRows = Math.max(actionsInHand.size(), Math.max(treasuresInHand.size(), victoriesInHand.size()));
-        if (maxHandRows == 0)
-            maxHandRows = 1; // Show at least the (none) row
+        int maxHandRows =
+                Math.max(
+                        actionsInHand.size(),
+                        Math.max(treasuresInHand.size(), victoriesInHand.size()));
+        if (maxHandRows == 0) maxHandRows = 1; // Show at least the (none) row
 
         int totalHandWidth = (MARKER_PREFIX + COLUMN_WIDTH) * 3 + 2 * SUPPLY_GAP;
         int handLeftPadding = Math.max(0, (SCREEN_WIDTH - totalHandWidth) / 2);
@@ -387,7 +395,8 @@ public class Renderer {
                 renderHandCell(actionsInHand.get(i), actionableHandCards, ansi().fgBrightBlue());
             } else if (i == 0) {
                 System.out.print("  ");
-                System.out.print(ansi().fgBrightBlue().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
+                System.out.print(
+                        ansi().fgBrightBlue().a(fixedWidth("(none)", COLUMN_WIDTH)).reset());
             } else {
                 System.out.print("  ");
                 System.out.print(fixedWidth("", COLUMN_WIDTH));
@@ -425,9 +434,19 @@ public class Renderer {
 
         // Status bar
         int spaces = 2;
-        String statusText = "Actions: " + state.availableActions() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                "Buys: " + state.availableBuys() + "  ".repeat(spaces) + "|" + " ".repeat(spaces) +
-                "Money: " + state.spendableMoney();
+        String statusText =
+                "Actions: "
+                        + state.availableActions()
+                        + "  ".repeat(spaces)
+                        + "|"
+                        + " ".repeat(spaces)
+                        + "Buys: "
+                        + state.availableBuys()
+                        + "  ".repeat(spaces)
+                        + "|"
+                        + " ".repeat(spaces)
+                        + "Money: "
+                        + state.spendableMoney();
         int statusPadding = Math.max(0, (SCREEN_WIDTH - statusText.length()) / 2);
         System.out.print(" ".repeat(statusPadding));
 
@@ -438,36 +457,34 @@ public class Renderer {
         System.out.print(ansi().fgYellow().a("Money: " + state.spendableMoney()).reset());
 
         System.out.println("\n");
-
     }
 
     /**
-     * Renders the current game state side-by-side with a turn log panel.
-     * Delegates to the 4-arg overload with a default of 2 players.
+     * Renders the current game state side-by-side with a turn log panel. Delegates to the 4-arg
+     * overload with a default of 2 players.
      *
-     * @param state   current game state
+     * @param state current game state
      * @param options available decisions (used for actionable-card markers)
-     * @param logs    the engine's turn log list (shared live reference)
+     * @param logs the engine's turn log list (shared live reference)
      */
-    public static void renderGameWithDecisions(GameState state, List<Decision> options,
-            List<TurnLog> logs) {
+    public static void renderGameWithDecisions(
+            GameState state, List<Decision> options, List<TurnLog> logs) {
         renderGameWithDecisions(state, options, logs, 2);
     }
 
     /**
-     * Renders the current game state side-by-side with a turn log panel on the
-     * right. The log panel shows the current turn (live) plus one full previous
-     * round of turns (i.e. the last {@code numPlayers} completed turns), so every
-     * player can see what happened on their own last turn.
+     * Renders the current game state side-by-side with a turn log panel on the right. The log panel
+     * shows the current turn (live) plus one full previous round of turns (i.e. the last {@code
+     * numPlayers} completed turns), so every player can see what happened on their own last turn.
      *
-     * @param state      current game state
-     * @param options    available decisions (used for actionable-card markers)
-     * @param logs       the engine's turn log list (shared live reference)
-     * @param numPlayers total number of players; controls how many past turns are
-     *                   shown alongside the current turn
+     * @param state current game state
+     * @param options available decisions (used for actionable-card markers)
+     * @param logs the engine's turn log list (shared live reference)
+     * @param numPlayers total number of players; controls how many past turns are shown alongside
+     *     the current turn
      */
-    public static void renderGameWithDecisions(GameState state, List<Decision> options,
-            List<TurnLog> logs, int numPlayers) {
+    public static void renderGameWithDecisions(
+            GameState state, List<Decision> options, List<TurnLog> logs, int numPlayers) {
         // Capture the main panel output into a buffer so we can merge it with the
         // log panel line-by-line.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -502,10 +519,10 @@ public class Renderer {
         int maxRows = Math.max(mainLines.size(), logLines.size());
         for (int i = 0; i < maxRows; i++) {
             String mainLine = (i < mainLines.size()) ? mainLines.get(i) : "";
-            String logLine  = (i < logLines.size())  ? logLines.get(i)  : "";
+            String logLine = (i < logLines.size()) ? logLines.get(i) : "";
 
             // Pad main line so the separator always appears at column SCREEN_WIDTH.
-            int vLen   = visualLength(mainLine);
+            int vLen = visualLength(mainLine);
             String pad = " ".repeat(Math.max(0, SCREEN_WIDTH - vLen));
 
             if (!logLine.isEmpty()) {
@@ -518,17 +535,15 @@ public class Renderer {
 
     // ─── Turn log panel helpers ────────────────────────────────────────────────
 
-    /**
-     * Returns the visible (non-ANSI) length of {@code s}.
-     */
+    /** Returns the visible (non-ANSI) length of {@code s}. */
     static int visualLength(String s) {
         return ANSI_ESCAPE.matcher(s).replaceAll("").length();
     }
 
     /**
-     * Truncates {@code s} to at most {@code maxLen} visible characters, appending
-     * {@code …} if truncated. Does not account for embedded ANSI codes, so this
-     * should only be called on plain (uncoloured) strings.
+     * Truncates {@code s} to at most {@code maxLen} visible characters, appending {@code …} if
+     * truncated. Does not account for embedded ANSI codes, so this should only be called on plain
+     * (uncoloured) strings.
      */
     private static String truncateVisible(String s, int maxLen) {
         if (s.length() <= maxLen) {
@@ -538,15 +553,14 @@ public class Renderer {
     }
 
     /**
-     * Builds the lines of the right-hand turn log panel. Shows the current turn
-     * plus the previous {@code numPlayers} turns (one full round), so every player
-     * can see their own last turn. The current turn is shown in full colour; older
-     * turns are dimmed.
+     * Builds the lines of the right-hand turn log panel. Shows the current turn plus the previous
+     * {@code numPlayers} turns (one full round), so every player can see their own last turn. The
+     * current turn is shown in full colour; older turns are dimmed.
      *
-     * @param logs       the engine's live turn log list
+     * @param logs the engine's live turn log list
      * @param numPlayers total number of players; determines the window size
-     * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH}
-     *         visible characters wide
+     * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH} visible
+     *     characters wide
      */
     private static List<String> buildLogPanelLines(List<TurnLog> logs, int numPlayers) {
         List<String> lines = new ArrayList<>();
@@ -555,7 +569,11 @@ public class Renderer {
         String headerLabel = "Turn Log";
         int fillLen = Math.max(0, LOG_PANEL_WIDTH - 4 - headerLabel.length());
         String headerBar = "\u2550\u2550 " + headerLabel + " " + "\u2550".repeat(fillLen);
-        lines.add(ansi().fgBrightBlue().a(truncateVisible(headerBar, LOG_PANEL_WIDTH)).reset().toString());
+        lines.add(
+                ansi().fgBrightBlue()
+                        .a(truncateVisible(headerBar, LOG_PANEL_WIDTH))
+                        .reset()
+                        .toString());
 
         if (logs == null || logs.isEmpty()) {
             lines.add(ansi().fgBrightBlack().a("  (no turns yet)").reset().toString());
@@ -572,28 +590,45 @@ public class Renderer {
             if (t > startIdx) {
                 // Separator between turns.
                 String sep = "  " + "\u2500".repeat(Math.max(0, LOG_PANEL_WIDTH - 2));
-                lines.add(ansi().fgBrightBlack().a(truncateVisible(sep, LOG_PANEL_WIDTH)).reset().toString());
+                lines.add(
+                        ansi().fgBrightBlack()
+                                .a(truncateVisible(sep, LOG_PANEL_WIDTH))
+                                .reset()
+                                .toString());
             }
 
             // Turn header.
             String turnHeader = log.getHeader();
             if (isCurrent) {
-                lines.add(ansi().bold().fgBrightCyan()
-                        .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH)).reset().toString());
+                lines.add(
+                        ansi().bold()
+                                .fgBrightCyan()
+                                .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH))
+                                .reset()
+                                .toString());
             } else {
-                lines.add(ansi().fgBrightBlack()
-                        .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH)).reset().toString());
+                lines.add(
+                        ansi().fgBrightBlack()
+                                .a(truncateVisible(turnHeader, LOG_PANEL_WIDTH))
+                                .reset()
+                                .toString());
             }
 
             // Log entries for this turn.
             for (String entry : log.getEntries()) {
                 String entryLine = "  " + entry;
                 if (isCurrent) {
-                    lines.add(ansi().fgDefault()
-                            .a(truncateVisible(entryLine, LOG_PANEL_WIDTH)).reset().toString());
+                    lines.add(
+                            ansi().fgDefault()
+                                    .a(truncateVisible(entryLine, LOG_PANEL_WIDTH))
+                                    .reset()
+                                    .toString());
                 } else {
-                    lines.add(ansi().fgBrightBlack()
-                            .a(truncateVisible(entryLine, LOG_PANEL_WIDTH)).reset().toString());
+                    lines.add(
+                            ansi().fgBrightBlack()
+                                    .a(truncateVisible(entryLine, LOG_PANEL_WIDTH))
+                                    .reset()
+                                    .toString());
                 }
             }
         }
@@ -602,11 +637,10 @@ public class Renderer {
     }
 
     /**
-     * Renders the current game state to console with additional debug information
-     * showing player decks and discards.
+     * Renders the current game state to console with additional debug information showing player
+     * decks and discards.
      *
-     * @param debugState Container with game state and internal player deck/discard
-     *                   information
+     * @param debugState Container with game state and internal player deck/discard information
      */
     public static void renderGameDebugMode(DebugGameState debugState) {
         renderGame(debugState.state());
@@ -630,110 +664,114 @@ public class Renderer {
         }
     }
 
-    /**
-     * Test main method
-     * Creates a sample GameState and calls renderGame on it
-     */
+    /** Test main method Creates a sample GameState and calls renderGame on it */
     public static void main(String[] args) {
         // For demonstration, we will create a mock or dummy implementation here.
         String currentPlayerName = "Player 1";
-        Hand currentPlayerHand = new Hand(
-                ImmutableList.of(
-                        new Card(Type.BITCOIN, 6),
-                        new Card(Type.BITCOIN, 7),
-                        new Card(Type.BITCOIN, 8)),
-                ImmutableList.of(
-                        new Card(Type.BITCOIN, 1),
-                        new Card(Type.BITCOIN, 2),
-                        new Card(Type.BITCOIN, 3),
-                        new Card(Type.METHOD, 4),
-                        new Card(Type.METHOD, 5),
-                        new Card(Type.REFACTOR, 9),
-                        new Card(Type.EVERGREEN_TEST, 10)));
+        Hand currentPlayerHand =
+                new Hand(
+                        ImmutableList.of(
+                                new Card(Type.BITCOIN, 6),
+                                new Card(Type.BITCOIN, 7),
+                                new Card(Type.BITCOIN, 8)),
+                        ImmutableList.of(
+                                new Card(Type.BITCOIN, 1),
+                                new Card(Type.BITCOIN, 2),
+                                new Card(Type.BITCOIN, 3),
+                                new Card(Type.METHOD, 4),
+                                new Card(Type.METHOD, 5),
+                                new Card(Type.REFACTOR, 9),
+                                new Card(Type.EVERGREEN_TEST, 10)));
         GameState.TurnPhase phase = GameState.TurnPhase.ACTION;
         int availableActions = 1;
         int spendableMoney = 3;
         int availableBuys = 1;
-        CardStacks buyableCards = new CardStacks(
-                ImmutableMap.of(
-                        Type.BUG, 12,
-                        Type.METHOD, 12,
-                        Type.MODULE, 12,
-                        Type.FRAMEWORK, 12,
-                        Type.BITCOIN, 50,
-                        Type.ETHEREUM, 40,
-                        Type.DOGECOIN, 30,
-                        Type.CODE_REVIEW, 10,
-                        Type.EVERGREEN_TEST, 10,
-                        Type.REFACTOR, 10));
+        CardStacks buyableCards =
+                new CardStacks(
+                        ImmutableMap.of(
+                                Type.BUG, 12,
+                                Type.METHOD, 12,
+                                Type.MODULE, 12,
+                                Type.FRAMEWORK, 12,
+                                Type.BITCOIN, 50,
+                                Type.ETHEREUM, 40,
+                                Type.DOGECOIN, 30,
+                                Type.CODE_REVIEW, 10,
+                                Type.EVERGREEN_TEST, 10,
+                                Type.REFACTOR, 10));
 
-        GameState dummyState = new GameState(
-                currentPlayerName,
-                currentPlayerHand,
-                phase,
-                availableActions,
-                spendableMoney,
-                availableBuys,
-                buyableCards);
+        GameState dummyState =
+                new GameState(
+                        currentPlayerName,
+                        currentPlayerHand,
+                        phase,
+                        availableActions,
+                        spendableMoney,
+                        availableBuys,
+                        buyableCards);
         // renderGame(dummyState);
 
-        ImmutableList<Decision> playActionDecisions = ImmutableList.of(
-                new BuyDecision(Type.CODE_REVIEW),
-                new BuyDecision(Type.REFACTOR),
-                new BuyDecision(Type.BITCOIN),
-                new BuyDecision(Type.ETHEREUM),
-                new BuyDecision(Type.METHOD),
-                new PlayCardDecision(new Card(Type.REFACTOR, 9)),
-                new PlayCardDecision(new Card(Type.EVERGREEN_TEST, 10)),
-                new PlayCardDecision(new Card(Type.BITCOIN, 1)),
-                new PlayCardDecision(new Card(Type.BITCOIN, 2)),
-                new PlayCardDecision(new Card(Type.BITCOIN, 3)),
-                new EndPhaseDecision(GameState.TurnPhase.ACTION));
+        ImmutableList<Decision> playActionDecisions =
+                ImmutableList.of(
+                        new BuyDecision(Type.CODE_REVIEW),
+                        new BuyDecision(Type.REFACTOR),
+                        new BuyDecision(Type.BITCOIN),
+                        new BuyDecision(Type.ETHEREUM),
+                        new BuyDecision(Type.METHOD),
+                        new PlayCardDecision(new Card(Type.REFACTOR, 9)),
+                        new PlayCardDecision(new Card(Type.EVERGREEN_TEST, 10)),
+                        new PlayCardDecision(new Card(Type.BITCOIN, 1)),
+                        new PlayCardDecision(new Card(Type.BITCOIN, 2)),
+                        new PlayCardDecision(new Card(Type.BITCOIN, 3)),
+                        new EndPhaseDecision(GameState.TurnPhase.ACTION));
         renderGameWithDecisions(dummyState, playActionDecisions);
         renderGame(dummyState);
 
         // Dummy GameResult for visual testing of printGameResult
-        ImmutableList<Card> aliceDeck = ImmutableList.of(
-                new Card(Type.MODULE, 1),
-                new Card(Type.MODULE, 2),
-                new Card(Type.MODULE, 3),
-                new Card(Type.BITCOIN, 4),
-                new Card(Type.BITCOIN, 5),
-                new Card(Type.ETHEREUM, 6),
-                new Card(Type.METHOD, 7),
-                new Card(Type.REFACTOR, 8));
-        ImmutableList<Card> bobDeck = ImmutableList.of(
-                new Card(Type.MODULE, 9),
-                new Card(Type.MODULE, 10),
-                new Card(Type.BITCOIN, 11),
-                new Card(Type.BITCOIN, 12),
-                new Card(Type.BITCOIN, 13),
-                new Card(Type.DOGECOIN, 14),
-                new Card(Type.CODE_REVIEW, 15));
-        ImmutableList<Card> charlieDeck = ImmutableList.of(
-                new Card(Type.FRAMEWORK, 16),
-                new Card(Type.BITCOIN, 17),
-                new Card(Type.METHOD, 18),
-                new Card(Type.METHOD, 19));
+        ImmutableList<Card> aliceDeck =
+                ImmutableList.of(
+                        new Card(Type.MODULE, 1),
+                        new Card(Type.MODULE, 2),
+                        new Card(Type.MODULE, 3),
+                        new Card(Type.BITCOIN, 4),
+                        new Card(Type.BITCOIN, 5),
+                        new Card(Type.ETHEREUM, 6),
+                        new Card(Type.METHOD, 7),
+                        new Card(Type.REFACTOR, 8));
+        ImmutableList<Card> bobDeck =
+                ImmutableList.of(
+                        new Card(Type.MODULE, 9),
+                        new Card(Type.MODULE, 10),
+                        new Card(Type.BITCOIN, 11),
+                        new Card(Type.BITCOIN, 12),
+                        new Card(Type.BITCOIN, 13),
+                        new Card(Type.DOGECOIN, 14),
+                        new Card(Type.CODE_REVIEW, 15));
+        ImmutableList<Card> charlieDeck =
+                ImmutableList.of(
+                        new Card(Type.FRAMEWORK, 16),
+                        new Card(Type.BITCOIN, 17),
+                        new Card(Type.METHOD, 18),
+                        new Card(Type.METHOD, 19));
 
-        PlayerResult prAlice =
-                new edu.brandeis.cosi.atg.state.PlayerResult("Alice", 18, aliceDeck);
-        PlayerResult prBob =
-                new edu.brandeis.cosi.atg.state.PlayerResult("Bob", 14, bobDeck);
+        PlayerResult prAlice = new edu.brandeis.cosi.atg.state.PlayerResult("Alice", 18, aliceDeck);
+        PlayerResult prBob = new edu.brandeis.cosi.atg.state.PlayerResult("Bob", 14, bobDeck);
         PlayerResult prCharlie =
                 new edu.brandeis.cosi.atg.state.PlayerResult("Charlie", 18, charlieDeck);
 
         GameResult dummyResult =
-                new edu.brandeis.cosi.atg.state.GameResult(ImmutableList.of(prAlice, prBob, prCharlie));
+                new edu.brandeis.cosi.atg.state.GameResult(
+                        ImmutableList.of(prAlice, prBob, prCharlie));
         printGameResult(dummyResult);
     }
 
     /**
      * Prints the final game results in a readable format. Displays:
+     *
      * <ul>
-     *   <li>A winner announcement (handles ties)</li>
-     *   <li>A scoreboard ranked by score (descending)</li>
-     *   <li>Each player's final deck organized by card category with counts</li>
+     *   <li>A winner announcement (handles ties)
+     *   <li>A scoreboard ranked by score (descending)
+     *   <li>Each player's final deck organized by card category with counts
      * </ul>
      *
      * @param result the final game result
@@ -758,16 +796,32 @@ public class Renderer {
         }
 
         if (winnerNames.size() == 1) {
-            System.out.println(ansi().fgYellow().bold()
-                    .a("  *** Winner: " + winnerNames.get(0) + " with " + maxScore
-                            + " point" + (maxScore == 1 ? "" : "s") + "! ***")
-                    .reset());
+            System.out.println(
+                    ansi().fgYellow()
+                            .bold()
+                            .a(
+                                    "  *** Winner: "
+                                            + winnerNames.get(0)
+                                            + " with "
+                                            + maxScore
+                                            + " point"
+                                            + (maxScore == 1 ? "" : "s")
+                                            + "! ***")
+                            .reset());
         } else {
             String names = String.join(", ", winnerNames);
-            System.out.println(ansi().fgYellow().bold()
-                    .a("  *** It's a tie! Winners: " + names + " with " + maxScore
-                            + " point" + (maxScore == 1 ? "" : "s") + " each! ***")
-                    .reset());
+            System.out.println(
+                    ansi().fgYellow()
+                            .bold()
+                            .a(
+                                    "  *** It's a tie! Winners: "
+                                            + names
+                                            + " with "
+                                            + maxScore
+                                            + " point"
+                                            + (maxScore == 1 ? "" : "s")
+                                            + " each! ***")
+                            .reset());
         }
         System.out.println();
 
@@ -777,8 +831,15 @@ public class Renderer {
         sortedResults.sort((a, b) -> Integer.compare(b.score(), a.score()));
         int rank = 1;
         for (PlayerResult pr : sortedResults) {
-            String line = "  " + rank + ". " + pr.playerName() + "  —  scored " + pr.score()
-                    + " point" + (pr.score() == 1 ? "" : "s");
+            String line =
+                    "  "
+                            + rank
+                            + ". "
+                            + pr.playerName()
+                            + "  —  scored "
+                            + pr.score()
+                            + " point"
+                            + (pr.score() == 1 ? "" : "s");
             if (pr.score() == maxScore) {
                 System.out.println(ansi().fgYellow().a(line).reset());
             } else {
@@ -792,10 +853,15 @@ public class Renderer {
         System.out.println(ansi().fgBrightBlue().a("  ─── Final Decks ───").reset());
         System.out.println();
         for (PlayerResult pr : sortedResults) {
-            System.out.println(ansi().bold()
-                    .a("  " + pr.playerName() + " scored " + pr.score()
-                            + " points with the following cards:")
-                    .reset());
+            System.out.println(
+                    ansi().bold()
+                            .a(
+                                    "  "
+                                            + pr.playerName()
+                                            + " scored "
+                                            + pr.score()
+                                            + " points with the following cards:")
+                            .reset());
 
             List<Card> deck = new ArrayList<>(pr.endingDeck());
             if (deck.isEmpty()) {
@@ -803,12 +869,18 @@ public class Renderer {
             } else {
                 List<Card> victories = new ArrayList<>();
                 List<Card> treasures = new ArrayList<>();
-                List<Card> actions   = new ArrayList<>();
+                List<Card> actions = new ArrayList<>();
                 for (Card card : deck) {
                     switch (card.getCategory()) {
-                        case VICTORY: victories.add(card); break;
-                        case MONEY:   treasures.add(card); break;
-                        case ACTION:  actions.add(card);   break;
+                        case VICTORY:
+                            victories.add(card);
+                            break;
+                        case MONEY:
+                            treasures.add(card);
+                            break;
+                        case ACTION:
+                            actions.add(card);
+                            break;
                     }
                 }
                 if (!victories.isEmpty()) {
@@ -823,15 +895,16 @@ public class Renderer {
                     System.out.println(ansi().fgBrightBlue().a("    Action Cards:").reset());
                     printCardGroup(actions, Card.Type.Category.ACTION);
                 }
-                System.out.println("    Total: " + deck.size() + " card" + (deck.size() == 1 ? "" : "s"));
+                System.out.println(
+                        "    Total: " + deck.size() + " card" + (deck.size() == 1 ? "" : "s"));
             }
             System.out.println();
         }
     }
 
     /**
-     * Prints a group of cards with counts, colored by category.
-     * Cards with the same type are collapsed into a single line (e.g. "Bitcoin x3").
+     * Prints a group of cards with counts, colored by category. Cards with the same type are
+     * collapsed into a single line (e.g. "Bitcoin x3").
      */
     private static void printCardGroup(List<Card> cards, Card.Type.Category category) {
         Map<Card.Type, Integer> counts = new java.util.LinkedHashMap<>();
@@ -839,10 +912,11 @@ public class Renderer {
             counts.merge(card.type(), 1, Integer::sum);
         }
         for (Map.Entry<Card.Type, Integer> entry : counts.entrySet()) {
-            String line = "      \u2022 " + displayName(entry.getKey())
-                    + (entry.getValue() > 1 ? " x" + entry.getValue() : "");
+            String line =
+                    "      \u2022 "
+                            + displayName(entry.getKey())
+                            + (entry.getValue() > 1 ? " x" + entry.getValue() : "");
             System.out.println(colorForCategory(category).a(line).reset());
         }
     }
-
 }
