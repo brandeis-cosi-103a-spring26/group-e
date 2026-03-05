@@ -8,7 +8,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 public abstract class AbstractPlayer implements Player {
 
     // Static counter to generate unique player names
-    private static int counter = 1;
+private static int counter = 1;
 
     private final String name;
 
