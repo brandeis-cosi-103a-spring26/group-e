@@ -61,7 +61,7 @@ public class OurEngine implements Engine {
     public OurEngine(List<Player> players) throws IllegalArgumentException {
         // Throws exceptions for missing or invalid player configurations
         if (players == null) {
-            throw new IllegalArgumentException("Players list cannot be null");
+        throw new IllegalArgumentException("Players list cannot be null");
         }
         // Throw exceptions for invalid number of players
         if (players.size() > MAX_PLAYERS) {
