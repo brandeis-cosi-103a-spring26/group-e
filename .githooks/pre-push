@@ -24,6 +24,7 @@ if [ $RESULT -ne 0 ]; then
     echo ""
     echo "ERROR: spotless:check failed. Fix formatting issues before pushing."
     echo "Run 'mvn spotless:apply' in automation to auto-fix."
+    echo "If you've already fixed formatting, make sure to commit your changes :)"
     exit 1
 fi
 
