@@ -44,6 +44,23 @@
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to
       parent pom) -->
       <plugins>
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>3.3.0</version>
+          <configuration>
+            <java>
+              <toggleOnOff />
+              <removeUnusedImports />
+              <googleJavaFormat>
+                <version>1.27.0</version>
+                <style>AOSP</style>
+                <reflowLongStrings>false</reflowLongStrings>
+                <formatJavadoc>true</formatJavadoc>
+              </googleJavaFormat>
+            </java>
+          </configuration>
+        </plugin>
         <!-- clean lifecycle, see
         https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
