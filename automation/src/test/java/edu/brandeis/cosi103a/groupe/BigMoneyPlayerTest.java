@@ -1,20 +1,20 @@
 package edu.brandeis.cosi103a.groupe;
 
+import static org.junit.Assert.*;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
- * Comprehensive unit tests for the BigMoneyPlayer class.
- * Tests decision-making logic for all game phases and various scenarios.
+ * Comprehensive unit tests for the BigMoneyPlayer class. Tests decision-making logic for all game
+ * phases and various scenarios.
  */
 public class BigMoneyPlayerTest {
 
@@ -28,7 +28,7 @@ public class BigMoneyPlayerTest {
     @Before
     public void setUp() {
         player = new BigMoneyPlayer();
-        
+
         // Create sample cards for testing
         bitcoinCard = new Card(Card.Type.BITCOIN, 1);
         ethereumCard = new Card(Card.Type.ETHEREUM, 2);
@@ -39,25 +39,23 @@ public class BigMoneyPlayerTest {
 
     // ========== Helper Methods ==========
 
-    /**
-     * Creates a mock GameState for testing.
-     */
+    /** Creates a mock GameState for testing. */
     private GameState createMockGameState(GameState.TurnPhase phase) {
         Hand mockHand = new Hand(ImmutableList.of(bitcoinCard, methodCard), ImmutableList.of());
-        CardStacks mockShop = new CardStacks(ImmutableMap.of(
-            Card.Type.BITCOIN, 50,
-            Card.Type.FRAMEWORK, 8
-        ));
-        
+        CardStacks mockShop =
+                new CardStacks(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 50,
+                                Card.Type.FRAMEWORK, 8));
+
         return new GameState(
-            "Player-1",
-            mockHand,
-            phase,
-            1,  // numActions
-            0,  // numMoney
-            1,  // numBuys
-            mockShop
-        );
+                "Player-1",
+                mockHand,
+                phase,
+                1, // numActions
+                0, // numMoney
+                1, // numBuys
+                mockShop);
     }
 
     // ========== Constructor and Name Tests ==========
@@ -80,11 +78,11 @@ public class BigMoneyPlayerTest {
         BigMoneyPlayer player1 = new BigMoneyPlayer();
         BigMoneyPlayer player2 = new BigMoneyPlayer();
         BigMoneyPlayer player3 = new BigMoneyPlayer();
-        
+
         String name1 = player1.getName();
         String name2 = player2.getName();
         String name3 = player3.getName();
-        
+
         assertNotEquals("Player names should be unique", name1, name2);
         assertNotEquals("Player names should be unique", name2, name3);
         assertNotEquals("Player names should be unique", name1, name3);
@@ -97,9 +95,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return the EndPhaseDecision", endPhase, result);
     }
 
@@ -108,9 +106,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return the EndPhaseDecision regardless of phase", endPhase, result);
     }
 
@@ -119,9 +117,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return the EndPhaseDecision", endPhase, result);
     }
 
@@ -133,9 +131,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playCard = new PlayCardDecision(methodCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(playCard, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first option in ACTION phase", playCard, result);
     }
 
@@ -146,9 +144,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playCard2 = new PlayCardDecision(moduleCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(playCard1, playCard2, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first option", playCard1, result);
     }
 
@@ -157,9 +155,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return EndPhaseDecision when it's the only option", endPhase, result);
     }
 
@@ -172,10 +170,11 @@ public class BigMoneyPlayerTest {
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyFramework, buyEthereum, endPhase);
-        
+        ImmutableList<Decision> options =
+                ImmutableList.of(buyBitcoin, buyFramework, buyEthereum, endPhase);
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer FRAMEWORK over other cards", buyFramework, result);
     }
 
@@ -186,10 +185,11 @@ public class BigMoneyPlayerTest {
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, endPhase);
-        
+        ImmutableList<Decision> options =
+                ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, endPhase);
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer DOGECOIN over ETHEREUM", buyDogecoin, result);
     }
 
@@ -200,9 +200,9 @@ public class BigMoneyPlayerTest {
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer ETHEREUM over BITCOIN", buyEthereum, result);
     }
 
@@ -212,9 +212,9 @@ public class BigMoneyPlayerTest {
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should buy BITCOIN when it's the only treasure available", buyBitcoin, result);
     }
 
@@ -225,9 +225,9 @@ public class BigMoneyPlayerTest {
         BuyDecision buyModule = new BuyDecision(Card.Type.MODULE);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(buyMethod, buyModule, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should end phase when no preferred cards available", endPhase, result);
     }
 
@@ -236,9 +236,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return EndPhaseDecision when it's the only option", endPhase, result);
     }
 
@@ -248,9 +248,9 @@ public class BigMoneyPlayerTest {
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyFramework, buyDogecoin);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer FRAMEWORK even when it's first", buyFramework, result);
     }
 
@@ -261,9 +261,9 @@ public class BigMoneyPlayerTest {
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyFramework);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer FRAMEWORK even when it's last", buyFramework, result);
     }
 
@@ -274,10 +274,11 @@ public class BigMoneyPlayerTest {
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
-        
+        ImmutableList<Decision> options =
+                ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should prefer FRAMEWORK when all are available", buyFramework, result);
     }
 
@@ -288,11 +289,13 @@ public class BigMoneyPlayerTest {
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         TrashCardDecision trashCard = new TrashCardDecision(methodCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        ImmutableList<Decision> options = ImmutableList.of(playCard, buyEthereum, trashCard, endPhase);
-        
+        ImmutableList<Decision> options =
+                ImmutableList.of(playCard, buyEthereum, trashCard, endPhase);
+
         Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should find and return the BuyDecision for preferred card", buyEthereum, result);
+
+        assertSame(
+                "Should find and return the BuyDecision for preferred card", buyEthereum, result);
     }
 
     // ========== makeDecision - GAIN Phase Tests ==========
@@ -303,9 +306,9 @@ public class BigMoneyPlayerTest {
         GainCardDecision gainBitcoin = new GainCardDecision(Card.Type.BITCOIN);
         GainCardDecision gainMethod = new GainCardDecision(Card.Type.METHOD);
         ImmutableList<Decision> options = ImmutableList.of(gainBitcoin, gainMethod);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first option in GAIN phase", gainBitcoin, result);
     }
 
@@ -314,9 +317,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.GAIN);
         GainCardDecision gainEthereum = new GainCardDecision(Card.Type.ETHEREUM);
         ImmutableList<Decision> options = ImmutableList.of(gainEthereum);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return the only gain option", gainEthereum, result);
     }
 
@@ -327,9 +330,9 @@ public class BigMoneyPlayerTest {
         GainCardDecision gainEthereum = new GainCardDecision(Card.Type.ETHEREUM);
         GainCardDecision gainDogecoin = new GainCardDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(gainBitcoin, gainEthereum, gainDogecoin);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first option with multiple gain options", gainBitcoin, result);
     }
 
@@ -339,10 +342,13 @@ public class BigMoneyPlayerTest {
         GainCardDecision gainBitcoin = new GainCardDecision(Card.Type.BITCOIN);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.GAIN);
         ImmutableList<Decision> options = ImmutableList.of(gainBitcoin, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should return first option even with EndPhaseDecision present", gainBitcoin, result);
+
+        assertSame(
+                "Should return first option even with EndPhaseDecision present",
+                gainBitcoin,
+                result);
     }
 
     // ========== makeDecision - MONEY Phase Tests ==========
@@ -353,9 +359,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return PlayCardDecision in MONEY phase", playBitcoin, result);
     }
 
@@ -366,9 +372,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playEthereum = new PlayCardDecision(ethereumCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin, playEthereum, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first PlayCardDecision", playBitcoin, result);
     }
 
@@ -378,10 +384,11 @@ public class BigMoneyPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, playBitcoin);
-        
+
         Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should find and return PlayCardDecision even if not first", playBitcoin, result);
+
+        assertSame(
+                "Should find and return PlayCardDecision even if not first", playBitcoin, result);
     }
 
     @Test
@@ -389,10 +396,11 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
-        assertSame("Should return first option when no PlayCardDecision available", endPhase, result);
+
+        assertSame(
+                "Should return first option when no PlayCardDecision available", endPhase, result);
     }
 
     @Test
@@ -403,9 +411,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playCard = new PlayCardDecision(bitcoinCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(buyCard, trashCard, playCard, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should find PlayCardDecision among mixed types", playCard, result);
     }
 
@@ -414,9 +422,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
         PlayCardDecision playCard = new PlayCardDecision(ethereumCard);
         ImmutableList<Decision> options = ImmutableList.of(playCard);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return the only PlayCardDecision", playCard, result);
     }
 
@@ -429,9 +437,9 @@ public class BigMoneyPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.CLEANUP);
         PlayCardDecision playCard = new PlayCardDecision(bitcoinCard);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, playCard);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertSame("Should return first option for unrecognized phase", endPhase, result);
     }
 
@@ -439,23 +447,29 @@ public class BigMoneyPlayerTest {
     public void testMakeDecision_BuyPhase_PreferenceOrder() {
         // Test that the preference order is: FRAMEWORK > DOGECOIN > ETHEREUM > BITCOIN
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        
+
         // Test Framework is preferred over all
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        
-        ImmutableList<Decision> options1 = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
-        assertEquals("FRAMEWORK should be preferred", buyFramework, player.makeDecision(state, options1));
-        
+
+        ImmutableList<Decision> options1 =
+                ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin, buyFramework);
+        assertEquals(
+                "FRAMEWORK should be preferred",
+                buyFramework,
+                player.makeDecision(state, options1));
+
         // Test Dogecoin is preferred over Ethereum and Bitcoin (no Framework)
         ImmutableList<Decision> options2 = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin);
-        assertEquals("DOGECOIN should be preferred", buyDogecoin, player.makeDecision(state, options2));
-        
+        assertEquals(
+                "DOGECOIN should be preferred", buyDogecoin, player.makeDecision(state, options2));
+
         // Test Ethereum is preferred over Bitcoin (no Framework or Dogecoin)
         ImmutableList<Decision> options3 = ImmutableList.of(buyBitcoin, buyEthereum);
-        assertEquals("ETHEREUM should be preferred", buyEthereum, player.makeDecision(state, options3));
+        assertEquals(
+                "ETHEREUM should be preferred", buyEthereum, player.makeDecision(state, options3));
     }
 
     @Test
@@ -466,9 +480,9 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playModule = new PlayCardDecision(moduleCard);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, playModule, endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         // Big Money should return first option (which might be any of them)
         assertNotNull("Should return a decision", result);
         assertSame("Should return first option", playMethod, result);
@@ -481,11 +495,11 @@ public class BigMoneyPlayerTest {
         BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyEthereum);
-        
+
         Decision result1 = player.makeDecision(state, options);
         Decision result2 = player.makeDecision(state, options);
         Decision result3 = player.makeDecision(state, options);
-        
+
         assertSame("Should return same decision for same inputs", result1, result2);
         assertSame("Should return same decision for same inputs", result2, result3);
         assertEquals("Should prefer ETHEREUM", buyEthereum, result1);
@@ -498,12 +512,14 @@ public class BigMoneyPlayerTest {
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
         PlayCardDecision playEthereum = new PlayCardDecision(ethereumCard);
         PlayCardDecision playDogecoin = new PlayCardDecision(dogecoinCard);
-        
-        ImmutableList<Decision> options1 = ImmutableList.of(playBitcoin, playEthereum, playDogecoin);
+
+        ImmutableList<Decision> options1 =
+                ImmutableList.of(playBitcoin, playEthereum, playDogecoin);
         Decision result1 = player.makeDecision(state, options1);
         assertTrue("Should return a PlayCardDecision", result1 instanceof PlayCardDecision);
-        
-        ImmutableList<Decision> options2 = ImmutableList.of(playDogecoin, playBitcoin, playEthereum);
+
+        ImmutableList<Decision> options2 =
+                ImmutableList.of(playDogecoin, playBitcoin, playEthereum);
         Decision result2 = player.makeDecision(state, options2);
         assertTrue("Should return a PlayCardDecision", result2 instanceof PlayCardDecision);
     }
@@ -514,9 +530,9 @@ public class BigMoneyPlayerTest {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
-        
+
         Decision result = player.makeDecision(state, options);
-        
+
         assertNotNull("Should return a non-null decision", result);
         assertSame("Should return the EndPhaseDecision", endPhase, result);
     }

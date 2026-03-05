@@ -1,12 +1,13 @@
 package edu.brandeis.cosi103a.groupe;
 
 import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for the TurnInfo class.
- * Tests resource management (actions, money, buys) for a game turn.
+ * Unit tests for the TurnInfo class. Tests resource management (actions, money, buys) for a game
+ * turn.
  */
 public class TurnInfoTest {
 
@@ -69,8 +70,8 @@ public class TurnInfoTest {
 
     @Test
     public void testAdjustActions_MultipleIncrementsAndDecrements() {
-        turnInfo.adjustActions(2);  // 1 -> 3
-        turnInfo.adjustActions(3);  // 3 -> 6
+        turnInfo.adjustActions(2); // 1 -> 3
+        turnInfo.adjustActions(3); // 3 -> 6
         turnInfo.adjustActions(-2); // 6 -> 4
         turnInfo.adjustActions(-1); // 4 -> 3
         assertEquals(3, turnInfo.getNumActions());
@@ -125,10 +126,10 @@ public class TurnInfoTest {
 
     @Test
     public void testAdjustMoney_MultipleIncrementsAndDecrements() {
-        turnInfo.adjustMoney(2);  // 0 -> 2
-        turnInfo.adjustMoney(3);  // 2 -> 5
+        turnInfo.adjustMoney(2); // 0 -> 2
+        turnInfo.adjustMoney(3); // 2 -> 5
         turnInfo.adjustMoney(-1); // 5 -> 4
-        turnInfo.adjustMoney(2);  // 4 -> 6
+        turnInfo.adjustMoney(2); // 4 -> 6
         turnInfo.adjustMoney(-3); // 6 -> 3
         assertEquals(3, turnInfo.getNumMoney());
     }
@@ -183,8 +184,8 @@ public class TurnInfoTest {
 
     @Test
     public void testAdjustBuys_MultipleIncrementsAndDecrements() {
-        turnInfo.adjustBuys(2);  // 1 -> 3
-        turnInfo.adjustBuys(1);  // 3 -> 4
+        turnInfo.adjustBuys(2); // 1 -> 3
+        turnInfo.adjustBuys(1); // 3 -> 4
         turnInfo.adjustBuys(-2); // 4 -> 2
         turnInfo.adjustBuys(-1); // 2 -> 1
         assertEquals(1, turnInfo.getNumBuys());
@@ -224,9 +225,9 @@ public class TurnInfoTest {
         turnInfo.adjustActions(3);
         turnInfo.adjustMoney(7);
         turnInfo.adjustBuys(2);
-        
+
         turnInfo.reset();
-        
+
         assertEquals(1, turnInfo.getNumActions());
         assertEquals(0, turnInfo.getNumMoney());
         assertEquals(1, turnInfo.getNumBuys());
@@ -237,7 +238,7 @@ public class TurnInfoTest {
         turnInfo.adjustMoney(5);
         turnInfo.reset();
         assertEquals(0, turnInfo.getNumMoney());
-        
+
         turnInfo.adjustMoney(3);
         turnInfo.reset();
         assertEquals(0, turnInfo.getNumMoney());
@@ -257,7 +258,7 @@ public class TurnInfoTest {
     public void testScenario_SimpleActionPhase() {
         // Play an action card that gives +2 actions
         turnInfo.adjustActions(-1); // Use 1 action to play the card
-        turnInfo.adjustActions(2);  // Card gives +2 actions
+        turnInfo.adjustActions(2); // Card gives +2 actions
         assertEquals(2, turnInfo.getNumActions());
     }
 
@@ -278,7 +279,7 @@ public class TurnInfoTest {
         turnInfo.adjustMoney(5);
         turnInfo.adjustMoney(-3);
         turnInfo.adjustBuys(-1);
-        
+
         assertEquals(2, turnInfo.getNumMoney());
         assertEquals(0, turnInfo.getNumBuys());
     }
@@ -291,11 +292,11 @@ public class TurnInfoTest {
         turnInfo.adjustBuys(1);
         assertEquals(1, turnInfo.getNumActions());
         assertEquals(2, turnInfo.getNumBuys());
-        
+
         // Money phase: play 4 coins worth of money
         turnInfo.adjustMoney(4);
         assertEquals(4, turnInfo.getNumMoney());
-        
+
         // Buy phase: buy two 2-cost cards
         turnInfo.adjustMoney(-2);
         turnInfo.adjustBuys(-1);
@@ -311,12 +312,12 @@ public class TurnInfoTest {
         turnInfo.adjustActions(-1); // Use the 1 action
         turnInfo.adjustActions(-1); // Try to use another - should fail
         assertEquals(0, turnInfo.getNumActions());
-        
+
         // Try to buy without buys
         turnInfo.adjustBuys(-1); // Use the 1 buy
         turnInfo.adjustBuys(-1); // Try to buy again - should fail
         assertEquals(0, turnInfo.getNumBuys());
-        
+
         // Try to spend money you don't have
         turnInfo.adjustMoney(-1); // Try to spend from 0 - should fail
         assertEquals(0, turnInfo.getNumMoney());
@@ -329,22 +330,21 @@ public class TurnInfoTest {
         turnInfo.adjustMoney(3);
         turnInfo.adjustMoney(-3);
         turnInfo.adjustBuys(-1);
-        
+
         // Reset for turn 2
         turnInfo.reset();
         assertEquals(1, turnInfo.getNumActions());
         assertEquals(0, turnInfo.getNumMoney());
         assertEquals(1, turnInfo.getNumBuys());
-        
+
         // Turn 2: More complex
         turnInfo.adjustMoney(5);
         turnInfo.adjustMoney(-2);
-        
+
         // Reset for turn 3
         turnInfo.reset();
         assertEquals(1, turnInfo.getNumActions());
         assertEquals(0, turnInfo.getNumMoney());
         assertEquals(1, turnInfo.getNumBuys());
     }
-
 }
