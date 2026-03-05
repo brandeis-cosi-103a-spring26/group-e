@@ -1,4 +1,12 @@
 # group-e
+
+## Formatting
+Install the pre-push hook using
+``` bash
+git config core.hooksPath .githooks
+```
+
+
 Ana Obradovic - anaobradovic@brandeis.edu
 
 Nathaniel Martin - nathanielmartin@brandeis.edu
