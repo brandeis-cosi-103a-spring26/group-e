@@ -69,6 +69,16 @@ public class PlayerInfo {
     }
 
     /**
+     * Gets the underlying Player object.
+     * Useful for tests and situations where the raw Player interface is needed.
+     * 
+     * @return The wrapped Player
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
      * Gets the name of the underlying player.
      * 
      * @return The player's name
@@ -208,6 +218,22 @@ public class PlayerInfo {
      */
     public Hand getImmutableHand() {
         return hand.toImmutableHand();
+    }
+
+    /**
+     * Gets all cards owned by this player at the end of the game.
+     * Consolidates cards from hand, deck, and discard pile into a single list.
+     * This method modifies the player's state by moving all cards to the discard pile,
+     * and should only be called when the game has ended.
+     * 
+     * @return An immutable list containing all cards owned by the player
+     */
+    public ImmutableList<Card> getEndingDeck() {
+        // move cards to discard from hand and deck
+        hand.moveAllCardsTo(discard);
+        deck.forEach(discard::add);
+        deck.clear();
+        return ImmutableList.copyOf(discard);
     }
 
     /**
