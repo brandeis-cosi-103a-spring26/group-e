@@ -590,4 +590,5 @@ public class HandEVPlayerTest {
         
         assertSame("Should still skip FRAMEWORK after buying victory card", buyDogecoin, result);
     }
+    
 }

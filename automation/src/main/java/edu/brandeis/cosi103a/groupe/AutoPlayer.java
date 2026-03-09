@@ -105,7 +105,44 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
-        return options.get(0); // No specific gain strategy yet, so just return first option
+        // Define preferred cards in order of preference
+        Card.Type[] preferredCards = {
+            Card.Type.FRAMEWORK,
+            Card.Type.IPO,
+            Card.Type.DOGECOIN,
+            Card.Type.RANSOMWARE,
+            Card.Type.DAILY_SCRUM,
+            Card.Type.EVERGREEN_TEST,
+            Card.Type.REFACTOR,
+            Card.Type.TECH_DEBT,
+            Card.Type.PARALLELIZATION,
+            Card.Type.DEPLOYMENT_PIPELINE,
+            Card.Type.HACK,
+            Card.Type.ETHEREUM,
+            Card.Type.UNIT_TEST,
+            Card.Type.CODE_REVIEW,
+            Card.Type.SPRINT_PLANNING,
+            Card.Type.MERGE_CONFLICT,
+            Card.Type.MONITORING,
+            Card.Type.BACKLOG
+        };
+
+        // Try to find each preferred card in order
+        for (Card.Type preferredType : preferredCards) {
+            for (Decision option : options) {
+                if (option instanceof BuyDecision buyDecision) {
+                    if (buyDecision.cardType() == preferredType) {
+                        return buyDecision;
+                    }
+                }
+            }
+        }
+        
+        // If none of the preferred cards are available, end phase
+        return options.stream()
+            .filter(option -> option instanceof EndPhaseDecision)
+            .findFirst()
+            .orElse(options.get(0));
     }
 
     /**
