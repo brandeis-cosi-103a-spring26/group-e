@@ -15,6 +15,7 @@ public class DecisionBuilder {
      * as an EndPhaseDecision to end the ACTION phase. If the player has no actions
      * remaining, only the EndPhaseDecision is returned.
      *
+     * @param playerInfo the current player's info, including actions remaining and hand contents
      * @return An ImmutableList of Decision objects for the ACTION phase.
      */
     public static ImmutableList<Decision> buildActionDecisions(PlayerInfo playerInfo) {
@@ -39,6 +40,7 @@ public class DecisionBuilder {
      * PlayCardDecisions for each money card in the given player's hand as well as
      * an EndPhaseDecision to end the MONEY phase.
      *
+     * @param playerInfo the current player's info, including money cards in hand
      * @return An ImmutableList of Decision objects for the MONEY phase.
      */
     public static ImmutableList<Decision> buildMoneyDecisions(PlayerInfo playerInfo) {
@@ -57,6 +59,8 @@ public class DecisionBuilder {
      * the BUY phase. If the player has no buys remaining, only the EndPhaseDecision
      * is returned.
      *
+     * @param playerInfo   the current player's info, including buys remaining and available coins
+     * @param buyableCards the set of card types available for purchase from the supply
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
     public static ImmutableList<Decision> buildBuyDecisions(PlayerInfo playerInfo,
@@ -82,6 +86,7 @@ public class DecisionBuilder {
      * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
      * empty.
      *
+     * @param playerInfo the current player's info, including the unplayed cards available to trash
      * @return List of trash decisions, or a single EndPhaseDecision if no cards
      *         available
      */
