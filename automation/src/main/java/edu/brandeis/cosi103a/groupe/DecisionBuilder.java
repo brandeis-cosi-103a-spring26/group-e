@@ -1,6 +1,7 @@
 package edu.brandeis.cosi103a.groupe;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
@@ -24,4 +25,30 @@ public class DecisionBuilder {
         decisionBuilder.add(new EndPhaseDecision(TurnPhase.MONEY));
         return decisionBuilder.build();
     }
+
+    /**
+     * Builds the list of all valid decisions for the BUY phase. Returns a list of
+     * BuyDecisions for each buyable card type as well as an EndPhaseDecision to end
+     * the BUY phase. If the player has no buys remaining, only the EndPhaseDecision
+     * is returned.
+     *
+     * @return An ImmutableList of Decision objects for the BUY phase.
+     */
+    public static ImmutableList<Decision> buildBuyDecisions(PlayerInfo playerInfo,
+            ImmutableSet<Card.Type> buyableCards) {
+
+        ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
+
+        if (playerInfo.numBuys() <= 0) {
+            return buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY)).build();
+        }
+
+        for (Card.Type cardType : buyableCards) {
+            buyDecisions.add(new BuyDecision(cardType));
+        }
+
+        buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
+        return buyDecisions.build();
+    }
+
 }

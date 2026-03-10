@@ -581,7 +581,7 @@ public class OurEngine implements Engine {
             case ACTION:
                 return buildActionDecisions();
             case BUY:
-                return buildBuyDecisions();
+                return DecisionBuilder.buildBuyDecisions(activePlayer, shop.availableCardsForCost(activePlayer.numMoney()));
             case MONEY:
                 return DecisionBuilder.buildMoneyDecisions(activePlayer);
             case CLEANUP:
@@ -591,29 +591,6 @@ public class OurEngine implements Engine {
             default:
                 throw new UnsupportedOperationException("Invalid phase for building decision options");
         }
-    }
-
-    /**
-     * Builds the list of all valid decisions for the BUY phase.
-     *
-     * @return An ImmutableList of Decision objects for the BUY phase.
-     */
-    private ImmutableList<Decision> buildBuyDecisions() {
-
-        ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
-
-        if (activePlayer.numBuys() <= 0) {
-            buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-            return buyDecisions.build();
-        }
-
-        ImmutableSet<Card.Type> availableCards = shop.availableCardsForCost(activePlayer.numMoney());
-        for (Card.Type cardType : availableCards) {
-            buyDecisions.add(new BuyDecision(cardType));
-        }
-
-        buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-        return buyDecisions.build();
     }
 
     /**
