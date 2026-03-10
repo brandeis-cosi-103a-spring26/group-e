@@ -583,7 +583,7 @@ public class OurEngine implements Engine {
             case BUY:
                 return buildBuyDecisions();
             case MONEY:
-                return buildMoneyDecisions();
+                return DecisionBuilder.buildMoneyDecisions(activePlayer);
             case CLEANUP:
                 throw new UnsupportedOperationException("No decisions available during CLEANUP phase");
             case GAIN:
@@ -591,21 +591,6 @@ public class OurEngine implements Engine {
             default:
                 throw new UnsupportedOperationException("Invalid phase for building decision options");
         }
-    }
-
-    /**
-     * Builds the list of all valid decisions for the MONEY phase.
-     *
-     * @return An ImmutableList of Decision objects for the MONEY phase.
-     */
-    private ImmutableList<Decision> buildMoneyDecisions() {
-        ArrayList<Decision> currencyDecisions = new ArrayList<>();
-        List<Card> moneysInHand = activePlayer.getMoneysInHand();
-        for (Card card : moneysInHand) {
-            currencyDecisions.add(new PlayCardDecision(card));
-        }
-        currencyDecisions.add(new EndPhaseDecision(TurnPhase.MONEY));
-        return ImmutableList.copyOf(currencyDecisions);
     }
 
     /**
