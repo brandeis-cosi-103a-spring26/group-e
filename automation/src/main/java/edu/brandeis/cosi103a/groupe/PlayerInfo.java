@@ -170,10 +170,10 @@ public class PlayerInfo {
     /**
      * Gets all unplayed cards currently in the player's hand.
      * 
-     * @return A list of cards that haven't been played this turn
+     * @return An immutable list of cards that haven't been played this turn
      */
-    public List<Card> getUnplayedCards() {
-        return hand.getUnplayedCards();
+    public ImmutableList<Card> getUnplayedCards() {
+        return ImmutableList.copyOf(hand.getUnplayedCards());
     }
 
     /**
