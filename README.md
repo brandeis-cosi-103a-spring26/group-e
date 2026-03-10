@@ -4,8 +4,8 @@
 ``` bash
 git config core.hooksPath .githooks
 ```
-- To check formatting run `mvn spotless:check`
-- To fix formatting run `mvn spotless:apply`
+- To check formatting run `mvn spotless:check` from `automation`
+- To fix formatting run `mvn spotless:apply` from `automation`
 - To have spotless ignore a segment of code put `//spotless:off` before it and `//spotless:on` after  it
 
 
