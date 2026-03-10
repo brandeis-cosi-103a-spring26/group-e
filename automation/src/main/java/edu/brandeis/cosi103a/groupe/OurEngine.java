@@ -347,7 +347,7 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() throws PlayerViolationException {
 
-        ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
+        ImmutableList<Decision> trashOptions = DecisionBuilder.buildTrashCardDecisions(activePlayer);
         Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
 
         if (playerChoice instanceof EndPhaseDecision) {
@@ -425,28 +425,6 @@ public class OurEngine implements Engine {
                 processGainingCard(Type.BUG, p);
             }
         }
-    }
-
-    /**
-     * Builds decision options for trashing cards from the active player's current
-     * hand.
-     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
-     * empty.
-     *
-     * @return List of trash decisions, or a single EndPhaseDecision if no cards
-     *         available
-     */
-    private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
-        ArrayList<Decision> trashyDecisions = new ArrayList<>();
-        List<Card> unplayedCards = activePlayer.getUnplayedCards();
-        if (unplayedCards.isEmpty()) {
-            trashyDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-        } else {
-            for (Card card : unplayedCards) {
-                trashyDecisions.add(new TrashCardDecision(card));
-            }
-        }
-        return ImmutableList.copyOf(trashyDecisions);
     }
 
     /**
@@ -591,25 +569,6 @@ public class OurEngine implements Engine {
             default:
                 throw new UnsupportedOperationException("Invalid phase for building decision options");
         }
-    }
-
-    /**
-     * Builds the list of all valid decisions for the ACTION phase.
-     *
-     * @return An ImmutableList of Decision objects for the ACTION phase.
-     */
-    private ImmutableList<Decision> buildActionDecisions() {
-        ArrayList<Decision> actDecisions = new ArrayList<>();
-        if (activePlayer.numActions() <= 0) {
-            actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-            return ImmutableList.copyOf(actDecisions);
-        }
-        List<Card> actionsInHand = activePlayer.getActionsInHand();
-        for (Card card : actionsInHand) {
-            actDecisions.add(new PlayCardDecision(card));
-        }
-        actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-        return ImmutableList.copyOf(actDecisions);
     }
 
     /**

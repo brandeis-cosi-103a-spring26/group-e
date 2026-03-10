@@ -76,4 +76,29 @@ public class DecisionBuilder {
         return buyDecisions.build();
     }
 
+    /**
+     * Builds decision options for trashing cards from the given player's current
+     * hand.
+     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
+     * empty.
+     *
+     * @return List of trash decisions, or a single EndPhaseDecision if no cards
+     *         available
+     */
+    public static ImmutableList<Decision> buildTrashCardDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        ImmutableList<Card> unplayedCards = playerInfo.getUnplayedCards();
+
+        if (unplayedCards.isEmpty()) {
+            return decisionBuilder.add(new EndPhaseDecision(TurnPhase.ACTION)).build();
+        } 
+
+        for (Card card : unplayedCards) {
+            decisionBuilder.add(new TrashCardDecision(card));
+        }
+        
+        return decisionBuilder.build();
+    }
+
 }
