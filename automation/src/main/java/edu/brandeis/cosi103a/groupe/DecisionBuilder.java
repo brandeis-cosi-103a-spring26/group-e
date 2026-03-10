@@ -10,6 +10,31 @@ import edu.brandeis.cosi.atg.cards.Card;
 public class DecisionBuilder {
 
     /**
+     * Builds the list of all valid decisions for the ACTION phase. Returns a list
+     * of PlayCardDecisions for each action card in the given player's hand as well
+     * as an EndPhaseDecision to end the ACTION phase. If the player has no actions
+     * remaining, only the EndPhaseDecision is returned.
+     *
+     * @return An ImmutableList of Decision objects for the ACTION phase.
+     */
+    public static ImmutableList<Decision> buildActionDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        if (playerInfo.numActions() <= 0) {
+            return decisionBuilder.add(new EndPhaseDecision(TurnPhase.ACTION)).build();
+        }
+
+        ImmutableList<Card> actionsInHand = playerInfo.getActionsInHand();
+
+        for (Card card : actionsInHand) {
+            decisionBuilder.add(new PlayCardDecision(card));
+        }
+
+        decisionBuilder.add(new EndPhaseDecision(TurnPhase.ACTION));
+        return decisionBuilder.build();
+    }
+
+    /**
      * Builds the list of all valid decisions for the MONEY phase. Returns a list of
      * PlayCardDecisions for each money card in the given player's hand as well as
      * an EndPhaseDecision to end the MONEY phase.

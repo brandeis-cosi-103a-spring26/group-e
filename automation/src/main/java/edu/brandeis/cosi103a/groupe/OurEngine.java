@@ -579,7 +579,7 @@ public class OurEngine implements Engine {
         // Delegates to phase-specific decision builders
         switch (phase) {
             case ACTION:
-                return buildActionDecisions();
+                return DecisionBuilder.buildActionDecisions(activePlayer);
             case BUY:
                 return DecisionBuilder.buildBuyDecisions(activePlayer, shop.availableCardsForCost(activePlayer.numMoney()));
             case MONEY:
