@@ -7,7 +7,9 @@ import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.BuyDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.decisions.GainCardDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -95,7 +97,44 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeDiscardDecision(GameState state, ImmutableList<Decision> options) {
-        return options.get(0); // No specific discard strategy yet, so just return first option
+        // Discard victory cards first
+        for (Decision option : options) {
+            if (option instanceof DiscardCardDecision discardDecision) {
+                if (discardDecision.card().category() == Card.Type.Category.VICTORY) {
+                    return discardDecision;
+                }
+            }
+        }
+
+        // If no victory cards, discard BITCOIN next since it's the least valuable money card
+        for (Decision option : options) {
+            if (option instanceof DiscardCardDecision discardDecision) {
+                if (discardDecision.card().type() == Card.Type.BITCOIN) {
+                    return discardDecision;
+                }
+            }
+        }
+
+        // Attempt to end phase before discarding anything else if possible
+        for (Decision option : options) {
+            if (option instanceof EndPhaseDecision endPhaseDecision) {
+                return endPhaseDecision;
+            }
+        }
+
+        // If no victory cards or BITCOIN, discard other cards starting with the least expensive
+        for (int cost = 2; cost <= 8; cost++) {
+            for (Decision option : options) {
+                if (option instanceof DiscardCardDecision discardDecision) {
+                    if (discardDecision.card().cost() == cost) {
+                        return discardDecision;
+                    }
+                }
+            }
+        }
+
+        return options.get(0); // Fallback if no suitable discard is found
+
     }
 
     /**
@@ -105,44 +144,36 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
-        // Define preferred cards in order of preference
+        // Define best cards in order of preference
         Card.Type[] preferredCards = {
             Card.Type.FRAMEWORK,
             Card.Type.IPO,
-            Card.Type.DOGECOIN,
-            Card.Type.RANSOMWARE,
-            Card.Type.DAILY_SCRUM,
-            Card.Type.EVERGREEN_TEST,
-            Card.Type.REFACTOR,
-            Card.Type.TECH_DEBT,
-            Card.Type.PARALLELIZATION,
-            Card.Type.DEPLOYMENT_PIPELINE,
-            Card.Type.HACK,
-            Card.Type.ETHEREUM,
-            Card.Type.UNIT_TEST,
-            Card.Type.CODE_REVIEW,
-            Card.Type.SPRINT_PLANNING,
-            Card.Type.MERGE_CONFLICT,
-            Card.Type.MONITORING,
-            Card.Type.BACKLOG
+            Card.Type.DOGECOIN
         };
 
         // Try to find each preferred card in order
         for (Card.Type preferredType : preferredCards) {
             for (Decision option : options) {
-                if (option instanceof BuyDecision buyDecision) {
-                    if (buyDecision.cardType() == preferredType) {
-                        return buyDecision;
+                if (option instanceof GainCardDecision gainCardDecision) {
+                    if (gainCardDecision.cardType() == preferredType) {
+                        return gainCardDecision;
+                    }
+                }
+            }
+        }
+
+        // If none of the preferred cards are available, try to gain cards in decreasing cost order
+        for (int cost = 6; cost >= 2; cost--) {
+            for (Decision option : options) {
+                if (option instanceof GainCardDecision gainCardDecision) {
+                    if (gainCardDecision.cardType().cost() == cost) {
+                        return gainCardDecision;
                     }
                 }
             }
         }
         
-        // If none of the preferred cards are available, end phase
-        return options.stream()
-            .filter(option -> option instanceof EndPhaseDecision)
-            .findFirst()
-            .orElse(options.get(0));
+        return options.get(0); // Fallback if no suitable gain is found
     }
 
     /**
