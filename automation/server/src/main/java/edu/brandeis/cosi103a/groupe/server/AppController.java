@@ -9,5 +9,4 @@ public class AppController {
     public String play() {
         return "Hello, World!";
     }
-
 }
