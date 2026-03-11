@@ -340,7 +340,8 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() throws PlayerViolationException {
 
-        ImmutableList<Decision> trashOptions = buildTrashCardDecisionsForCurrentHand();
+        ImmutableList<Decision> trashOptions =
+                DecisionBuilder.buildTrashCardDecisions(activePlayer);
         Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
 
         if (playerChoice instanceof EndPhaseDecision) {
@@ -417,25 +418,6 @@ public class OurEngine implements Engine {
                 processGainingCard(Type.BUG, p);
             }
         }
-    }
-
-    /**
-     * Builds decision options for trashing cards from the active player's current hand. Returns
-     * TrashCardDecisions for each card, or EndPhaseDecision if hand is empty.
-     *
-     * @return List of trash decisions, or a single EndPhaseDecision if no cards available
-     */
-    private ImmutableList<Decision> buildTrashCardDecisionsForCurrentHand() {
-        ArrayList<Decision> trashyDecisions = new ArrayList<>();
-        List<Card> unplayedCards = activePlayer.getUnplayedCards();
-        if (unplayedCards.isEmpty()) {
-            trashyDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-        } else {
-            for (Card card : unplayedCards) {
-                trashyDecisions.add(new TrashCardDecision(card));
-            }
-        }
-        return ImmutableList.copyOf(trashyDecisions);
     }
 
     /**
@@ -561,11 +543,12 @@ public class OurEngine implements Engine {
         // Delegates to phase-specific decision builders
         switch (phase) {
             case ACTION:
-                return buildActionDecisions();
+                return DecisionBuilder.buildActionDecisions(activePlayer);
             case BUY:
-                return buildBuyDecisions();
+                return DecisionBuilder.buildBuyDecisions(
+                        activePlayer, shop.availableCardsForCost(activePlayer.numMoney()));
             case MONEY:
-                return buildMoneyDecisions();
+                return DecisionBuilder.buildMoneyDecisions(activePlayer);
             case CLEANUP:
                 throw new UnsupportedOperationException(
                         "No decisions available during CLEANUP phase");
@@ -575,64 +558,6 @@ public class OurEngine implements Engine {
                 throw new UnsupportedOperationException(
                         "Invalid phase for building decision options");
         }
-    }
-
-    /**
-     * Builds the list of all valid decisions for the MONEY phase.
-     *
-     * @return An ImmutableList of Decision objects for the MONEY phase.
-     */
-    private ImmutableList<Decision> buildMoneyDecisions() {
-        ArrayList<Decision> currencyDecisions = new ArrayList<>();
-        List<Card> moneysInHand = activePlayer.getMoneysInHand();
-        for (Card card : moneysInHand) {
-            currencyDecisions.add(new PlayCardDecision(card));
-        }
-        currencyDecisions.add(new EndPhaseDecision(TurnPhase.MONEY));
-        return ImmutableList.copyOf(currencyDecisions);
-    }
-
-    /**
-     * Builds the list of all valid decisions for the BUY phase.
-     *
-     * @return An ImmutableList of Decision objects for the BUY phase.
-     */
-    private ImmutableList<Decision> buildBuyDecisions() {
-
-        ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
-
-        if (activePlayer.numBuys() <= 0) {
-            buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-            return buyDecisions.build();
-        }
-
-        ImmutableSet<Card.Type> availableCards =
-                shop.availableCardsForCost(activePlayer.numMoney());
-        for (Card.Type cardType : availableCards) {
-            buyDecisions.add(new BuyDecision(cardType));
-        }
-
-        buyDecisions.add(new EndPhaseDecision(TurnPhase.BUY));
-        return buyDecisions.build();
-    }
-
-    /**
-     * Builds the list of all valid decisions for the ACTION phase.
-     *
-     * @return An ImmutableList of Decision objects for the ACTION phase.
-     */
-    private ImmutableList<Decision> buildActionDecisions() {
-        ArrayList<Decision> actDecisions = new ArrayList<>();
-        if (activePlayer.numActions() <= 0) {
-            actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-            return ImmutableList.copyOf(actDecisions);
-        }
-        List<Card> actionsInHand = activePlayer.getActionsInHand();
-        for (Card card : actionsInHand) {
-            actDecisions.add(new PlayCardDecision(card));
-        }
-        actDecisions.add(new EndPhaseDecision(TurnPhase.ACTION));
-        return ImmutableList.copyOf(actDecisions);
     }
 
     /**
