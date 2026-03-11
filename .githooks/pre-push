@@ -1,0 +1,31 @@
+#!/bin/sh
+# Pre-push hook: run spotless:check on committed files only, abort push if formatting issues are found.
+# To enable run: git config core.hooksPath .githooks
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Stash uncommitted changes (staged and unstaged) so we only check committed code
+STASHED=false
+if ! git diff --quiet HEAD; then
+    git stash push --quiet -m "pre-push-hook-temp-stash"
+    STASHED=true
+fi
+
+echo "Running spotless:check before push..."
+mvn -f "$REPO_ROOT/automation/pom.xml" spotless:check
+RESULT=$?
+
+# Restore any stashed changes
+if [ "$STASHED" = "true" ]; then
+    git stash pop --quiet
+fi
+
+if [ $RESULT -ne 0 ]; then
+    echo ""
+    echo "ERROR: spotless:check failed. Fix formatting issues before pushing."
+    echo "Run 'mvn spotless:apply' in automation to auto-fix."
+    echo "If you've already fixed formatting, make sure to commit your changes :)"
+    exit 1
+fi
+
+echo "spotless:check passed"
