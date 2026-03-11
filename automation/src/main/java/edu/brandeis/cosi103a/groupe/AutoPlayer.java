@@ -25,6 +25,12 @@ public class AutoPlayer extends AbstractPlayer {
         Card.Type.BACKLOG
     };
 
+    private static final Card.Type[] PREFERRED_CARDS = {
+        Card.Type.FRAMEWORK,
+        Card.Type.IPO,
+        Card.Type.DOGECOIN
+    };
+
     /**
      * Makes a decision based on the current game state and available options.
      * @param state The current game state.
@@ -63,7 +69,7 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeActionDecision(GameState state, ImmutableList<Decision> options) {
-        // Try to play a card that gives + action(s) first
+        // Try to play a card that gives +action(s) first
         for (Card.Type plusActionType : PLUS_ACTION_CARDS) {
             for (Decision option : options) {
                 if (option instanceof PlayCardDecision playCardDecision) {
@@ -74,11 +80,18 @@ public class AutoPlayer extends AbstractPlayer {
             }
         }
 
-        // If no + action cards, just play the first available action card
-        return options.stream()
-            .filter(option -> option instanceof PlayCardDecision)
-            .findFirst()
-            .orElse(options.get(0)); // Fallback if no PlayCardDecision is found
+        // If no +action cards, try to play other action cards in decreasing cost order
+        for (int cost = 6; cost >= 2; cost--) {
+            for (Decision option : options) {
+                if (option instanceof PlayCardDecision playCardDecision) {
+                    if (playCardDecision.card().cost() == cost) {
+                        return playCardDecision;
+                    }
+                }
+            }
+        }
+
+        return options.get(0); // Fallback if no suitable action is found
     }
 
     /**
@@ -88,15 +101,8 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeBuyDecision(GameState state, ImmutableList<Decision> options) {
-        // Define best cards in order of preference
-        Card.Type[] preferredCards = {
-            Card.Type.FRAMEWORK,
-            Card.Type.IPO,
-            Card.Type.DOGECOIN
-        };
-
         // Try to find each preferred card in order
-        for (Card.Type preferredType : preferredCards) {
+        for (Card.Type preferredType : PREFERRED_CARDS) {
             for (Decision option : options) {
                 if (option instanceof BuyDecision buyDecision) {
                     if (buyDecision.cardType() == preferredType) {
@@ -110,7 +116,9 @@ public class AutoPlayer extends AbstractPlayer {
         for (int cost = 6; cost >= 2; cost--) {
             for (Decision option : options) {
                 if (option instanceof BuyDecision buyDecision) {
-                    if (buyDecision.cardType().cost() == cost) {
+                    // Avoid buying non-Framework victory cards
+                    if (buyDecision.cardType().category() != Card.Type.Category.VICTORY
+                    && buyDecision.cardType().cost() == cost) {
                         return buyDecision;
                     }
                 }
@@ -174,15 +182,7 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
-        // Define best cards in order of preference
-        Card.Type[] preferredCards = {
-            Card.Type.FRAMEWORK,
-            Card.Type.IPO,
-            Card.Type.DOGECOIN
-        };
-
-        // Try to find each preferred card in order
-        for (Card.Type preferredType : preferredCards) {
+        for (Card.Type preferredType : PREFERRED_CARDS) {
             for (Decision option : options) {
                 if (option instanceof GainCardDecision gainCardDecision) {
                     if (gainCardDecision.cardType() == preferredType) {
@@ -196,7 +196,9 @@ public class AutoPlayer extends AbstractPlayer {
         for (int cost = 6; cost >= 2; cost--) {
             for (Decision option : options) {
                 if (option instanceof GainCardDecision gainCardDecision) {
-                    if (gainCardDecision.cardType().cost() == cost) {
+                    // Avoid gaining non-Framework victory cards
+                    if (gainCardDecision.cardType().category() != Card.Type.Category.VICTORY
+                    && gainCardDecision.cardType().cost() == cost) {
                         return gainCardDecision;
                     }
                 }
