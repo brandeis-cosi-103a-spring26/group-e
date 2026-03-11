@@ -1,31 +1,27 @@
 package edu.brandeis.cosi103a.groupe;
 
+import static org.junit.Assert.*;
+
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
-import org.junit.Test;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
- * Comprehensive tests for card playing mechanics in OurEngine.
- * Focuses on detailed scenarios for processPlayCardDecision, action card execution,
- * and edge cases for card interactions.
+ * Comprehensive tests for card playing mechanics in OurEngine. Focuses on detailed scenarios for
+ * processPlayCardDecision, action card execution, and edge cases for card interactions.
  */
 public class EnginePlayCardTest {
 
     // ========== Helper Methods ==========
 
-    /**
-     * Creates a list of BigMoneyPlayer instances.
-     */
+    /** Creates a list of BigMoneyPlayer instances. */
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -34,9 +30,7 @@ public class EnginePlayCardTest {
         return players;
     }
 
-    /**
-     * Uses reflection to access a private field from an object.
-     */
+    /** Uses reflection to access a private field from an object. */
     @SuppressWarnings("unchecked")
     private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
@@ -44,20 +38,16 @@ public class EnginePlayCardTest {
         return (T) field.get(obj);
     }
 
-    /**
-     * Uses reflection to set a private field in an object.
-     */
+    /** Uses reflection to set a private field in an object. */
     private void setPrivateField(Object obj, String fieldName, Object value) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(obj, value);
     }
 
-    /**
-     * Uses reflection to invoke a private method.
-     */
-    private Object invokePrivateMethod(Object obj, String methodName, Class<?>[] paramTypes, Object... args)
-            throws Exception {
+    /** Uses reflection to invoke a private method. */
+    private Object invokePrivateMethod(
+            Object obj, String methodName, Class<?>[] paramTypes, Object... args) throws Exception {
         Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
         method.setAccessible(true);
         return method.invoke(obj, args);
@@ -82,15 +72,21 @@ public class EnginePlayCardTest {
         activePlayer.drawCard();
 
         // Verify card is in unplayed
-        assertTrue("Card should be in unplayed", activePlayer.getUnplayedCards().contains(codeReview));
+        assertTrue(
+                "Card should be in unplayed", activePlayer.getUnplayedCards().contains(codeReview));
 
         // Play the card
         PlayCardDecision decision = new PlayCardDecision(codeReview);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // Verify card moved to played
-        assertFalse("Card should not be in unplayed", activePlayer.getUnplayedCards().contains(codeReview));
+        assertFalse(
+                "Card should not be in unplayed",
+                activePlayer.getUnplayedCards().contains(codeReview));
         MutableHand hand = getPrivateField(activePlayer, "hand");
         assertTrue("Card should be in played", hand.getPlayedCards().contains(codeReview));
     }
@@ -119,8 +115,11 @@ public class EnginePlayCardTest {
 
         // Play the money card
         PlayCardDecision decision = new PlayCardDecision(ethereum);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         assertEquals("Money should be 2", 2, activePlayer.numMoney());
     }
@@ -148,15 +147,19 @@ public class EnginePlayCardTest {
 
         // Play the card
         PlayCardDecision decision = new PlayCardDecision(codeReview);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // CODE_REVIEW: -1 for playing + 2 from effect = net +1
         assertEquals("Actions should be 3 (2 - 1 + 2)", 3, activePlayer.numActions());
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessPlayCardDecision_ActionCard_ZeroActions_ThrowsException() throws Throwable {
+    public void testProcessPlayCardDecision_ActionCard_ZeroActions_ThrowsException()
+            throws Throwable {
         // Create fresh players
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
@@ -179,8 +182,11 @@ public class EnginePlayCardTest {
         // Try to play the card - should throw
         PlayCardDecision decision = new PlayCardDecision(codeReview);
         try {
-            invokePrivateMethod(engine, "processPlayCardDecision",
-                    new Class<?>[] { PlayCardDecision.class }, decision);
+            invokePrivateMethod(
+                    engine,
+                    "processPlayCardDecision",
+                    new Class<?>[] {PlayCardDecision.class},
+                    decision);
         } catch (Exception e) {
             throw e.getCause();
         }
@@ -205,8 +211,11 @@ public class EnginePlayCardTest {
         // Try to play victory card - should throw
         PlayCardDecision decision = new PlayCardDecision(method);
         try {
-            invokePrivateMethod(engine, "processPlayCardDecision",
-                    new Class<?>[] { PlayCardDecision.class }, decision);
+            invokePrivateMethod(
+                    engine,
+                    "processPlayCardDecision",
+                    new Class<?>[] {PlayCardDecision.class},
+                    decision);
         } catch (Exception e) {
             throw e.getCause();
         }
@@ -228,8 +237,11 @@ public class EnginePlayCardTest {
         // Try to play card not in hand - should throw
         PlayCardDecision decision = new PlayCardDecision(fakeCard);
         try {
-            invokePrivateMethod(engine, "processPlayCardDecision",
-                    new Class<?>[] { PlayCardDecision.class }, decision);
+            invokePrivateMethod(
+                    engine,
+                    "processPlayCardDecision",
+                    new Class<?>[] {PlayCardDecision.class},
+                    decision);
         } catch (Exception e) {
             throw e.getCause();
         }
@@ -256,8 +268,11 @@ public class EnginePlayCardTest {
         activePlayer.drawCard();
 
         PlayCardDecision decision = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         assertEquals("Money should be 1", 1, activePlayer.numMoney());
     }
@@ -281,8 +296,11 @@ public class EnginePlayCardTest {
         activePlayer.drawCard();
 
         PlayCardDecision decision = new PlayCardDecision(dogecoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         assertEquals("Money should be 3", 3, activePlayer.numMoney());
     }
@@ -311,19 +329,26 @@ public class EnginePlayCardTest {
 
         // Play BITCOIN (1)
         PlayCardDecision decision1 = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision1);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision1);
         assertEquals("Money should be 1", 1, activePlayer.numMoney());
 
         // Play ETHEREUM (2)
         PlayCardDecision decision2 = new PlayCardDecision(ethereum);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision2);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision2);
         assertEquals("Money should be 3", 3, activePlayer.numMoney());
     }
 
     @Test
-    public void testProcessPlayCardDecision_ActionCard_WithEmptyDeck_StillExecutes() throws Exception {
+    public void testProcessPlayCardDecision_ActionCard_WithEmptyDeck_StillExecutes()
+            throws Exception {
         // Create fresh players
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
@@ -353,15 +378,22 @@ public class EnginePlayCardTest {
 
         // Play CODE_REVIEW - should still add actions even if draw fails
         PlayCardDecision decision = new PlayCardDecision(codeReview);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // Should add 2 actions and decrement 1 for playing = net +1
-        assertEquals("Should add actions even with empty deck", 
-            initialActions + 1, activePlayer.numActions());
+        assertEquals(
+                "Should add actions even with empty deck",
+                initialActions + 1,
+                activePlayer.numActions());
         // Hand size should decrease by 1 (card played, nothing drawn)
-        assertEquals("Hand should decrease by 1", 
-            initialHandSize - 1, activePlayer.getUnplayedCards().size());
+        assertEquals(
+                "Hand should decrease by 1",
+                initialHandSize - 1,
+                activePlayer.getUnplayedCards().size());
     }
 
     @Test
@@ -396,15 +428,20 @@ public class EnginePlayCardTest {
 
         // Play EVERGREEN_TEST (draws 2 cards, gives BUG to opponent)
         PlayCardDecision decision = new PlayCardDecision(evergreenTest);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // Should draw 2 cards: -1 for playing, +2 for drawing = +1
-        assertEquals("Should draw 2 cards", 
-            initialHandSize + 1, activePlayer.getUnplayedCards().size());
+        assertEquals(
+                "Should draw 2 cards", initialHandSize + 1, activePlayer.getUnplayedCards().size());
         // Opponent should gain a BUG
-        assertEquals("Opponent should gain a BUG", 
-            initialOpponentDiscardSize + 1, opponentDiscard.size());
+        assertEquals(
+                "Opponent should gain a BUG",
+                initialOpponentDiscardSize + 1,
+                opponentDiscard.size());
     }
 
     @Test
@@ -433,17 +470,23 @@ public class EnginePlayCardTest {
 
         // Play REFACTOR (will trash a card and gain a card, temporarily entering GAIN phase)
         PlayCardDecision decision = new PlayCardDecision(refactor);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // Phase should return to ACTION after REFACTOR completes
         GameState.TurnPhase finalPhase = getPrivateField(engine, "phase");
-        assertEquals("Should return to ACTION phase after REFACTOR", 
-            GameState.TurnPhase.ACTION, finalPhase);
+        assertEquals(
+                "Should return to ACTION phase after REFACTOR",
+                GameState.TurnPhase.ACTION,
+                finalPhase);
     }
 
     @Test
-    public void testProcessPlayCardDecision_MultipleActionCards_DecrementsActionsCorrectly() throws Exception {
+    public void testProcessPlayCardDecision_MultipleActionCards_DecrementsActionsCorrectly()
+            throws Exception {
         // Create fresh players
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
@@ -473,17 +516,21 @@ public class EnginePlayCardTest {
 
         // Play CODE_REVIEW: 2 actions -1 for playing +2 from effect = 3 actions
         PlayCardDecision decision1 = new PlayCardDecision(codeReview);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision1);
-        assertEquals("After CODE_REVIEW: should have 3 actions", 
-            3, activePlayer.numActions());
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision1);
+        assertEquals("After CODE_REVIEW: should have 3 actions", 3, activePlayer.numActions());
 
         // Play EVERGREEN_TEST: 3 actions -1 for playing +0 from effect = 2 actions
         PlayCardDecision decision2 = new PlayCardDecision(evergreenTest);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision2);
-        assertEquals("After EVERGREEN_TEST: should have 2 actions", 
-            2, activePlayer.numActions());
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision2);
+        assertEquals("After EVERGREEN_TEST: should have 2 actions", 2, activePlayer.numActions());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -504,14 +551,20 @@ public class EnginePlayCardTest {
 
         // Play the card once
         PlayCardDecision decision = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         // Try to play the same card again - should throw IllegalArgumentException
         // because the card is no longer in unplayed cards
         try {
-            invokePrivateMethod(engine, "processPlayCardDecision",
-                    new Class<?>[] { PlayCardDecision.class }, decision);
+            invokePrivateMethod(
+                    engine,
+                    "processPlayCardDecision",
+                    new Class<?>[] {PlayCardDecision.class},
+                    decision);
         } catch (Exception e) {
             throw e.getCause();
         }
@@ -546,20 +599,29 @@ public class EnginePlayCardTest {
 
         // Play BITCOIN (1)
         PlayCardDecision decision1 = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision1);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision1);
         assertEquals("After BITCOIN", 1, activePlayer.numMoney());
 
         // Play ETHEREUM (2)
         PlayCardDecision decision2 = new PlayCardDecision(ethereum);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision2);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision2);
         assertEquals("After ETHEREUM", 3, activePlayer.numMoney());
 
         // Play DOGECOIN (3)
         PlayCardDecision decision3 = new PlayCardDecision(dogecoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision3);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision3);
         assertEquals("After DOGECOIN", 6, activePlayer.numMoney());
     }
 
@@ -587,8 +649,11 @@ public class EnginePlayCardTest {
 
         // Play money card with 0 actions - should work fine
         PlayCardDecision decision = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision",
-                new Class<?>[] { PlayCardDecision.class }, decision);
+        invokePrivateMethod(
+                engine,
+                "processPlayCardDecision",
+                new Class<?>[] {PlayCardDecision.class},
+                decision);
 
         assertEquals("Money should be added", 1, activePlayer.numMoney());
     }
