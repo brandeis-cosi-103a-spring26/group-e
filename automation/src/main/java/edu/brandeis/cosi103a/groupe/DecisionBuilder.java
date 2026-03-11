@@ -2,18 +2,17 @@ package edu.brandeis.cosi103a.groupe;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
+import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
-import edu.brandeis.cosi.atg.cards.Card;
 
 public class DecisionBuilder {
 
     /**
-     * Builds the list of all valid decisions for the ACTION phase. Returns a list
-     * of PlayCardDecisions for each action card in the given player's hand as well
-     * as an EndPhaseDecision to end the ACTION phase. If the player has no actions
-     * remaining, only the EndPhaseDecision is returned.
+     * Builds the list of all valid decisions for the ACTION phase. Returns a list of
+     * PlayCardDecisions for each action card in the given player's hand as well as an
+     * EndPhaseDecision to end the ACTION phase. If the player has no actions remaining, only the
+     * EndPhaseDecision is returned.
      *
      * @param playerInfo the current player's info, including actions remaining and hand contents
      * @return An ImmutableList of Decision objects for the ACTION phase.
@@ -37,8 +36,8 @@ public class DecisionBuilder {
 
     /**
      * Builds the list of all valid decisions for the MONEY phase. Returns a list of
-     * PlayCardDecisions for each money card in the given player's hand as well as
-     * an EndPhaseDecision to end the MONEY phase.
+     * PlayCardDecisions for each money card in the given player's hand as well as an
+     * EndPhaseDecision to end the MONEY phase.
      *
      * @param playerInfo the current player's info, including money cards in hand
      * @return An ImmutableList of Decision objects for the MONEY phase.
@@ -54,17 +53,16 @@ public class DecisionBuilder {
     }
 
     /**
-     * Builds the list of all valid decisions for the BUY phase. Returns a list of
-     * BuyDecisions for each buyable card type as well as an EndPhaseDecision to end
-     * the BUY phase. If the player has no buys remaining, only the EndPhaseDecision
-     * is returned.
+     * Builds the list of all valid decisions for the BUY phase. Returns a list of BuyDecisions for
+     * each buyable card type as well as an EndPhaseDecision to end the BUY phase. If the player has
+     * no buys remaining, only the EndPhaseDecision is returned.
      *
-     * @param playerInfo   the current player's info, including buys remaining and available coins
+     * @param playerInfo the current player's info, including buys remaining and available coins
      * @param buyableCards the set of card types available for purchase from the supply
      * @return An ImmutableList of Decision objects for the BUY phase.
      */
-    public static ImmutableList<Decision> buildBuyDecisions(PlayerInfo playerInfo,
-            ImmutableSet<Card.Type> buyableCards) {
+    public static ImmutableList<Decision> buildBuyDecisions(
+            PlayerInfo playerInfo, ImmutableSet<Card.Type> buyableCards) {
 
         ImmutableList.Builder<Decision> buyDecisions = ImmutableList.builder();
 
@@ -81,14 +79,11 @@ public class DecisionBuilder {
     }
 
     /**
-     * Builds decision options for trashing cards from the given player's current
-     * hand.
-     * Returns TrashCardDecisions for each card, or EndPhaseDecision if hand is
-     * empty.
+     * Builds decision options for trashing cards from the given player's current hand. Returns
+     * TrashCardDecisions for each card, or EndPhaseDecision if hand is empty.
      *
      * @param playerInfo the current player's info, including the unplayed cards available to trash
-     * @return List of trash decisions, or a single EndPhaseDecision if no cards
-     *         available
+     * @return List of trash decisions, or a single EndPhaseDecision if no cards available
      */
     public static ImmutableList<Decision> buildTrashCardDecisions(PlayerInfo playerInfo) {
         ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
@@ -97,13 +92,12 @@ public class DecisionBuilder {
 
         if (unplayedCards.isEmpty()) {
             return decisionBuilder.add(new EndPhaseDecision(TurnPhase.ACTION)).build();
-        } 
+        }
 
         for (Card card : unplayedCards) {
             decisionBuilder.add(new TrashCardDecision(card));
         }
-        
+
         return decisionBuilder.build();
     }
-
 }

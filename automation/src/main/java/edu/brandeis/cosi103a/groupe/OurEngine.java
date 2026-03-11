@@ -340,7 +340,8 @@ public class OurEngine implements Engine {
      */
     private void executeActionRefactor() throws PlayerViolationException {
 
-        ImmutableList<Decision> trashOptions = DecisionBuilder.buildTrashCardDecisions(activePlayer);
+        ImmutableList<Decision> trashOptions =
+                DecisionBuilder.buildTrashCardDecisions(activePlayer);
         Decision playerChoice = makeValidDecision(activePlayer, trashOptions);
 
         if (playerChoice instanceof EndPhaseDecision) {
@@ -420,9 +421,8 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Processes a card gain by decrementing shop supply and adding the card to a
-     * player's discard pile.
-     * Returns false if the card type is unavailable in the shop.
+     * Processes a card gain by decrementing shop supply and adding the card to a player's discard
+     * pile. Returns false if the card type is unavailable in the shop.
      *
      * @param type The card type to be gained
      * @param player The PlayerInfo of the player receiving the card
@@ -545,7 +545,8 @@ public class OurEngine implements Engine {
             case ACTION:
                 return DecisionBuilder.buildActionDecisions(activePlayer);
             case BUY:
-                return DecisionBuilder.buildBuyDecisions(activePlayer, shop.availableCardsForCost(activePlayer.numMoney()));
+                return DecisionBuilder.buildBuyDecisions(
+                        activePlayer, shop.availableCardsForCost(activePlayer.numMoney()));
             case MONEY:
                 return DecisionBuilder.buildMoneyDecisions(activePlayer);
             case CLEANUP:

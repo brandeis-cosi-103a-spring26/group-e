@@ -153,7 +153,7 @@ public class PlayerInfo {
 
     /**
      * Gets all unplayed cards currently in the player's hand.
-     * 
+     *
      * @return An immutable list of cards that haven't been played this turn
      */
     public ImmutableList<Card> getUnplayedCards() {

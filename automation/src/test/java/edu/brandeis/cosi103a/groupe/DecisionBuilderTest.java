@@ -1,26 +1,24 @@
 package edu.brandeis.cosi103a.groupe;
 
+import static org.junit.Assert.*;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.GameState;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * Unit tests for the DecisionBuilder class.
- * Tests the static factory methods for building valid decision lists
- * for each game phase: ACTION, MONEY, BUY, and trash card selection.
+ * Unit tests for the DecisionBuilder class. Tests the static factory methods for building valid
+ * decision lists for each game phase: ACTION, MONEY, BUY, and trash card selection.
  */
 public class DecisionBuilderTest {
 
@@ -34,9 +32,8 @@ public class DecisionBuilderTest {
     // ========== Helper Methods ==========
 
     /**
-     * Creates a fresh PlayerInfo backed by a BigMoneyPlayer.
-     * Starts with a default TurnInfo (1 action, 0 money, 1 buy) and a
-     * randomly drawn 5-card hand of BITCOIN and METHOD cards.
+     * Creates a fresh PlayerInfo backed by a BigMoneyPlayer. Starts with a default TurnInfo (1
+     * action, 0 money, 1 buy) and a randomly drawn 5-card hand of BITCOIN and METHOD cards.
      */
     private PlayerInfo createPlayer() {
         return new PlayerInfo(new BigMoneyPlayer(), cardId);
@@ -46,7 +43,7 @@ public class DecisionBuilderTest {
      * Replaces the player's hand with a fresh MutableHand containing only the provided cards.
      *
      * @param playerInfo the player whose hand to replace
-     * @param cards      the cards to place in the new hand (varargs, may be empty)
+     * @param cards the cards to place in the new hand (varargs, may be empty)
      */
     private void setHand(PlayerInfo playerInfo, Card... cards) throws Exception {
         Field handField = PlayerInfo.class.getDeclaredField("hand");
@@ -95,16 +92,20 @@ public class DecisionBuilderTest {
 
         assertEquals("Should have only one decision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
-        assertEquals("Should be ACTION phase",
-                GameState.TurnPhase.ACTION, ((EndPhaseDecision) decisions.get(0)).phase());
+        assertEquals(
+                "Should be ACTION phase",
+                GameState.TurnPhase.ACTION,
+                ((EndPhaseDecision) decisions.get(0)).phase());
     }
 
     @Test
     public void testBuildActionDecisions_HasActionsButNoActionCards_OnlyEndPhaseDecision() {
         PlayerInfo playerInfo = createPlayer();
-        // Default TurnInfo gives 1 action, but the starting hand has only BITCOIN/METHOD (no ACTION cards)
+        // Default TurnInfo gives 1 action, but the starting hand has only BITCOIN/METHOD (no ACTION
+        // cards)
         assertTrue("Should have actions", playerInfo.numActions() > 0);
-        assertTrue("Starting hand should have no ACTION cards",
+        assertTrue(
+                "Starting hand should have no ACTION cards",
                 playerInfo.getActionsInHand().isEmpty());
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildActionDecisions(playerInfo);
@@ -122,15 +123,16 @@ public class DecisionBuilderTest {
         getHand(playerInfo).addToUnplayed(codeReview);
 
         assertTrue("Should have actions", playerInfo.numActions() > 0);
-        assertFalse("Should have action cards in hand",
-                playerInfo.getActionsInHand().isEmpty());
+        assertFalse("Should have action cards in hand", playerInfo.getActionsInHand().isEmpty());
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildActionDecisions(playerInfo);
 
         assertTrue("Should have at least 2 decisions", decisions.size() >= 2);
-        assertTrue("Should have PlayCardDecision",
+        assertTrue(
+                "Should have PlayCardDecision",
                 decisions.stream().anyMatch(d -> d instanceof PlayCardDecision));
-        assertTrue("Should have EndPhaseDecision",
+        assertTrue(
+                "Should have EndPhaseDecision",
                 decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
     }
 
@@ -146,23 +148,27 @@ public class DecisionBuilderTest {
 
         assertEquals("Should have only one decision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
-        assertEquals("Should be MONEY phase",
-                GameState.TurnPhase.MONEY, ((EndPhaseDecision) decisions.get(0)).phase());
+        assertEquals(
+                "Should be MONEY phase",
+                GameState.TurnPhase.MONEY,
+                ((EndPhaseDecision) decisions.get(0)).phase());
     }
 
     @Test
     public void testBuildMoneyDecisions_HasMoneyCards_IncludesPlayCardDecisions() {
         PlayerInfo playerInfo = createPlayer();
         // Starting hand has BITCOIN cards (money category)
-        assertFalse("Starting hand should have money cards",
-                playerInfo.getMoneysInHand().isEmpty());
+        assertFalse(
+                "Starting hand should have money cards", playerInfo.getMoneysInHand().isEmpty());
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildMoneyDecisions(playerInfo);
 
         assertTrue("Should have multiple decisions", decisions.size() > 1);
-        assertTrue("Should have PlayCardDecision",
+        assertTrue(
+                "Should have PlayCardDecision",
                 decisions.stream().anyMatch(d -> d instanceof PlayCardDecision));
-        assertTrue("Should have EndPhaseDecision",
+        assertTrue(
+                "Should have EndPhaseDecision",
                 decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
     }
 
@@ -176,12 +182,15 @@ public class DecisionBuilderTest {
         assertEquals("Should have 0 buys", 0, playerInfo.numBuys());
 
         ImmutableSet<Card.Type> buyableCards = buyableCardsForCost(5);
-        ImmutableList<Decision> decisions = DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
+        ImmutableList<Decision> decisions =
+                DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
 
         assertEquals("Should have only one decision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
-        assertEquals("Should be BUY phase",
-                GameState.TurnPhase.BUY, ((EndPhaseDecision) decisions.get(0)).phase());
+        assertEquals(
+                "Should be BUY phase",
+                GameState.TurnPhase.BUY,
+                ((EndPhaseDecision) decisions.get(0)).phase());
     }
 
     @Test
@@ -191,12 +200,15 @@ public class DecisionBuilderTest {
         playerInfo.adjustBuys(2);
 
         ImmutableSet<Card.Type> buyableCards = buyableCardsForCost(5);
-        ImmutableList<Decision> decisions = DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
+        ImmutableList<Decision> decisions =
+                DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
 
         assertTrue("Should have multiple decisions", decisions.size() > 1);
-        assertTrue("Should have BuyDecision",
+        assertTrue(
+                "Should have BuyDecision",
                 decisions.stream().anyMatch(d -> d instanceof BuyDecision));
-        assertTrue("Should have EndPhaseDecision",
+        assertTrue(
+                "Should have EndPhaseDecision",
                 decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
     }
 
@@ -205,12 +217,14 @@ public class DecisionBuilderTest {
         PlayerInfo playerInfo = createPlayer();
         // Pass only cards costing <= 3
         ImmutableSet<Card.Type> buyableCards = buyableCardsForCost(3);
-        ImmutableList<Decision> decisions = DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
+        ImmutableList<Decision> decisions =
+                DecisionBuilder.buildBuyDecisions(playerInfo, buyableCards);
 
         for (Decision decision : decisions) {
             if (decision instanceof BuyDecision) {
                 BuyDecision buyDecision = (BuyDecision) decision;
-                assertTrue("Should only include cards from the buyable set",
+                assertTrue(
+                        "Should only include cards from the buyable set",
                         buyableCards.contains(buyDecision.cardType()));
             }
         }
@@ -227,8 +241,10 @@ public class DecisionBuilderTest {
 
         assertEquals("Should have one decision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
-        assertEquals("Should be ACTION phase",
-                GameState.TurnPhase.ACTION, ((EndPhaseDecision) decisions.get(0)).phase());
+        assertEquals(
+                "Should be ACTION phase",
+                GameState.TurnPhase.ACTION,
+                ((EndPhaseDecision) decisions.get(0)).phase());
     }
 
     @Test
@@ -239,10 +255,11 @@ public class DecisionBuilderTest {
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildTrashCardDecisions(playerInfo);
 
-        assertEquals("Should have TrashCardDecision for each card in hand",
-                handSize, decisions.size());
+        assertEquals(
+                "Should have TrashCardDecision for each card in hand", handSize, decisions.size());
         for (Decision decision : decisions) {
-            assertTrue("All decisions should be TrashCardDecision",
+            assertTrue(
+                    "All decisions should be TrashCardDecision",
                     decision instanceof TrashCardDecision);
         }
     }
@@ -273,8 +290,10 @@ public class DecisionBuilderTest {
 
         assertEquals("Should have 1 decision", 1, decisions.size());
         assertTrue("Should be TrashCardDecision", decisions.get(0) instanceof TrashCardDecision);
-        assertEquals("Should be for the correct card",
-                card, ((TrashCardDecision) decisions.get(0)).card());
+        assertEquals(
+                "Should be for the correct card",
+                card,
+                ((TrashCardDecision) decisions.get(0)).card());
     }
 
     @Test
@@ -304,9 +323,10 @@ public class DecisionBuilderTest {
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildTrashCardDecisions(playerInfo);
 
-        List<Card> decisionCards = decisions.stream()
-                .map(d -> ((TrashCardDecision) d).card())
-                .collect(Collectors.toList());
+        List<Card> decisionCards =
+                decisions.stream()
+                        .map(d -> ((TrashCardDecision) d).card())
+                        .collect(Collectors.toList());
         assertTrue("Should contain card1", decisionCards.contains(card1));
         assertTrue("Should contain card2", decisionCards.contains(card2));
     }
@@ -322,15 +342,14 @@ public class DecisionBuilderTest {
         ImmutableList<Decision> decisions = DecisionBuilder.buildTrashCardDecisions(playerInfo);
 
         assertEquals("Should have 3 distinct decisions", 3, decisions.size());
-        long uniqueIds = decisions.stream()
-                .map(d -> ((TrashCardDecision) d).card().id())
-                .distinct()
-                .count();
+        long uniqueIds =
+                decisions.stream().map(d -> ((TrashCardDecision) d).card().id()).distinct().count();
         assertEquals("All IDs should be unique", 3, uniqueIds);
     }
 
     @Test
-    public void testBuildMoneyDecisions_AllCardsAreMoney_IncludesAllPlusEndPhase() throws Exception {
+    public void testBuildMoneyDecisions_AllCardsAreMoney_IncludesAllPlusEndPhase()
+            throws Exception {
         PlayerInfo playerInfo = createPlayer();
         // Replace hand with exactly 3 money cards
         Card bitcoin = new Card(Card.Type.BITCOIN, cardId.getAndIncrement());
@@ -342,9 +361,7 @@ public class DecisionBuilderTest {
 
         // Should have 3 PlayCardDecisions + 1 EndPhaseDecision = 4 total
         assertEquals("Should have decision for each money card plus EndPhase", 4, decisions.size());
-        long playCardCount = decisions.stream()
-                .filter(d -> d instanceof PlayCardDecision)
-                .count();
+        long playCardCount = decisions.stream().filter(d -> d instanceof PlayCardDecision).count();
         assertEquals("Should have 3 PlayCardDecisions", 3, playCardCount);
     }
 
@@ -358,8 +375,8 @@ public class DecisionBuilderTest {
         ImmutableList<Decision> decisionsBeforeBuy =
                 DecisionBuilder.buildBuyDecisions(playerInfo, buyableCardsForCost(5));
 
-        long buyOptionsBeforeBuy = decisionsBeforeBuy.stream()
-                .filter(d -> d instanceof BuyDecision).count();
+        long buyOptionsBeforeBuy =
+                decisionsBeforeBuy.stream().filter(d -> d instanceof BuyDecision).count();
         assertTrue("Should have buy options with 5 money", buyOptionsBeforeBuy > 0);
 
         // Simulate buying ETHEREUM (cost 2): deduct 1 buy and 2 money
@@ -367,10 +384,12 @@ public class DecisionBuilderTest {
         playerInfo.adjustMoney(-2);
 
         ImmutableList<Decision> decisionsAfterBuy =
-                DecisionBuilder.buildBuyDecisions(playerInfo, buyableCardsForCost(playerInfo.numMoney()));
+                DecisionBuilder.buildBuyDecisions(
+                        playerInfo, buyableCardsForCost(playerInfo.numMoney()));
 
         assertTrue("Should still have buy options after first buy", decisionsAfterBuy.size() > 1);
-        assertTrue("Should always include EndPhaseDecision",
+        assertTrue(
+                "Should always include EndPhaseDecision",
                 decisionsAfterBuy.stream().anyMatch(d -> d instanceof EndPhaseDecision));
     }
 
