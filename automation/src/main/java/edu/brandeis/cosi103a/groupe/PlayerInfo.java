@@ -65,16 +65,6 @@ public class PlayerInfo {
     }
 
     /**
-     * Gets the underlying Player object. Useful for tests and situations where the raw Player
-     * interface is needed.
-     *
-     * @return The wrapped Player
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
      * Gets the name of the underlying player.
      *
      * @return The player's name

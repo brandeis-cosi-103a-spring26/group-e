@@ -439,9 +439,12 @@ public class EnginePlayCardTest {
                 "Should draw 2 cards", initialHandSize + 1, activePlayer.getUnplayedCards().size());
         // Opponent should gain a BUG
         assertEquals(
-                "Opponent should gain a BUG",
+                "Opponent discard should have one more card",
                 initialOpponentDiscardSize + 1,
                 opponentDiscard.size());
+        // Verify the gained card is actually a BUG
+        Card gainedCard = opponentDiscard.get(opponentDiscard.size() - 1);
+        assertEquals("Gained card should be a BUG", Card.Type.BUG, gainedCard.type());
     }
 
     @Test

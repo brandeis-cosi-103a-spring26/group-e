@@ -259,7 +259,7 @@ public class OurEngine implements Engine {
             throws PlayerViolationException, UnsupportedOperationException {
 
         // Note: under current implementation, when PARALLELIZATION (Throne Room) is
-        // immplemented,
+        // implemented,
         // it must add 1 to numActions before calling this method again,
         // to avoid the thrown error and to keep numActions correct.
         if (activePlayer.numActions() <= 0) {
