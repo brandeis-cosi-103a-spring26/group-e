@@ -16,6 +16,15 @@ import edu.brandeis.cosi.atg.state.GameState;
 
 public class AutoPlayer extends AbstractPlayer {
 
+    private static final Card.Type[] PLUS_ACTION_CARDS = {
+        Card.Type.IPO,
+        Card.Type.TECH_DEBT,
+        Card.Type.CODE_REVIEW,
+        Card.Type.TECH_DEBT,
+        Card.Type.UNIT_TEST,
+        Card.Type.BACKLOG
+    };
+
     /**
      * Makes a decision based on the current game state and available options.
      * @param state The current game state.
@@ -54,7 +63,22 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeActionDecision(GameState state, ImmutableList<Decision> options) {
-        return options.get(0); // No actions in Big Money strategy, so just return first option
+        // Try to play a card that gives + action(s) first
+        for (Card.Type plusActionType : PLUS_ACTION_CARDS) {
+            for (Decision option : options) {
+                if (option instanceof PlayCardDecision playCardDecision) {
+                    if (playCardDecision.card().type() == plusActionType) {
+                        return playCardDecision;
+                    }
+                }
+            }
+        }
+
+        // If no + action cards, just play the first available action card
+        return options.stream()
+            .filter(option -> option instanceof PlayCardDecision)
+            .findFirst()
+            .orElse(options.get(0)); // Fallback if no PlayCardDecision is found
     }
 
     /**
@@ -64,14 +88,13 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeBuyDecision(GameState state, ImmutableList<Decision> options) {
-        // Define preferred cards in order of preference (most expensive first)
+        // Define best cards in order of preference
         Card.Type[] preferredCards = {
             Card.Type.FRAMEWORK,
-            Card.Type.DOGECOIN,
-            Card.Type.ETHEREUM,
-            Card.Type.BITCOIN
+            Card.Type.IPO,
+            Card.Type.DOGECOIN
         };
-        
+
         // Try to find each preferred card in order
         for (Card.Type preferredType : preferredCards) {
             for (Decision option : options) {
@@ -82,12 +105,19 @@ public class AutoPlayer extends AbstractPlayer {
                 }
             }
         }
+
+        // If none of the preferred cards are available, try to gain cards in decreasing cost order
+        for (int cost = 6; cost >= 2; cost--) {
+            for (Decision option : options) {
+                if (option instanceof BuyDecision buyDecision) {
+                    if (buyDecision.cardType().cost() == cost) {
+                        return buyDecision;
+                    }
+                }
+            }
+        }
         
-        // If none of the preferred cards are available, end phase
-        return options.stream()
-            .filter(option -> option instanceof EndPhaseDecision)
-            .findFirst()
-            .orElse(options.get(0));
+        return options.get(0); // Fallback if no suitable gain is found
     }
 
     /**
