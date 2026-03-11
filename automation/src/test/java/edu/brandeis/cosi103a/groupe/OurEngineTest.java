@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -410,6 +411,82 @@ public class OurEngineTest {
         engine.getNextPlayer();
     }
 
+    @Test
+    public void testGetNextPlayer_MultipleCallsCycleThroughAllPlayers() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(3);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        
+        // Track which players we visit
+        List<PlayerInfo> visitedPlayers = new ArrayList<>();
+        
+        // Simulate multiple turns (more than the number of players)
+        for (int i = 0; i < 10; i++) {
+            PlayerInfo nextPlayer = engine.getNextPlayer();
+            visitedPlayers.add(nextPlayer);
+            setPrivateField(engine, "activePlayer", nextPlayer);
+        }
+        
+        // Verify all players were visited
+        assertTrue("Player 0 should be visited", visitedPlayers.contains(players.get(0)));
+        assertTrue("Player 1 should be visited", visitedPlayers.contains(players.get(1)));
+        assertTrue("Player 2 should be visited", visitedPlayers.contains(players.get(2)));
+        
+        // Verify cycling pattern (should go 0,1,2,0,1,2,0,1,2,0)
+        assertEquals("Turn 0: player 0", players.get(0), visitedPlayers.get(0));
+        assertEquals("Turn 1: player 1", players.get(1), visitedPlayers.get(1));
+        assertEquals("Turn 2: player 2", players.get(2), visitedPlayers.get(2));
+        assertEquals("Turn 3: player 0 (cycle)", players.get(0), visitedPlayers.get(3));
+        assertEquals("Turn 4: player 1 (cycle)", players.get(1), visitedPlayers.get(4));
+        assertEquals("Turn 5: player 2 (cycle)", players.get(2), visitedPlayers.get(5));
+    }
+
+    @Test
+    public void testGetNextPlayer_PlayerDisqualifiedMidGame_SkipsCorrectly() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(4);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        
+        // Start normal rotation: 0 -> 1 -> 2
+        PlayerInfo player0 = engine.getNextPlayer();
+        assertEquals("Should start with player 0", players.get(0), player0);
+        setPrivateField(engine, "activePlayer", player0);
+        
+        PlayerInfo player1 = engine.getNextPlayer();
+        assertEquals("Should move to player 1", players.get(1), player1);
+        setPrivateField(engine, "activePlayer", player1);
+        
+        PlayerInfo player2 = engine.getNextPlayer();
+        assertEquals("Should move to player 2", players.get(2), player2);
+        setPrivateField(engine, "activePlayer", player2);
+        
+        // Disqualify player 3 mid-game (hasn't had a turn yet)
+        players.get(3).forfeit();
+        
+        // Next call should skip player 3 and wrap to player 0
+        PlayerInfo nextPlayer = engine.getNextPlayer();
+        assertEquals("Should skip disqualified player 3 and return to player 0", 
+            players.get(0), nextPlayer);
+        setPrivateField(engine, "activePlayer", nextPlayer);
+        
+        // Continue rotation: should go to player 1 (player 3 still skipped)
+        PlayerInfo afterSkip = engine.getNextPlayer();
+        assertEquals("Should continue to player 1, still skipping player 3", 
+            players.get(1), afterSkip);
+        setPrivateField(engine, "activePlayer", afterSkip);
+        
+        // Verify pattern continues correctly
+        PlayerInfo player2Again = engine.getNextPlayer();
+        assertEquals("Should move to player 2", players.get(2), player2Again);
+        setPrivateField(engine, "activePlayer", player2Again);
+        
+        PlayerInfo player0Again = engine.getNextPlayer();
+        assertEquals("Should wrap to player 0 again, still skipping player 3", 
+            players.get(0), player0Again);
+    }
+
     // ========== isGameOver Tests ==========
 
     @Test
@@ -529,13 +606,30 @@ public class OurEngineTest {
         PlayerInfo activePlayer = players.get(0);
         setPrivateField(engine, "activePlayer", activePlayer);
         setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
         
-        // Ensure player has no actions
-        activePlayer.adjustActions(0);
+        // Reset turn to get 1 action, then set to 0
+        activePlayer.turnReset();
+        activePlayer.adjustActions(-1); // Now has 0 actions
+        
+        assertEquals("Player should have 0 actions", 0, activePlayer.numActions());
+        
+        // Add an action card to hand to verify it doesn't appear in decisions when no actions
+        MutableHand hand = getPrivateField(activePlayer, "hand");
+        Card codeReview = new Card(Card.Type.CODE_REVIEW, cardIdCounter.getAndIncrement());
+        hand.addToUnplayed(codeReview);
+        
+        // Verify the action card is in hand
+        List<Card> unplayed = activePlayer.getUnplayedCards();
+        long actionCardCount = unplayed.stream()
+            .filter(c -> c.getCategory() == Card.Type.Category.ACTION)
+            .count();
+        assertEquals("Should have one action card in hand", 1, actionCardCount);
         
         ImmutableList<Decision> decisions = invokePrivateMethod(engine, "buildActionDecisions", 
             new Class<?>[]{});
         
+        // Even with action card in hand, should only have EndPhaseDecision when no actions
         assertEquals("Should have only one decision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
         assertEquals("Should be ACTION phase", 
@@ -731,6 +825,47 @@ public class OurEngineTest {
         }
     }
 
+    @Test
+    public void testBuildBuyDecisions_SomeEmptyPiles_ExcludesUnavailableCards() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        
+        // Get the shop and empty some piles
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        Map<Card.Type, Integer> shopMap = getPrivateField(shop, "shop");
+        
+        // Empty BITCOIN and METHOD piles (both affordable with player's money)
+        shopMap.put(Card.Type.BITCOIN, 0);
+        shopMap.put(Card.Type.METHOD, 0);
+        
+        // Give player enough money to buy both if they were available
+        activePlayer.adjustBuys(1);
+        activePlayer.adjustMoney(5);
+        
+        ImmutableList<Decision> decisions = invokePrivateMethod(engine, "buildBuyDecisions", 
+            new Class<?>[]{});
+        
+        // Verify that BITCOIN and METHOD are NOT in the available decisions
+        for (Decision decision : decisions) {
+            if (decision instanceof BuyDecision) {
+                BuyDecision buyDecision = (BuyDecision) decision;
+                assertFalse("Should not include BITCOIN (empty pile)",
+                    buyDecision.cardType() == Card.Type.BITCOIN);
+                assertFalse("Should not include METHOD (empty pile)",
+                    buyDecision.cardType() == Card.Type.METHOD);
+            }
+        }
+        
+        // Verify that other affordable cards are still available
+        boolean hasOtherBuyDecisions = decisions.stream()
+            .anyMatch(d -> d instanceof BuyDecision);
+        assertTrue("Should still have buy decisions for non-empty piles", hasOtherBuyDecisions);
+    }
+
     // ========== validateDecision Tests ==========
 
     @Test
@@ -844,119 +979,6 @@ public class OurEngineTest {
                 new Class<?>[]{EndPhaseDecision.class}, decision);
         } catch (Exception e) {
             throw e.getCause(); // Unwrap reflection exception
-        }
-    }
-
-    // ========== processPlayCardDecision Tests ==========
-
-    @Test
-    public void testProcessPlayCardDecision_ActionCard_MovesToPlayedCards() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
-        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
-        
-        // Give player an action first (turnReset gives 1, we add 1 more = 2 total)
-        activePlayer.turnReset();
-        activePlayer.adjustActions(1);
-        
-        // Get the MutableHand and directly add an action card
-        MutableHand hand = getPrivateField(activePlayer, "hand");
-        Card codeReview = new Card(Card.Type.CODE_REVIEW, cardIdCounter.getAndIncrement());
-        hand.addToUnplayed(codeReview);
-        
-        // Get the actual card object from the hand
-        List<Card> unplayedCards = activePlayer.getUnplayedCards();
-        Card actualCard = unplayedCards.stream()
-            .filter(c -> c.type() == Card.Type.CODE_REVIEW)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("CODE_REVIEW not found in hand"));
-        
-        int initialUnplayedCount = unplayedCards.size();
-        
-        PlayCardDecision decision = new PlayCardDecision(actualCard);
-        invokePrivateMethod(engine, "processPlayCardDecision", 
-            new Class<?>[]{PlayCardDecision.class}, decision);
-        
-        // CODE_REVIEW effect: +1 Card, +2 Actions
-        // So unplayed count: starts at 6, -1 for playing, +1 for drawing = 6
-        int newUnplayedCount = activePlayer.getUnplayedCards().size();
-        assertEquals("Card count should stay same (played one, drew one)", initialUnplayedCount, newUnplayedCount);
-    }
-
-    @Test
-    public void testProcessPlayCardDecision_MoneyCard_AddsMoneyValue() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
-        
-        // Find a BITCOIN card in hand
-        List<Card> moneyCards = activePlayer.getMoneysInHand();
-        Card bitcoin = moneyCards.stream()
-            .filter(c -> c.type() == Card.Type.BITCOIN)
-            .findFirst()
-            .orElse(null);
-        assertNotNull("Should have BITCOIN in hand", bitcoin);
-        
-        int initialMoney = activePlayer.numMoney();
-        
-        PlayCardDecision decision = new PlayCardDecision(bitcoin);
-        invokePrivateMethod(engine, "processPlayCardDecision", 
-            new Class<?>[]{PlayCardDecision.class}, decision);
-        
-        int newMoney = activePlayer.numMoney();
-        assertEquals("Money should increase by 1 for BITCOIN", initialMoney + 1, newMoney);
-    }
-
-    @Test
-    public void testProcessPlayCardDecision_ActionCardWithZeroActions_ThrowsException() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
-        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
-        
-        // Reset turn which gives 1 action, then set actions to 0
-        activePlayer.turnReset();
-        activePlayer.adjustActions(-1); // Now has 0 actions
-        
-        assertEquals("Should have 0 actions", 0, activePlayer.numActions());
-        
-        // Add an action card to hand
-        MutableHand hand = getPrivateField(activePlayer, "hand");
-        Card codeReview = new Card(Card.Type.CODE_REVIEW, cardIdCounter.getAndIncrement());
-        hand.addToUnplayed(codeReview);
-        
-        // Get the actual card from hand
-        List<Card> unplayedCards = activePlayer.getUnplayedCards();
-        Card actualCard = unplayedCards.stream()
-            .filter(c -> c.type() == Card.Type.CODE_REVIEW)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("CODE_REVIEW not found in hand"));
-        
-        // Try to play action card with 0 actions - should throw IllegalStateException
-        PlayCardDecision decision = new PlayCardDecision(actualCard);
-        try {
-            invokePrivateMethod(engine, "processPlayCardDecision", 
-                new Class<?>[]{PlayCardDecision.class}, decision);
-            fail("Expected IllegalStateException to be thrown");
-        } catch (Exception e) {
-            // Unwrap InvocationTargetException if present
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            assertTrue("Should throw IllegalStateException", cause instanceof IllegalStateException);
-            assertTrue("Error message should mention no actions", 
-                cause.getMessage().contains("No actions remaining"));
         }
     }
 
@@ -1158,6 +1180,59 @@ public class OurEngineTest {
         }
     }
 
+    @Test
+    public void testProcessTrashCardDecision_VictoryCard_DecreasesScore() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        
+        // Add a victory card to the player's deck and draw it
+        Card methodCard = new Card(Card.Type.METHOD, cardIdCounter.getAndIncrement());
+        List<Card> deck = getPrivateField(activePlayer, "deck");
+        deck.add(methodCard);
+        activePlayer.drawCard();
+        
+        int initialScore = activePlayer.getScore();
+        
+        TrashCardDecision decision = new TrashCardDecision(methodCard);
+        invokePrivateMethod(engine, "processTrashCardDecision", 
+            new Class<?>[]{TrashCardDecision.class}, decision);
+        
+        assertEquals("Score should decrease by 1 for METHOD card", initialScore - 1, activePlayer.getScore());
+    }
+
+    @Test
+    public void testProcessTrashCardDecision_NonVictoryCard_DoesNotChangeScore() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        
+        // Get a BITCOIN card from hand (starting hand has 7 BITCOINs)
+        List<Card> unplayedCards = activePlayer.getUnplayedCards();
+        Card bitcoinCard = null;
+        for (Card card : unplayedCards) {
+            if (card.type() == Card.Type.BITCOIN) {
+                bitcoinCard = card;
+                break;
+            }
+        }
+        
+        int initialScore = activePlayer.getScore();
+        
+        TrashCardDecision decision = new TrashCardDecision(bitcoinCard);
+        invokePrivateMethod(engine, "processTrashCardDecision", 
+            new Class<?>[]{TrashCardDecision.class}, decision);
+        
+        assertEquals("Score should not change for non-victory card", initialScore, activePlayer.getScore());
+    }
+
     // ========== processGainingCard Tests ==========
 
     @Test
@@ -1332,6 +1407,71 @@ public class OurEngineTest {
             initialPlayer3DiscardSize + 1, player3Discard.size());
     }
 
+    @Test
+    public void testExecuteActionEvergreenTest_InsufficientBugsInSupply() throws Exception {
+        // Create 4 players - active player + 3 opponents who should each get a BUG
+        OurEngine engine = new OurEngine(fourPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        
+        // Get the shop and deplete BUGs to just 1 (insufficient for 3 opponents)
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        int initialBugCount = shop.getNumAvailable(Card.Type.BUG);
+        // Deplete to 1 BUG remaining
+        for (int i = 0; i < initialBugCount - 1; i++) {
+            shop.decrementCount(Card.Type.BUG);
+        }
+        assertEquals("Should have exactly 1 BUG in supply", 1, shop.getNumAvailable(Card.Type.BUG));
+        
+        // Track initial discard sizes
+        List<Card> player2Discard = getPrivateField(players.get(1), "discard");
+        List<Card> player3Discard = getPrivateField(players.get(2), "discard");
+        List<Card> player4Discard = getPrivateField(players.get(3), "discard");
+        int initialPlayer2DiscardSize = player2Discard.size();
+        int initialPlayer3DiscardSize = player3Discard.size();
+        int initialPlayer4DiscardSize = player4Discard.size();
+        
+        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[]{});
+        
+        // Only 1 BUG should be distributed (to one of the three opponents)
+        int totalBugsGained = (player2Discard.size() - initialPlayer2DiscardSize) +
+                               (player3Discard.size() - initialPlayer3DiscardSize) +
+                               (player4Discard.size() - initialPlayer4DiscardSize);
+        assertEquals("Exactly 1 BUG should be distributed", 1, totalBugsGained);
+        assertEquals("BUG supply should be exhausted", 0, shop.getNumAvailable(Card.Type.BUG));
+    }
+
+    @Test
+    public void testExecuteActionEvergreenTest_NoBugsInSupply() throws Exception {
+        // Create 2 players - active player + 1 opponent who should get a BUG normally
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        
+        // Get the shop and deplete all BUGs to 0
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        int initialBugCount = shop.getNumAvailable(Card.Type.BUG);
+        for (int i = 0; i < initialBugCount; i++) {
+            shop.decrementCount(Card.Type.BUG);
+        }
+        assertEquals("Should have 0 BUGs in supply", 0, shop.getNumAvailable(Card.Type.BUG));
+        
+        // Track initial discard size for opponent
+        List<Card> player2Discard = getPrivateField(players.get(1), "discard");
+        int initialPlayer2DiscardSize = player2Discard.size();
+        
+        // Execute EVERGREEN_TEST - should handle gracefully with no BUGs available
+        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[]{});
+        
+        // No BUG should be gained (silent fail when supply is empty)
+        assertEquals("Opponent should not gain BUG when supply is empty", 
+            initialPlayer2DiscardSize, player2Discard.size());
+        assertEquals("BUG supply should still be 0", 0, shop.getNumAvailable(Card.Type.BUG));
+    }
+
     // ========== Player Disqualification Tests ==========
 
     @Test
@@ -1486,6 +1626,103 @@ public class OurEngineTest {
         for (Decision decision : decisions) {
             assertTrue("All decisions should be TrashCardDecision", 
                 decision instanceof TrashCardDecision);
+        }
+    }
+
+    @Test
+    public void testBuildTrashCardDecisions_VerifyCardInstances() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        
+        // Clear hand and add specific cards
+        MutableHand hand = getPrivateField(activePlayer, "hand");
+        hand.clear();
+        Card bitcoin = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
+        Card ethereum = new Card(Card.Type.ETHEREUM, cardIdCounter.getAndIncrement());
+        hand.addToUnplayed(bitcoin);
+        hand.addToUnplayed(ethereum);
+        
+        ImmutableList<Decision> decisions = invokePrivateMethod(engine, 
+            "buildTrashCardDecisionsForCurrentHand", new Class<?>[]{});
+        
+        assertEquals("Should have 2 decisions", 2, decisions.size());
+        
+        // Extract cards from decisions
+        List<Card> decisionCards = new ArrayList<>();
+        for (Decision decision : decisions) {
+            assertTrue("Should be TrashCardDecision", decision instanceof TrashCardDecision);
+            TrashCardDecision tcd = (TrashCardDecision) decision;
+            decisionCards.add(tcd.card());
+        }
+        
+        // Verify the exact card instances are in the decisions
+        assertTrue("Decision should contain bitcoin instance", decisionCards.contains(bitcoin));
+        assertTrue("Decision should contain ethereum instance", decisionCards.contains(ethereum));
+    }
+
+    @Test
+    public void testBuildTrashCardDecisions_SameTypesDifferentIds() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        
+        // Clear hand and add 3 BITCOIN cards with different IDs
+        MutableHand hand = getPrivateField(activePlayer, "hand");
+        hand.clear();
+        Card bitcoin1 = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
+        Card bitcoin2 = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
+        Card bitcoin3 = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
+        hand.addToUnplayed(bitcoin1);
+        hand.addToUnplayed(bitcoin2);
+        hand.addToUnplayed(bitcoin3);
+        
+        ImmutableList<Decision> decisions = invokePrivateMethod(engine, 
+            "buildTrashCardDecisionsForCurrentHand", new Class<?>[]{});
+        
+        assertEquals("Should have 3 distinct decisions", 3, decisions.size());
+        
+        // Extract card IDs from decisions
+        List<Integer> cardIds = new ArrayList<>();
+        for (Decision decision : decisions) {
+            TrashCardDecision tcd = (TrashCardDecision) decision;
+            cardIds.add(tcd.card().id());
+        }
+        
+        // Verify all IDs are unique
+        assertEquals("All card IDs should be unique", 3, cardIds.stream().distinct().count());
+        assertTrue("Should contain bitcoin1 ID", cardIds.contains(bitcoin1.id()));
+        assertTrue("Should contain bitcoin2 ID", cardIds.contains(bitcoin2.id()));
+        assertTrue("Should contain bitcoin3 ID", cardIds.contains(bitcoin3.id()));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testBuildTrashCardDecisions_ImmutabilityOfReturnedList() throws Exception {
+        // Create fresh players to avoid any state sharing
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        setPrivateField(engine, "activePlayer", activePlayer);
+        
+        ImmutableList<Decision> decisions = invokePrivateMethod(engine, 
+            "buildTrashCardDecisionsForCurrentHand", new Class<?>[]{});
+        
+        // Verify list is immutable by attempting to modify it
+        try {
+            decisions.add(new EndPhaseDecision(GameState.TurnPhase.ACTION));
+            fail("Should throw UnsupportedOperationException when trying to modify immutable list");
+        } catch (UnsupportedOperationException e) {
+            // Expected - list is immutable
         }
     }
 

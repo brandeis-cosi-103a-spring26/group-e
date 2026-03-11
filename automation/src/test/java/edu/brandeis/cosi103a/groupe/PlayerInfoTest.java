@@ -396,6 +396,19 @@ public class PlayerInfoTest {
         assertFalse("Trash should fail for card not in hand", result);
     }
 
+    @Test
+    public void testTrashCard_VictoryCardNotInHand_ScoreUnchanged() {
+        // Attempt to trash a victory card that's not in hand
+        Card nonExistentMethod = new Card(Type.METHOD, 9999);
+        
+        int initialScore = playerInfo.getScore();
+        
+        boolean result = playerInfo.trashCard(nonExistentMethod);
+        
+        assertFalse("Trash should fail for card not in hand", result);
+        assertEquals("Score should not change when trash fails", initialScore, playerInfo.getScore());
+    }
+
     // ========== Score Tests ==========
 
     @Test

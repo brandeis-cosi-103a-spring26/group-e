@@ -155,16 +155,18 @@ public class PlayerInfo {
      * Trashes a card from the player's hand.
      * Removes the card from the unplayed cards in hand. Once removed,
      * the card is no longer in the player's possession.
-     * If the card is a victory card, the player's score is decreased by its point value.
+     * If the card is successfully trashed and it is a victory card, the player's 
+     * score is decreased by its point value.
      * 
      * @param card The card to trash (must be in unplayed cards)
      * @return true if the card was successfully removed, false if not found in hand
      */
     public boolean trashCard(Card card) {
-        if (card.getCategory() == Card.Type.Category.VICTORY) {
+        boolean trashSuccessful = hand.removeFromUnplayed(card);
+        if (trashSuccessful && card.getCategory() == Card.Type.Category.VICTORY) {
             score -= card.value();
         }
-        return hand.removeFromUnplayed(card);
+        return trashSuccessful;
     }
 
     /**

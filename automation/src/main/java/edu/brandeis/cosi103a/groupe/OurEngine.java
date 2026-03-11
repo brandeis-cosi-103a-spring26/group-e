@@ -182,7 +182,8 @@ public class OurEngine implements Engine {
      * Processes trashing a card, permanently removing it from the active player's
      * hand.
      * The trashed card is removed from the game entirely, not returned to the
-     * supply.
+     * supply. If the trashed card is a victory card, the player's score is
+     * decreased by the card's point value.
      *
      * @param decision Decision specifying which card to trash
      * @throws IllegalStateException if the card is not found in the player's
@@ -331,7 +332,8 @@ public class OurEngine implements Engine {
      * Trash a card from your hand; Gain a card costing up to 2 more than the
      * trashed card.
      *
-     * Trashing a card removes it from the player's deck entirely
+     * Trashing a card removes it from the player's deck entirely. If the trashed
+     * card is a victory card, the player's score decreases by the card's point value.
      * When this card is played, the player will be prompted with TrashCardDecisions
      * for each card in their hand.
      * Trashing is not optional, so the list of decisions will not include an
@@ -343,7 +345,7 @@ public class OurEngine implements Engine {
      * player's discard pile.
      *
      * @throws PlayerViolationException if the player makes an invalid decision
-     *                                  during transh or gain phases.
+     *                                  during trash or gain phases.
      */
     private void executeActionRefactor() throws PlayerViolationException {
 
