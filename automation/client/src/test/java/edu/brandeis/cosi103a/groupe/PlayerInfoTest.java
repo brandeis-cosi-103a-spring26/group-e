@@ -402,6 +402,20 @@ public class PlayerInfoTest {
         assertFalse("Trash should fail for card not in hand", result);
     }
 
+    @Test
+    public void testTrashCard_VictoryCardNotInHand_ScoreUnchanged() {
+        // Attempt to trash a victory card that's not in hand
+        Card nonExistentMethod = new Card(Type.METHOD, 9999);
+
+        int initialScore = playerInfo.getScore();
+
+        boolean result = playerInfo.trashCard(nonExistentMethod);
+
+        assertFalse("Trash should fail for card not in hand", result);
+        assertEquals(
+                "Score should not change when trash fails", initialScore, playerInfo.getScore());
+    }
+
     // ========== Score Tests ==========
 
     @Test
@@ -666,6 +680,76 @@ public class PlayerInfoTest {
                 "Immutable hand should have same unplayed count as mutable",
                 playerInfo.getUnplayedCards().size(),
                 immutableHand.unplayedCards().size());
+    }
+
+    // ========== End-of-Game Tests ==========
+
+    @Test
+    public void testGetEndingDeck_ReturnsAllCards() throws Exception {
+        // Calculate total cards initially
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+        List<Card> unplayed = playerInfo.getUnplayedCards();
+
+        int totalCards = deck.size() + discard.size() + unplayed.size();
+
+        ImmutableList<Card> endingDeck = playerInfo.getEndingDeck();
+
+        assertEquals("Ending deck should contain all cards", totalCards, endingDeck.size());
+    }
+
+    @Test
+    public void testGetEndingDeck_MovesAllCardsToDiscard() throws Exception {
+        playerInfo.getEndingDeck();
+
+        List<Card> deck = getPrivateField(playerInfo, "deck");
+        List<Card> discard = getPrivateField(playerInfo, "discard");
+
+        assertTrue("Deck should be empty after getEndingDeck", deck.isEmpty());
+        assertEquals(
+                "Hand should be empty after getEndingDeck",
+                0,
+                playerInfo.getUnplayedCards().size());
+        assertEquals("All cards should be in discard", 10, discard.size()); // 7 BITCOIN + 3 METHOD
+    }
+
+    @Test
+    public void testGetEndingDeck_WithGainedCards() throws Exception {
+        // Gain some additional cards
+        Card newCard1 = new Card(Type.MODULE, 1000);
+        Card newCard2 = new Card(Type.ETHEREUM, 1001);
+        playerInfo.gainCard(newCard1);
+        playerInfo.gainCard(newCard2);
+
+        ImmutableList<Card> endingDeck = playerInfo.getEndingDeck();
+
+        assertEquals("Should have 12 total cards (10 starting + 2 gained)", 12, endingDeck.size());
+        assertTrue("Should contain gained MODULE", endingDeck.contains(newCard1));
+        assertTrue("Should contain gained ETHEREUM", endingDeck.contains(newCard2));
+    }
+
+    @Test
+    public void testGetEndingDeck_ReturnsImmutableList() throws Exception {
+        ImmutableList<Card> endingDeck = playerInfo.getEndingDeck();
+
+        try {
+            endingDeck.add(new Card(Type.BITCOIN, 9999));
+            fail("Should not be able to modify returned list");
+        } catch (UnsupportedOperationException e) {
+            // Expected
+        }
+    }
+
+    @Test
+    public void testGetEndingDeck_AfterPlayingCards() throws Exception {
+        // Play some cards
+        Card cardToPlay = playerInfo.getUnplayedCards().get(0);
+        playerInfo.playCard(cardToPlay);
+
+        ImmutableList<Card> endingDeck = playerInfo.getEndingDeck();
+
+        assertEquals("Should include played cards", 10, endingDeck.size());
+        assertTrue("Should contain played card", endingDeck.contains(cardToPlay));
     }
 
     // ========== Turn Resource Delegation Tests ==========
