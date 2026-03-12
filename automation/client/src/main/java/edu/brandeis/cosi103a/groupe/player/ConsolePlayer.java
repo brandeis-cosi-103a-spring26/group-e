@@ -1,4 +1,9 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.player;
+
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.main.Harness;
+import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
@@ -37,7 +42,7 @@ public class ConsolePlayer extends AbstractPlayer {
 
     /**
      * Sets the number of players so the log panel can show a complete previous round. Should be
-     * called alongside {@link #setTurnLogs(List)}.
+     * called alongside setTurnLogs(List).
      *
      * @param numPlayers total players in the game
      */

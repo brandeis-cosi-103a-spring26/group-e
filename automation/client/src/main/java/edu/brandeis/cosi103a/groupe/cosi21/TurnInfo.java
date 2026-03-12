@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.cosi21;
 
 /**
  * Manages turn-specific resources for a player during their turn in the game. Tracks the number of

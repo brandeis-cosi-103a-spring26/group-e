@@ -1,4 +1,8 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
+
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
+import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
+import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;

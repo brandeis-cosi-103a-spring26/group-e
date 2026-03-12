@@ -1,4 +1,7 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
+
+import edu.brandeis.cosi103a.groupe.cosi21.DebugGameState;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 
 import static org.fusesource.jansi.Ansi.*;
 

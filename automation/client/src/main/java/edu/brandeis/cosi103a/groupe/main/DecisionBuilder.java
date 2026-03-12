@@ -1,4 +1,6 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
+
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

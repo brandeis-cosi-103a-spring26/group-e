@@ -1,4 +1,8 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
+
+import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
