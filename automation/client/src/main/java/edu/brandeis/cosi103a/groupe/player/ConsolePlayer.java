@@ -1,16 +1,15 @@
 package edu.brandeis.cosi103a.groupe.player;
 
-import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-import edu.brandeis.cosi103a.groupe.main.Harness;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
-
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.main.Harness;
+import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
 

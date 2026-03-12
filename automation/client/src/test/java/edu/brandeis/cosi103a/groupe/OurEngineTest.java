@@ -1,9 +1,5 @@
 package edu.brandeis.cosi103a.groupe;
 
-import edu.brandeis.cosi103a.groupe.cosi21.*;
-import edu.brandeis.cosi103a.groupe.main.*;
-import edu.brandeis.cosi103a.groupe.player.*;
-
 import static org.junit.Assert.*;
 
 import com.google.common.collect.ImmutableList;
@@ -13,6 +9,9 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.PlayerResult;
+import edu.brandeis.cosi103a.groupe.cosi21.*;
+import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -1,12 +1,11 @@
 package edu.brandeis.cosi103a.groupe.main;
 
-import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 
 public class DecisionBuilder {
 

@@ -1,8 +1,5 @@
 package edu.brandeis.cosi103a.groupe.main;
 
-import edu.brandeis.cosi103a.groupe.cosi21.DebugGameState;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-
 import static org.fusesource.jansi.Ansi.*;
 
 import com.google.common.collect.ImmutableList;
@@ -16,6 +13,8 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.PlayerResult;
+import edu.brandeis.cosi103a.groupe.cosi21.DebugGameState;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;

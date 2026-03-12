@@ -1,14 +1,13 @@
 package edu.brandeis.cosi103a.groupe;
 
-import edu.brandeis.cosi103a.groupe.cosi21.*;
-import edu.brandeis.cosi103a.groupe.main.*;
-import edu.brandeis.cosi103a.groupe.player.*;
-
 import static org.junit.Assert.*;
 
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.state.CardStacks;
+import edu.brandeis.cosi103a.groupe.cosi21.*;
+import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.player.*;
 import org.junit.Before;
 import org.junit.Test;
 

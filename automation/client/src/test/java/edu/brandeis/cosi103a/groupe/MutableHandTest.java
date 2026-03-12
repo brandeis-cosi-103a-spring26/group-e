@@ -1,13 +1,12 @@
 package edu.brandeis.cosi103a.groupe;
 
-import edu.brandeis.cosi103a.groupe.cosi21.*;
-import edu.brandeis.cosi103a.groupe.main.*;
-import edu.brandeis.cosi103a.groupe.player.*;
-
 import static org.junit.Assert.*;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi103a.groupe.cosi21.*;
+import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.player.*;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;

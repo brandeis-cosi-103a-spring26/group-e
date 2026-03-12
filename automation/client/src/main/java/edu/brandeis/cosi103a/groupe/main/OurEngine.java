@@ -1,9 +1,5 @@
 package edu.brandeis.cosi103a.groupe.main;
 
-import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
-import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -17,6 +13,9 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.PlayerResult;
+import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
