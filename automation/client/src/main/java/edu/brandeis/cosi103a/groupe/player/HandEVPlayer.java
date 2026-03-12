@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.player;
 
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;

@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
 
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
@@ -8,6 +8,9 @@ import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
+import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
+import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -278,7 +281,7 @@ public class Harness {
      * @param max Maximum valid value (inclusive)
      * @return A valid integer within the specified range
      */
-    static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
+    public static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
         int value = -1;
         boolean valid = false;
 
@@ -416,7 +419,7 @@ public class Harness {
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    static DecisionResult getDecisionFromConsole(
+    public static DecisionResult getDecisionFromConsole(
             ImmutableList<Decision> options, Scanner inputScanner) {
         return getDecisionFromConsole(null, options, inputScanner);
     }
@@ -447,7 +450,7 @@ public class Harness {
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    static DecisionResult getDecisionFromConsole(
+    public static DecisionResult getDecisionFromConsole(
             edu.brandeis.cosi.atg.state.GameState state,
             ImmutableList<Decision> options,
             Scanner inputScanner) {

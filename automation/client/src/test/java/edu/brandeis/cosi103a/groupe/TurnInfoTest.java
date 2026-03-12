@@ -2,6 +2,9 @@ package edu.brandeis.cosi103a.groupe;
 
 import static org.junit.Assert.*;
 
+import edu.brandeis.cosi103a.groupe.cosi21.*;
+import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.player.*;
 import org.junit.Before;
 import org.junit.Test;
 

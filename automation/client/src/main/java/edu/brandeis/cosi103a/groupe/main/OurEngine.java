@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.main;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -13,6 +13,9 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.PlayerResult;
+import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
+import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -520,7 +523,7 @@ public class OurEngine implements Engine {
      * @throws IllegalStateException if all but one player is disqualified
      */
     @VisibleForTesting
-    PlayerInfo getNextPlayer() throws IllegalStateException {
+    public PlayerInfo getNextPlayer() throws IllegalStateException {
         if (players.stream().filter(PlayerInfo::isDisqualified).count() >= players.size() - 1) {
             throw new IllegalStateException(
                     "All but one player is disqualified, game should be over");
@@ -584,7 +587,7 @@ public class OurEngine implements Engine {
      * @return true if the FRAMEWORK cards are sold out or do not exist, false otherwise.
      */
     @VisibleForTesting
-    boolean isGameOver() {
+    public boolean isGameOver() {
         long disqualifiedPlayerCount = players.stream().filter(PlayerInfo::isDisqualified).count();
         if (disqualifiedPlayerCount >= players.size() - 1) {
             return true;
