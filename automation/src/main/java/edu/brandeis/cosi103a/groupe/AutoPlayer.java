@@ -20,7 +20,7 @@ public class AutoPlayer extends AbstractPlayer {
         Card.Type.IPO,
         Card.Type.TECH_DEBT,
         Card.Type.CODE_REVIEW,
-        Card.Type.TECH_DEBT,
+        Card.Type.SPRINT_PLANNING,
         Card.Type.UNIT_TEST,
         Card.Type.BACKLOG
     };
