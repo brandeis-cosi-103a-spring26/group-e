@@ -282,7 +282,7 @@ public class Harness {
      * @param max Maximum valid value (inclusive)
      * @return A valid integer within the specified range
      */
-    static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
+    public static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
         int value = -1;
         boolean valid = false;
 
@@ -420,7 +420,7 @@ public class Harness {
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    static DecisionResult getDecisionFromConsole(
+    public static DecisionResult getDecisionFromConsole(
             ImmutableList<Decision> options, Scanner inputScanner) {
         return getDecisionFromConsole(null, options, inputScanner);
     }
@@ -451,7 +451,7 @@ public class Harness {
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    static DecisionResult getDecisionFromConsole(
+    public static DecisionResult getDecisionFromConsole(
             edu.brandeis.cosi.atg.state.GameState state,
             ImmutableList<Decision> options,
             Scanner inputScanner) {

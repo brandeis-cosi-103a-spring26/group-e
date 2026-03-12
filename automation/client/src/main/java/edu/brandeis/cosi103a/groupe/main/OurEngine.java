@@ -524,7 +524,7 @@ public class OurEngine implements Engine {
      * @throws IllegalStateException if all but one player is disqualified
      */
     @VisibleForTesting
-    PlayerInfo getNextPlayer() throws IllegalStateException {
+    public PlayerInfo getNextPlayer() throws IllegalStateException {
         if (players.stream().filter(PlayerInfo::isDisqualified).count() >= players.size() - 1) {
             throw new IllegalStateException(
                     "All but one player is disqualified, game should be over");
@@ -588,7 +588,7 @@ public class OurEngine implements Engine {
      * @return true if the FRAMEWORK cards are sold out or do not exist, false otherwise.
      */
     @VisibleForTesting
-    boolean isGameOver() {
+    public boolean isGameOver() {
         long disqualifiedPlayerCount = players.stream().filter(PlayerInfo::isDisqualified).count();
         if (disqualifiedPlayerCount >= players.size() - 1) {
             return true;
