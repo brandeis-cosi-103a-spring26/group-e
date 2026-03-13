@@ -85,7 +85,7 @@ public class ConsolePlayer extends AbstractPlayer {
             for (Decision decision : options) {
                 if (decision instanceof PlayCardDecision) {
                     Card card = ((PlayCardDecision) decision).card();
-                    if (card.getCategory() == Card.Type.Category.MONEY) {
+                    if (card.category() == Card.Type.Category.MONEY) {
                         // Found a treasure, play it automatically
                         return decision;
                     }

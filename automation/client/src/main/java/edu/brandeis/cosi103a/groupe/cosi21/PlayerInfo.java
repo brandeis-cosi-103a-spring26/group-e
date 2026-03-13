@@ -130,7 +130,7 @@ public class PlayerInfo {
      */
     public void gainCard(Card card) {
         discard.add(card);
-        if (card.getCategory() == Card.Type.Category.VICTORY) {
+        if (card.category() == Card.Type.Category.VICTORY) {
             score += card.value();
         }
     }
@@ -145,7 +145,7 @@ public class PlayerInfo {
      */
     public boolean trashCard(Card card) {
         boolean trashSuccessful = hand.removeFromUnplayed(card);
-        if (trashSuccessful && card.getCategory() == Card.Type.Category.VICTORY) {
+        if (trashSuccessful && card.category() == Card.Type.Category.VICTORY) {
             score -= card.value();
         }
         return trashSuccessful;
@@ -170,7 +170,7 @@ public class PlayerInfo {
         List<Card> actions = new ArrayList<>();
         List<Card> unplayed = getUnplayedCards();
         for (Card card : unplayed) {
-            if (card.getCategory() == Card.Type.Category.ACTION) {
+            if (card.category() == Card.Type.Category.ACTION) {
                 actions.add(card);
             }
         }
@@ -187,7 +187,7 @@ public class PlayerInfo {
         List<Card> money = new ArrayList<>();
         List<Card> unplayed = getUnplayedCards();
         for (Card card : unplayed) {
-            if (card.getCategory() == Card.Type.Category.MONEY) {
+            if (card.category() == Card.Type.Category.MONEY) {
                 money.add(card);
             }
         }
