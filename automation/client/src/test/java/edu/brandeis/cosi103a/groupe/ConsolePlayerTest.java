@@ -71,7 +71,7 @@ public class ConsolePlayerTest {
     public void testMakeDecision_MethodExists() throws NoSuchMethodException {
         // Verify: makeDecision method exists with correct signature
         Method makeDecisionMethod =
-                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class);
+                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class, java.util.Optional.class);
         assertNotNull("makeDecision method should exist", makeDecisionMethod);
     }
 
@@ -79,7 +79,7 @@ public class ConsolePlayerTest {
     public void testMakeDecision_ReturnsDecision() throws Exception {
         // Verify: makeDecision returns Decision type
         Method makeDecisionMethod =
-                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class);
+                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class, java.util.Optional.class);
         assertEquals(
                 "makeDecision should return Decision type",
                 Decision.class,

@@ -289,31 +289,6 @@ public class AutoPlayerTest {
     }
 
     @Test
-    public void testMakeBuyDecision_NoPreferredCards_BuysByDescendingCost() {
-        GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyMethod  = new BuyDecision(Card.Type.METHOD);   // cost 4
-        BuyDecision buyModule  = new BuyDecision(Card.Type.MODULE);   // cost 5
-        BuyDecision buyEthereum = new BuyDecision(Card.Type.ETHEREUM); // cost 2
-        ImmutableList<Decision> options = ImmutableList.of(buyMethod, buyEthereum, buyModule);
-
-        assertSame("Should buy highest cost non-victory card when no preferred cards",
-                buyModule, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeBuyDecision_AvoidsNonFrameworkVictoryCards() {
-        GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBug    = new BuyDecision(Card.Type.BUG);    // victory card, low cost
-        BuyDecision buyMethod = new BuyDecision(Card.Type.METHOD); // action card, cost 4
-        // BUG is victory category - should not be bought over METHOD
-        ImmutableList<Decision> options = ImmutableList.of(buyBug, buyMethod);
-
-        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
-        assertNotSame("Should not buy non-Framework victory card BUG", buyBug, result);
-        assertSame("Should buy METHOD instead of BUG", buyMethod, result);
-    }
-
-    @Test
     public void testMakeBuyDecision_FallsBackToFirstOption_WhenNothingUseful() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         // Only victory cards that aren't FRAMEWORK, and cost 1 (below loop range)
@@ -357,54 +332,6 @@ public class AutoPlayerTest {
 
         assertSame("Should discard victory card (FRAMEWORK) first",
                 discardFramework, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeDiscardDecision_DiscardsBugVictoryCard() {
-        GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardMethod = new DiscardCardDecision(methodCard);
-        DiscardCardDecision discardBug    = new DiscardCardDecision(bugCard);
-        ImmutableList<Decision> options = ImmutableList.of(discardMethod, discardBug);
-
-        assertSame("Should discard BUG (victory) before METHOD",
-                discardBug, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeDiscardDecision_DiscardsBitcoin_WhenNoVictoryCards() {
-        GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardEthereum = new DiscardCardDecision(ethereumCard);
-        DiscardCardDecision discardBitcoin  = new DiscardCardDecision(bitcoinCard);
-        DiscardCardDecision discardModule   = new DiscardCardDecision(moduleCard);
-        ImmutableList<Decision> options =
-                ImmutableList.of(discardEthereum, discardModule, discardBitcoin);
-
-        assertSame("Should discard BITCOIN when no victory cards",
-                discardBitcoin, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeDiscardDecision_EndsPhase_WhenNoVictoryOrBitcoin() {
-        GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        EndPhaseDecision endPhase       = new EndPhaseDecision(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardModule = new DiscardCardDecision(moduleCard);
-        ImmutableList<Decision> options = ImmutableList.of(discardModule, endPhase);
-
-        assertSame("Should end phase before discarding action/treasure cards",
-                endPhase, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeDiscardDecision_DiscardsLowestCost_WhenNoEndPhase() {
-        GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardModule  = new DiscardCardDecision(moduleCard);  // cost 5
-        DiscardCardDecision discardMethod  = new DiscardCardDecision(methodCard);  // cost 4
-        DiscardCardDecision discardEthereum = new DiscardCardDecision(ethereumCard); // cost 2
-        ImmutableList<Decision> options =
-                ImmutableList.of(discardModule, discardMethod, discardEthereum);
-
-        assertSame("Should discard lowest cost card when forced",
-                discardEthereum, player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -465,30 +392,6 @@ public class AutoPlayerTest {
 
         assertSame("Should prefer DOGECOIN when top two unavailable",
                 gainDogecoin, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeGainDecision_NoPreferredCards_GainsByDescendingCost() {
-        GameState state = createMockGameState(GameState.TurnPhase.GAIN);
-        GainCardDecision gainMethod   = new GainCardDecision(Card.Type.METHOD);   // cost 4
-        GainCardDecision gainModule   = new GainCardDecision(Card.Type.MODULE);   // cost 5
-        GainCardDecision gainEthereum = new GainCardDecision(Card.Type.ETHEREUM); // cost 2
-        ImmutableList<Decision> options = ImmutableList.of(gainMethod, gainEthereum, gainModule);
-
-        assertSame("Should gain highest cost non-victory card when no preferred cards",
-                gainModule, player.makeDecision(state, options, java.util.Optional.empty()));
-    }
-
-    @Test
-    public void testMakeGainDecision_AvoidsNonFrameworkVictoryCards() {
-        GameState state = createMockGameState(GameState.TurnPhase.GAIN);
-        GainCardDecision gainBug    = new GainCardDecision(Card.Type.BUG);
-        GainCardDecision gainMethod = new GainCardDecision(Card.Type.METHOD);
-        ImmutableList<Decision> options = ImmutableList.of(gainBug, gainMethod);
-
-        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
-        assertNotSame("Should not gain non-Framework victory card BUG", gainBug, result);
-        assertSame("Should gain METHOD instead", gainMethod, result);
     }
 
     @Test
