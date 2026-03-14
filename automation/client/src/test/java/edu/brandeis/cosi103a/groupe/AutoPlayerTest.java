@@ -9,8 +9,7 @@ import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
-
-import edu.brandeis.cosi103a.groupe.cosi21.AutoPlayer;
+import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
 
 import org.junit.Before;
 import org.junit.Test;

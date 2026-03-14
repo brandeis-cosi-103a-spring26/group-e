@@ -9,6 +9,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -82,7 +83,7 @@ public class PlayerInfo {
      */
     public Decision makeDecision(
             GameState gameState, com.google.common.collect.ImmutableList<Decision> options) {
-        return player.makeDecision(gameState, options);
+        return player.makeDecision(gameState, options, Optional.empty());
     }
 
     /**

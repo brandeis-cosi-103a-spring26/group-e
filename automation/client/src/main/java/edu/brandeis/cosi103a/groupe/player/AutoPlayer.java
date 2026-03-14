@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe.cosi21;
+package edu.brandeis.cosi103a.groupe.player;
 
 import java.util.Optional;
 
@@ -13,8 +13,6 @@ import edu.brandeis.cosi.atg.decisions.GainCardDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
-
-import edu.brandeis.cosi103a.groupe.player.AbstractPlayer;
 
 public class AutoPlayer extends AbstractPlayer {
 
