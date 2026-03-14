@@ -61,7 +61,7 @@ public class ConsolePlayer extends AbstractPlayer {
      */
     @Override
     public Decision makeDecision(
-        GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
+            GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
 
         // If the only option is to end the action phase due to no actions remaining, we
         // can skip prompting the user and just return that decision

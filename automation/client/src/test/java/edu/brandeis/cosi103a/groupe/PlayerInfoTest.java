@@ -48,7 +48,9 @@ public class PlayerInfoTest {
 
         @Override
         public Decision makeDecision(
-            GameState state, ImmutableList<Decision> validDecisions, java.util.Optional<Event> optionalEvent) {
+                GameState state,
+                ImmutableList<Decision> validDecisions,
+                java.util.Optional<Event> optionalEvent) {
             return decisionToReturn;
         }
 
@@ -57,10 +59,10 @@ public class PlayerInfoTest {
             return name;
         }
 
-		@Override
-		public Optional<GameObserver> getObserver() {
-			return Optional.empty();
-		}
+        @Override
+        public Optional<GameObserver> getObserver() {
+            return Optional.empty();
+        }
     }
 
     /** Uses reflection to access a private field from an object. */

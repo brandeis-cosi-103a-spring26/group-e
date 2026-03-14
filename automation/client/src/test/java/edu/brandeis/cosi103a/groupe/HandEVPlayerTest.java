@@ -212,7 +212,8 @@ public class HandEVPlayerTest {
                     state,
                     ImmutableList.of(
                             new BuyDecision(Card.Type.DOGECOIN),
-                            new EndPhaseDecision(GameState.TurnPhase.BUY)), java.util.Optional.empty());
+                            new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                    java.util.Optional.empty());
         }
 
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
@@ -305,14 +306,16 @@ public class HandEVPlayerTest {
                 state,
                 ImmutableList.of(
                         new BuyDecision(Card.Type.BITCOIN),
-                        new EndPhaseDecision(GameState.TurnPhase.BUY)), java.util.Optional.empty());
+                        new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                java.util.Optional.empty());
 
         // Second buy: Ethereum (value 2)
         testPlayer.makeDecision(
                 state,
                 ImmutableList.of(
                         new BuyDecision(Card.Type.ETHEREUM),
-                        new EndPhaseDecision(GameState.TurnPhase.BUY)), java.util.Optional.empty());
+                        new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                java.util.Optional.empty());
 
         // Third buy: Dogecoin (value 3)
         Decision result =
@@ -321,7 +324,8 @@ public class HandEVPlayerTest {
                         ImmutableList.of(
                                 new BuyDecision(Card.Type.DOGECOIN),
                                 new BuyDecision(Card.Type.BITCOIN),
-                                new EndPhaseDecision(GameState.TurnPhase.BUY)), java.util.Optional.empty());
+                                new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                        java.util.Optional.empty());
 
         // Should still prefer Dogecoin
         assertTrue("Should buy a money card", result instanceof BuyDecision);
@@ -607,7 +611,8 @@ public class HandEVPlayerTest {
                 state,
                 ImmutableList.of(
                         new BuyDecision(Card.Type.METHOD),
-                        new EndPhaseDecision(GameState.TurnPhase.BUY)), java.util.Optional.empty());
+                        new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                java.util.Optional.empty());
 
         // Framework should still be skipped (EV hasn't improved)
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
@@ -618,5 +623,4 @@ public class HandEVPlayerTest {
 
         assertSame("Should still skip FRAMEWORK after buying victory card", buyDogecoin, result);
     }
-    
 }

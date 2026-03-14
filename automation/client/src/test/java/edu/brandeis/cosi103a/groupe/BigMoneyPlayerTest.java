@@ -467,12 +467,16 @@ public class BigMoneyPlayerTest {
         // Test Dogecoin is preferred over Ethereum and Bitcoin (no Framework)
         ImmutableList<Decision> options2 = ImmutableList.of(buyBitcoin, buyEthereum, buyDogecoin);
         assertEquals(
-                "DOGECOIN should be preferred", buyDogecoin, player.makeDecision(state, options2, java.util.Optional.empty()));
+                "DOGECOIN should be preferred",
+                buyDogecoin,
+                player.makeDecision(state, options2, java.util.Optional.empty()));
 
         // Test Ethereum is preferred over Bitcoin (no Framework or Dogecoin)
         ImmutableList<Decision> options3 = ImmutableList.of(buyBitcoin, buyEthereum);
         assertEquals(
-                "ETHEREUM should be preferred", buyEthereum, player.makeDecision(state, options3, java.util.Optional.empty()));
+                "ETHEREUM should be preferred",
+                buyEthereum,
+                player.makeDecision(state, options3, java.util.Optional.empty()));
     }
 
     @Test

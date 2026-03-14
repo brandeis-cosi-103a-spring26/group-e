@@ -10,7 +10,6 @@ import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,20 +43,20 @@ public class AutoPlayerTest {
     public void setUp() {
         player = new AutoPlayer();
 
-        bitcoinCard   = new Card(Card.Type.BITCOIN, 1);
-        ethereumCard  = new Card(Card.Type.ETHEREUM, 2);
-        dogecoinCard  = new Card(Card.Type.DOGECOIN, 3);
+        bitcoinCard = new Card(Card.Type.BITCOIN, 1);
+        ethereumCard = new Card(Card.Type.ETHEREUM, 2);
+        dogecoinCard = new Card(Card.Type.DOGECOIN, 3);
 
-        ipoCard        = new Card(Card.Type.IPO, 1);
-        techDebtCard   = new Card(Card.Type.TECH_DEBT, 2);
+        ipoCard = new Card(Card.Type.IPO, 1);
+        techDebtCard = new Card(Card.Type.TECH_DEBT, 2);
         codeReviewCard = new Card(Card.Type.CODE_REVIEW, 3);
-        unitTestCard   = new Card(Card.Type.UNIT_TEST, 4);
-        backlogCard    = new Card(Card.Type.BACKLOG, 5);
-        methodCard     = new Card(Card.Type.METHOD, 4);
-        moduleCard     = new Card(Card.Type.MODULE, 5);
+        unitTestCard = new Card(Card.Type.UNIT_TEST, 4);
+        backlogCard = new Card(Card.Type.BACKLOG, 5);
+        methodCard = new Card(Card.Type.METHOD, 4);
+        moduleCard = new Card(Card.Type.MODULE, 5);
 
-        frameworkCard  = new Card(Card.Type.FRAMEWORK, 6);
-        bugCard        = new Card(Card.Type.BUG, 1);
+        frameworkCard = new Card(Card.Type.FRAMEWORK, 6);
+        bugCard = new Card(Card.Type.BUG, 1);
     }
 
     // ========== Helper Methods ==========
@@ -165,12 +164,14 @@ public class AutoPlayerTest {
     @Test
     public void testMakeActionDecision_PrefersIPO_PlusActionCard() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
-        PlayCardDecision playIpo    = new PlayCardDecision(ipoCard);
+        PlayCardDecision playIpo = new PlayCardDecision(ipoCard);
         PlayCardDecision playModule = new PlayCardDecision(moduleCard);
-        EndPhaseDecision endPhase   = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(playModule, playIpo, endPhase);
 
-        assertSame("Should prefer IPO (+action) over MODULE", playIpo,
+        assertSame(
+                "Should prefer IPO (+action) over MODULE",
+                playIpo,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -178,10 +179,12 @@ public class AutoPlayerTest {
     public void testMakeActionDecision_PrefersTechDebt_PlusActionCard() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         PlayCardDecision playTechDebt = new PlayCardDecision(techDebtCard);
-        PlayCardDecision playModule   = new PlayCardDecision(moduleCard);
+        PlayCardDecision playModule = new PlayCardDecision(moduleCard);
         ImmutableList<Decision> options = ImmutableList.of(playModule, playTechDebt);
 
-        assertSame("Should prefer TECH_DEBT (+action)", playTechDebt,
+        assertSame(
+                "Should prefer TECH_DEBT (+action)",
+                playTechDebt,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -189,10 +192,12 @@ public class AutoPlayerTest {
     public void testMakeActionDecision_PrefersCodeReview_PlusActionCard() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         PlayCardDecision playCodeReview = new PlayCardDecision(codeReviewCard);
-        PlayCardDecision playMethod     = new PlayCardDecision(methodCard);
+        PlayCardDecision playMethod = new PlayCardDecision(methodCard);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, playCodeReview);
 
-        assertSame("Should prefer CODE_REVIEW (+action)", playCodeReview,
+        assertSame(
+                "Should prefer CODE_REVIEW (+action)",
+                playCodeReview,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -200,10 +205,12 @@ public class AutoPlayerTest {
     public void testMakeActionDecision_PrefersUnitTest_PlusActionCard() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         PlayCardDecision playUnitTest = new PlayCardDecision(unitTestCard);
-        PlayCardDecision playMethod   = new PlayCardDecision(methodCard);
+        PlayCardDecision playMethod = new PlayCardDecision(methodCard);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, playUnitTest);
 
-        assertSame("Should prefer UNIT_TEST (+action)", playUnitTest,
+        assertSame(
+                "Should prefer UNIT_TEST (+action)",
+                playUnitTest,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -211,23 +218,27 @@ public class AutoPlayerTest {
     public void testMakeActionDecision_PrefersBacklog_PlusActionCard() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
         PlayCardDecision playBacklog = new PlayCardDecision(backlogCard);
-        PlayCardDecision playMethod  = new PlayCardDecision(methodCard);
+        PlayCardDecision playMethod = new PlayCardDecision(methodCard);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, playBacklog);
 
-        assertSame("Should prefer BACKLOG (+action)", playBacklog,
+        assertSame(
+                "Should prefer BACKLOG (+action)",
+                playBacklog,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeActionDecision_NoPlusActionCards_PlayHighestCostFirst() {
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
-        PlayCardDecision playMethod = new PlayCardDecision(methodCard);  // cost 4
-        PlayCardDecision playModule = new PlayCardDecision(moduleCard);  // cost 5
-        EndPhaseDecision endPhase   = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        PlayCardDecision playMethod = new PlayCardDecision(methodCard); // cost 4
+        PlayCardDecision playModule = new PlayCardDecision(moduleCard); // cost 5
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, endPhase, playModule);
 
-        assertSame("Should play highest cost action card when no +action cards",
-                playModule, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should play highest cost action card when no +action cards",
+                playModule,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -236,20 +247,24 @@ public class AutoPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        assertSame("Should fall back to first option when no playable cards",
-                endPhase, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should fall back to first option when no playable cards",
+                endPhase,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeActionDecision_PlusActionPriorityOverHighCost() {
         // IPO (cost 1, +action) should beat MODULE (cost 5, no +action)
         GameState state = createMockGameState(GameState.TurnPhase.ACTION);
-        PlayCardDecision playIpo    = new PlayCardDecision(ipoCard);    // cost 1, +action
+        PlayCardDecision playIpo = new PlayCardDecision(ipoCard); // cost 1, +action
         PlayCardDecision playModule = new PlayCardDecision(moduleCard); // cost 5, no +action
         ImmutableList<Decision> options = ImmutableList.of(playModule, playIpo);
 
-        assertSame("Plus-action card should beat higher cost non-plus-action card",
-                playIpo, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Plus-action card should beat higher cost non-plus-action card",
+                playIpo,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     // ========== makeBuyDecision ==========
@@ -257,42 +272,48 @@ public class AutoPlayerTest {
     @Test
     public void testMakeBuyDecision_PrefersFramework() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBitcoin   = new BuyDecision(Card.Type.BITCOIN);
+        BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        BuyDecision buyDogecoin  = new BuyDecision(Card.Type.DOGECOIN);
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyDogecoin, buyFramework);
 
-        assertSame("Should prefer FRAMEWORK", buyFramework,
+        assertSame(
+                "Should prefer FRAMEWORK",
+                buyFramework,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeBuyDecision_PrefersIPO_OverDogecoin() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyIpo      = new BuyDecision(Card.Type.IPO);
+        BuyDecision buyIpo = new BuyDecision(Card.Type.IPO);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyDogecoin, buyIpo);
 
-        assertSame("Should prefer IPO over DOGECOIN (IPO is second in PREFERRED_CARDS)",
-                buyIpo, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should prefer IPO over DOGECOIN (IPO is second in PREFERRED_CARDS)",
+                buyIpo,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeBuyDecision_PrefersDogecoin_WhenNoFrameworkOrIPO() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBitcoin  = new BuyDecision(Card.Type.BITCOIN);
+        BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyDogecoin);
 
-        assertSame("Should prefer DOGECOIN when FRAMEWORK and IPO unavailable",
-                buyDogecoin, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should prefer DOGECOIN when FRAMEWORK and IPO unavailable",
+                buyDogecoin,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeBuyDecision_FallsBackToFirstOption_WhenNothingUseful() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         // Only victory cards that aren't FRAMEWORK, and cost 1 (below loop range)
-        BuyDecision buyBug  = new BuyDecision(Card.Type.BUG);
+        BuyDecision buyBug = new BuyDecision(Card.Type.BUG);
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, buyBug);
 
@@ -304,11 +325,13 @@ public class AutoPlayerTest {
     public void testMakeBuyDecision_AllPreferredAvailable_PicksFrameworkFirst() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
         BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
-        BuyDecision buyIpo       = new BuyDecision(Card.Type.IPO);
-        BuyDecision buyDogecoin  = new BuyDecision(Card.Type.DOGECOIN);
+        BuyDecision buyIpo = new BuyDecision(Card.Type.IPO);
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyDogecoin, buyIpo, buyFramework);
 
-        assertSame("FRAMEWORK is first in preferred list", buyFramework,
+        assertSame(
+                "FRAMEWORK is first in preferred list",
+                buyFramework,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -326,24 +349,28 @@ public class AutoPlayerTest {
     @Test
     public void testMakeDiscardDecision_DiscardsVictoryCardFirst() {
         GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardBitcoin    = new DiscardCardDecision(bitcoinCard);
-        DiscardCardDecision discardFramework  = new DiscardCardDecision(frameworkCard);
+        DiscardCardDecision discardBitcoin = new DiscardCardDecision(bitcoinCard);
+        DiscardCardDecision discardFramework = new DiscardCardDecision(frameworkCard);
         ImmutableList<Decision> options = ImmutableList.of(discardBitcoin, discardFramework);
 
-        assertSame("Should discard victory card (FRAMEWORK) first",
-                discardFramework, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should discard victory card (FRAMEWORK) first",
+                discardFramework,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeDiscardDecision_VictoryCardBeforeBitcoin() {
         GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        DiscardCardDecision discardBitcoin   = new DiscardCardDecision(bitcoinCard);
+        DiscardCardDecision discardBitcoin = new DiscardCardDecision(bitcoinCard);
         DiscardCardDecision discardFramework = new DiscardCardDecision(frameworkCard);
         ImmutableList<Decision> options = ImmutableList.of(discardBitcoin, discardFramework);
 
         // Victory card should take priority over BITCOIN
-        assertSame("Victory card should be discarded before BITCOIN",
-                discardFramework, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Victory card should be discarded before BITCOIN",
+                discardFramework,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -363,35 +390,42 @@ public class AutoPlayerTest {
     @Test
     public void testMakeGainDecision_PrefersFramework() {
         GameState state = createMockGameState(GameState.TurnPhase.GAIN);
-        GainCardDecision gainBitcoin   = new GainCardDecision(Card.Type.BITCOIN);
+        GainCardDecision gainBitcoin = new GainCardDecision(Card.Type.BITCOIN);
         GainCardDecision gainFramework = new GainCardDecision(Card.Type.FRAMEWORK);
-        GainCardDecision gainDogecoin  = new GainCardDecision(Card.Type.DOGECOIN);
-        ImmutableList<Decision> options = ImmutableList.of(gainBitcoin, gainDogecoin, gainFramework);
+        GainCardDecision gainDogecoin = new GainCardDecision(Card.Type.DOGECOIN);
+        ImmutableList<Decision> options =
+                ImmutableList.of(gainBitcoin, gainDogecoin, gainFramework);
 
-        assertSame("Should prefer FRAMEWORK", gainFramework,
+        assertSame(
+                "Should prefer FRAMEWORK",
+                gainFramework,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeGainDecision_PrefersIPO_OverDogecoin() {
         GameState state = createMockGameState(GameState.TurnPhase.GAIN);
-        GainCardDecision gainIpo      = new GainCardDecision(Card.Type.IPO);
+        GainCardDecision gainIpo = new GainCardDecision(Card.Type.IPO);
         GainCardDecision gainDogecoin = new GainCardDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(gainDogecoin, gainIpo);
 
-        assertSame("Should prefer IPO over DOGECOIN", gainIpo,
+        assertSame(
+                "Should prefer IPO over DOGECOIN",
+                gainIpo,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeGainDecision_PrefersDogecoin_WhenNoFrameworkOrIPO() {
         GameState state = createMockGameState(GameState.TurnPhase.GAIN);
-        GainCardDecision gainBitcoin  = new GainCardDecision(Card.Type.BITCOIN);
+        GainCardDecision gainBitcoin = new GainCardDecision(Card.Type.BITCOIN);
         GainCardDecision gainDogecoin = new GainCardDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(gainBitcoin, gainDogecoin);
 
-        assertSame("Should prefer DOGECOIN when top two unavailable",
-                gainDogecoin, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should prefer DOGECOIN when top two unavailable",
+                gainDogecoin,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -402,8 +436,10 @@ public class AutoPlayerTest {
         ImmutableList<Decision> options = ImmutableList.of(endPhase, gainBug);
 
         Decision result = player.makeDecision(state, options, java.util.Optional.empty());
-        assertSame("Should fall back to first option when no non-victory cards in range",
-                endPhase, result);
+        assertSame(
+                "Should fall back to first option when no non-victory cards in range",
+                endPhase,
+                result);
     }
 
     // ========== makeMoneyDecision ==========
@@ -412,21 +448,25 @@ public class AutoPlayerTest {
     public void testMakeMoneyDecision_ReturnsPlayCardDecision() {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
-        EndPhaseDecision endPhase    = new EndPhaseDecision(GameState.TurnPhase.MONEY);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, playBitcoin);
 
-        assertSame("Should return PlayCardDecision", playBitcoin,
+        assertSame(
+                "Should return PlayCardDecision",
+                playBitcoin,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeMoneyDecision_ReturnsFirstPlayCard_WhenMultipleAvailable() {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
-        PlayCardDecision playBitcoin  = new PlayCardDecision(bitcoinCard);
+        PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
         PlayCardDecision playEthereum = new PlayCardDecision(ethereumCard);
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin, playEthereum);
 
-        assertSame("Should return first PlayCardDecision", playBitcoin,
+        assertSame(
+                "Should return first PlayCardDecision",
+                playBitcoin,
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
@@ -436,19 +476,23 @@ public class AutoPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        assertSame("Should return first option when no PlayCardDecision",
-                endPhase, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should return first option when no PlayCardDecision",
+                endPhase,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
     public void testMakeMoneyDecision_FindsPlayCardNotAtFront() {
         GameState state = createMockGameState(GameState.TurnPhase.MONEY);
-        EndPhaseDecision endPhase    = new EndPhaseDecision(GameState.TurnPhase.MONEY);
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.MONEY);
         PlayCardDecision playBitcoin = new PlayCardDecision(bitcoinCard);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, playBitcoin);
 
-        assertSame("Should find PlayCardDecision even when not first",
-                playBitcoin, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should find PlayCardDecision even when not first",
+                playBitcoin,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     // ========== makeReactionDecision ==========
@@ -460,8 +504,10 @@ public class AutoPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.REACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase, playCard);
 
-        assertSame("Should react by playing card if available",
-                playCard, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should react by playing card if available",
+                playCard,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -470,8 +516,10 @@ public class AutoPlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.REACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        assertSame("Should fall back to first option when no reaction card",
-                endPhase, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should fall back to first option when no reaction card",
+                endPhase,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     @Test
@@ -481,8 +529,10 @@ public class AutoPlayerTest {
         PlayCardDecision playModule = new PlayCardDecision(moduleCard);
         ImmutableList<Decision> options = ImmutableList.of(playMethod, playModule);
 
-        assertSame("Should return first PlayCardDecision during reaction",
-                playMethod, player.makeDecision(state, options, java.util.Optional.empty()));
+        assertSame(
+                "Should return first PlayCardDecision during reaction",
+                playMethod,
+                player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
     // ========== Consistency / determinism ==========
@@ -490,7 +540,7 @@ public class AutoPlayerTest {
     @Test
     public void testMakeDecision_ConsistentResults_SameInputs() {
         GameState state = createMockGameState(GameState.TurnPhase.BUY);
-        BuyDecision buyBitcoin  = new BuyDecision(Card.Type.BITCOIN);
+        BuyDecision buyBitcoin = new BuyDecision(Card.Type.BITCOIN);
         BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
         ImmutableList<Decision> options = ImmutableList.of(buyBitcoin, buyDogecoin);
 
