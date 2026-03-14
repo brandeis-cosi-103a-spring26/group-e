@@ -1,0 +1,643 @@
+package edu.brandeis.cosi103a.groupe.main;
+
+import static org.fusesource.jansi.Ansi.*;
+import static org.fusesource.jansi.Ansi.Color.*;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
+import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
+import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import org.fusesource.jansi.AnsiConsole;
+
+public class Harness {
+
+    private static Scanner scanner = new Scanner(System.in);
+
+    /** Static map of card descriptions for display purposes. */
+    private static final Map<Card.Type, String> CARD_DESCRIPTIONS =
+            ImmutableMap.<Card.Type, String>builder()
+                    // Victory Cards
+                    .put(
+                            Card.Type.BUG,
+                            "A victory card worth -1 automation points.\n\n"
+                                    + "This card is never playable, but subtracts 1 automation point when the game ends.")
+                    .put(
+                            Card.Type.METHOD,
+                            "A victory card worth 1 automation point.\n\n"
+                                    + "This card is never playable, but grants 1 automation point when the game ends.")
+                    .put(
+                            Card.Type.MODULE,
+                            "A victory card worth 3 automation points.\n\n"
+                                    + "This card is never playable, but grants 3 automation points when the game ends.")
+                    .put(
+                            Card.Type.FRAMEWORK,
+                            "A victory card worth 6 automation points.\n\n"
+                                    + "This card is never playable, but grants 6 automation points when the game ends.")
+                    // Money Cards
+                    .put(
+                            Card.Type.BITCOIN,
+                            "A money card worth 1 money.\n\n"
+                                    + "This card is playable during the MONEY phase. When played, it grants 1 spendable money for the turn on which it was played.")
+                    .put(
+                            Card.Type.ETHEREUM,
+                            "A money card worth 2 money.\n\n"
+                                    + "This card is playable during the MONEY phase. When played, it grants 2 spendable money for the turn on which it was played.")
+                    .put(
+                            Card.Type.DOGECOIN,
+                            "A money card worth 3 money.\n\n"
+                                    + "This card is playable during the MONEY phase. When played, it grants 3 spendable money for the turn on which it was played.")
+                    // Action Cards
+                    .put(
+                            Card.Type.REFACTOR,
+                            "Trash a card from your hand; Gain a card costing up to 2 more than the trashed card.\n\n"
+                                    + "Trashing a card removes it from the player's deck entirely. When this card is played, the player will be prompted with "
+                                    + "TrashCardDecisions for each card in their hand. Trashing is not optional, so the list of decisions will not include an "
+                                    + "EndPhaseDecision. After the player makes a trash decision, they will be prompted with GainCardDecisions representing the "
+                                    + "cards they can possibly gain - every card that costs up to 2 more than the trashed card. Gaining a card is also not optional. "
+                                    + "Gained cards are placed into the player's discard pile.")
+                    .put(
+                            Card.Type.CODE_REVIEW,
+                            "+1 Card, +2 Actions.\n\n"
+                                    + "When this card is played, the player immediately draws a card, and is granted two additional actions for this turn.")
+                    .put(
+                            Card.Type.EVERGREEN_TEST,
+                            "(Attack card) +2 Cards; Each other player gains a Bug.\n\n"
+                                    + "When this card is played, the engine immediately adds a BUG to the discard pile of each other player.")
+                    .build();
+
+    /**
+     * Gets the description for a given card type.
+     *
+     * @param cardType The card type to get the description for
+     * @return The card description, or a default message if not found
+     */
+    public static String getCardDescription(Card.Type cardType) {
+        return CARD_DESCRIPTIONS.getOrDefault(cardType, "No description available.");
+    }
+
+    /**
+     * Prompts user for number/type of players Creates Player objects Creates Engine object and runs
+     * Engine.play(List<Player>);
+     */
+    public static void main(String[] args) {
+
+        // Uncomment to test:
+        // ImmutableList<Decision> testOptions = ImmutableList.of(
+        // new EndPhaseDecision(TurnPhase.ACTION),
+        // new PlayCardDecision(new Card(Card.Type.REFACTOR, 0)),
+        // new PlayCardDecision(new Card(Card.Type.REFACTOR, 1)),
+        // new PlayCardDecision(new Card(Card.Type.REFACTOR, 2))
+        // );
+        // Decision chosen = getDecisionFromConsole(testOptions);
+        // System.out.println("You chose: " + chosen.getDescription());
+
+        // ImmutableList<Decision> testOptions2 = ImmutableList.of(
+        // new EndPhaseDecision(TurnPhase.ACTION)
+        // );
+        // Decision chosen2 = getDecisionFromConsole(testOptions2);
+        // System.out.println("You chose: " + chosen2.getDescription());
+
+        AnsiConsole.systemInstall();
+
+        ArrayList<Player> players = new ArrayList<>();
+
+        // Welcome banner
+        System.out.println(ansi().eraseScreen());
+        System.out.println(
+                ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
+        System.out.println(
+                ansi().fg(YELLOW).bold().a("    Welcome to Automation: The Game").reset());
+        System.out.println(
+                ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
+        System.out.println(
+                ansi().fg(WHITE)
+                        .a("This is a 2-4 player game, with Human and AI players.\n")
+                        .reset());
+
+        // Get number of human players with validation
+        int numHuman =
+                getValidPlayerCount(
+                        scanner,
+                        ansi().fg(GREEN)
+                                .a("How many Human players? ")
+                                .fg(CYAN)
+                                .a("(0-4)")
+                                .reset()
+                                .toString(),
+                        0,
+                        4);
+        for (int i = 0; i < numHuman; i++) {
+            System.out.println(
+                    ansi().fg(GREEN).a("  ✓ Human player " + (i + 1) + " added").reset());
+            players.add(new ConsolePlayer());
+        }
+
+        // Get number of AI players with validation
+        int maxAI = 4 - numHuman;
+        int numAI =
+                getValidPlayerCount(
+                        scanner,
+                        ansi().fg(MAGENTA)
+                                .a("How many AI players? ")
+                                .fg(CYAN)
+                                .a("(0-" + maxAI + ")")
+                                .reset()
+                                .toString(),
+                        0,
+                        maxAI);
+        for (int i = 0; i < numAI; i++) {
+            System.out.println(ansi().fg(MAGENTA).a("  ✓ AI player " + (i + 1) + " added").reset());
+            players.add(new BigMoneyPlayer());
+        }
+
+        // Ensure at least 2 players total
+        while (numHuman + numAI < 2) {
+            System.out.println(
+                    ansi().fg(YELLOW)
+                            .a("\n⚠ You need at least 2 players total. Please add more players.\n")
+                            .reset());
+            int remaining = 4 - numHuman - numAI;
+            int additionalPlayers =
+                    getValidPlayerCount(
+                            scanner,
+                            ansi().fg(WHITE)
+                                    .a("How many additional players? ")
+                                    .fg(CYAN)
+                                    .a("(1-" + remaining + ")")
+                                    .reset()
+                                    .toString(),
+                            1,
+                            remaining);
+
+            int additionalHuman =
+                    getValidPlayerCount(
+                            scanner,
+                            ansi().fg(GREEN)
+                                    .a("How many of these should be Human? ")
+                                    .fg(CYAN)
+                                    .a("(0-" + additionalPlayers + ")")
+                                    .reset()
+                                    .toString(),
+                            0,
+                            additionalPlayers);
+            for (int i = 0; i < additionalHuman; i++) {
+                System.out.println(
+                        ansi().fg(GREEN)
+                                .a("  ✓ Human player " + (numHuman + i + 1) + " added")
+                                .reset());
+                players.add(new ConsolePlayer());
+            }
+            numHuman += additionalHuman;
+
+            int additionalAI = additionalPlayers - additionalHuman;
+            for (int i = 0; i < additionalAI; i++) {
+                System.out.println(
+                        ansi().fg(MAGENTA)
+                                .a("  ✓ AI player " + (numAI + i + 1) + " added")
+                                .reset());
+                players.add(new BigMoneyPlayer());
+            }
+            numAI += additionalAI;
+        }
+
+        System.out.println(
+                ansi().fg(CYAN).a("\n═══════════════════════════════════════════════").reset());
+        System.out.println(ansi().fg(YELLOW).bold().a("    Starting Game...").reset());
+        System.out.println(
+                ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
+
+        // Instructions
+        System.out.println(
+                ansi().fg(CYAN).a("── How to Play ─────────────────────────────────").reset());
+        System.out.println(
+                ansi().fg(RED)
+                        .a("  *")
+                        .fg(WHITE)
+                        .a(" indicates a card that can be acted upon")
+                        .reset());
+        System.out.println(ansi().fg(WHITE).a("    (played, bought, gained, or trashed)").reset());
+        System.out.println();
+        System.out.println(
+                ansi().fg(YELLOW)
+                        .a("  ❯")
+                        .fg(WHITE)
+                        .a(" To select a card, type its name or any unique")
+                        .reset());
+        System.out.println(
+                ansi().fg(WHITE)
+                        .a("    substring  (e.g. type ")
+                        .fg(CYAN)
+                        .a("bit")
+                        .fg(WHITE)
+                        .a(" for Bitcoin)")
+                        .reset());
+        System.out.println(
+                ansi().fg(CYAN).a("────────────────────────────────────────────────\n").reset());
+
+        System.out.print(ansi().fg(WHITE).a("Press enter to start the game...").reset());
+        scanner.nextLine();
+
+        OurEngine engine = new OurEngine(players);
+        // Give every ConsolePlayer a live reference to the engine's turn log history
+        // and the player count so the log panel shows one full previous round.
+        for (Player p : players) {
+            if (p instanceof ConsolePlayer) {
+                ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());
+                ((ConsolePlayer) p).setNumPlayers(engine.getNumPlayers());
+            }
+        }
+        try {
+            engine.play();
+        } catch (Exception e) {
+            System.out.println(
+                    ansi().fg(RED)
+                            .bold()
+                            .a("\n✗ An error occurred during the game: ")
+                            .a(e.getMessage())
+                            .reset());
+            e.printStackTrace();
+            System.out.println();
+        } finally {
+            AnsiConsole.systemUninstall();
+            scanner.close();
+        }
+    }
+
+    /**
+     * Prompts the user for a valid integer within the specified range. Reprompts on invalid input
+     * (non-integers or out of range).
+     *
+     * @param scanner The Scanner to read input from
+     * @param prompt The message to display to the user
+     * @param min Minimum valid value (inclusive)
+     * @param max Maximum valid value (inclusive)
+     * @return A valid integer within the specified range
+     */
+    public static int getValidPlayerCount(Scanner scanner, String prompt, int min, int max) {
+        int value = -1;
+        boolean valid = false;
+
+        while (!valid) {
+            System.out.print(prompt + " ");
+
+            if (scanner.hasNextInt()) {
+                value = scanner.nextInt();
+                scanner.nextLine(); // consume the rest of the line (including newline) Copilot
+                // Suggestion
+                if (value >= min && value <= max) {
+                    valid = true;
+                } else {
+                    System.out.println(
+                            ansi().fg(RED)
+                                    .a(
+                                            "✗ Invalid input. Please enter a number between "
+                                                    + min
+                                                    + " and "
+                                                    + max
+                                                    + ".")
+                                    .reset());
+                }
+            } else {
+                System.out.println(
+                        ansi().fg(RED).a("✗ Invalid input. Please enter a valid number.").reset());
+                scanner.next(); // consume the invalid input
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * Delegates to Renderer.displayName to ensure a single source of truth for card type display
+     * formatting.
+     */
+    private static String getDisplayName(Card.Type cardType) {
+        return Renderer.displayName(cardType);
+    }
+
+    /**
+     * Normalizes a user input string for card name matching (case-insensitive, handles spaces and
+     * underscores)
+     */
+    private static String normalizeCardName(String input) {
+        // Trim, lowercase, convert underscores to spaces, then collapse all whitespace to a single
+        // space
+        return input.trim().toLowerCase().replace('_', ' ').replaceAll("\\s+", " ");
+    }
+
+    /**
+     * Finds all card types that match the given input string (exact match or substring match)
+     * Returns a list of matching Card.Type values
+     */
+    private static List<Card.Type> findMatchingCardTypes(String input) {
+        String normalizedInput = normalizeCardName(input);
+        java.util.List<Card.Type> matches = new java.util.ArrayList<>();
+
+        for (Card.Type type : Card.Type.values()) {
+            String displayName = getDisplayName(type).toLowerCase();
+            if (displayName.equals(normalizedInput) || displayName.contains(normalizedInput)) {
+                matches.add(type);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * Returns true only if {@code allMatches} uniquely identifies this card's type (i.e., exactly
+     * one match and it equals the card's type).
+     */
+    private static boolean matchesCard(Card card, List<Card.Type> allMatches) {
+        return allMatches.size() == 1 && allMatches.get(0) == card.type();
+    }
+
+    /**
+     * Returns true only if {@code allMatches} uniquely identifies this card type (i.e., exactly one
+     * match and it equals {@code cardType}).
+     */
+    private static boolean matchesCardType(Card.Type cardType, List<Card.Type> allMatches) {
+        return allMatches.size() == 1 && allMatches.get(0) == cardType;
+    }
+
+    /** Shows a description/manual for a card type */
+    private static void showCardDescription(String cardName) {
+        // Try to find the card type using the same matching logic
+        List<Card.Type> matches = findMatchingCardTypes(cardName);
+
+        if (matches.isEmpty()) {
+            System.out.println(ansi().fg(RED).a("✗ Card not found: " + cardName).reset());
+        } else if (matches.size() > 1) {
+            System.out.print(
+                    ansi().fg(RED).a("✗ Multiple cards match '" + cardName + "': ").reset());
+            for (int i = 0; i < matches.size(); i++) {
+                System.out.print(ansi().fg(YELLOW).a(getDisplayName(matches.get(i))).reset());
+                if (i < matches.size() - 1) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
+        } else {
+            Card.Type foundType = matches.get(0);
+            System.out.println(
+                    ansi().fg(CYAN).a("\n═══ " + getDisplayName(foundType) + " ═══").reset());
+            System.out.println(ansi().fg(YELLOW).a("Cost: $" + foundType.cost()).reset());
+            System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
+            System.out.println(
+                    ansi().fg(WHITE).a("Description: " + getCardDescription(foundType)).reset());
+            System.out.println();
+        }
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options. If the only
+     * available option is an {@link EndPhaseDecision}, the user is prompted to press enter to
+     * continue and that decision is returned.
+     *
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
+     *     requested
+     */
+    public static DecisionResult getDecisionFromConsole(ImmutableList<Decision> options) {
+        return getDecisionFromConsole(null, options, scanner);
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options using the specified
+     * Scanner. If the only available option is an {@link EndPhaseDecision}, the user is prompted to
+     * press enter to continue and that decision is returned.
+     *
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @param inputScanner the Scanner to use for reading user input
+     * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
+     *     requested
+     */
+    public static DecisionResult getDecisionFromConsole(
+            ImmutableList<Decision> options, Scanner inputScanner) {
+        return getDecisionFromConsole(null, options, inputScanner);
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options. If the only
+     * available option is an {@link EndPhaseDecision}, the user is prompted to press enter to
+     * continue and that decision is returned.
+     *
+     * @param state the current game state (may be null)
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
+     *     requested
+     */
+    public static DecisionResult getDecisionFromConsole(
+            edu.brandeis.cosi.atg.state.GameState state, ImmutableList<Decision> options) {
+        return getDecisionFromConsole(state, options, scanner);
+    }
+
+    /**
+     * Prompts the user to select a {@link Decision} from the provided options using the specified
+     * Scanner. If the only available option is an {@link EndPhaseDecision}, the user is prompted to
+     * press enter to continue and that decision is returned.
+     *
+     * @param state the current game state (may be null)
+     * @param options an immutable list of available {@link Decision} options for the user
+     * @param inputScanner the Scanner to use for reading user input
+     * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
+     *     requested
+     */
+    public static DecisionResult getDecisionFromConsole(
+            edu.brandeis.cosi.atg.state.GameState state,
+            ImmutableList<Decision> options,
+            Scanner inputScanner) {
+
+        // Defensively ensure we have at least one option; otherwise, we could loop
+        // forever.
+        if (options == null || options.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "getDecisionFromConsole requires at least one Decision option.");
+        }
+
+        // If the only option is EndPhaseDecision, prompt player to press enter to
+        // continue
+        if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
+            System.out.print(
+                    ansi().fg(WHITE).a("No choices available. Press enter to continue...").reset());
+            inputScanner.nextLine(); // Wait for enter key
+            return new DecisionResult(options.get(0), false);
+        }
+
+        // Track whether auto-play was requested during this decision
+        boolean autoPlayRequested = false;
+
+        // Determine if we're in the Money phase
+        boolean isMoneyPhase =
+                (state != null
+                        && state.phase() == edu.brandeis.cosi.atg.state.GameState.TurnPhase.MONEY);
+
+        // // Print available options
+        // System.out.println(ansi().fg(CYAN).a("\nAvailable options:").reset());
+        // for (int i = 0; i < options.size(); i++) {
+        // System.out.println(ansi().fg(YELLOW).a(" " + (i + 1) + ". " +
+        // options.get(i).getDescription()).reset());
+        // }
+
+        // Prompt user for input until a valid choice is made
+        Decision choice = null;
+        while (choice == null) {
+            // Only prompt if not in auto-play mode
+            if (isMoneyPhase) {
+                System.out.print(
+                        ansi().fg(GREEN)
+                                .a(
+                                        "Enter card name, A to play all treasures, E to end phase, or 'man <cardname>' for info: ")
+                                .reset());
+            } else {
+                System.out.print(
+                        ansi().fg(GREEN)
+                                .a(
+                                        "Enter card name, E to end phase, or 'man <cardname>' for info: ")
+                                .reset());
+            }
+            String input = inputScanner.nextLine().trim();
+
+            // Handle empty input
+            if (input.isEmpty()) {
+                System.out.println(
+                        ansi().fg(RED)
+                                .a(
+                                        "✗ Invalid input. Please enter a card name, E, or 'man <cardname>'.")
+                                .reset());
+                continue;
+            }
+
+            // Handle "man cardname" for card descriptions
+            if (input.toLowerCase().startsWith("man ")) {
+                String cardName = input.substring(4).trim();
+                if (!cardName.isEmpty()) {
+                    showCardDescription(cardName);
+                } else {
+                    System.out.println(
+                            ansi().fg(RED).a("✗ Please specify a card name after 'man'.").reset());
+                }
+                continue;
+            }
+
+            // Handle "E" for end phase
+            if (input.equalsIgnoreCase("e") || input.equalsIgnoreCase("end")) {
+                // Find EndPhaseDecision in options
+                for (Decision option : options) {
+                    if (option instanceof EndPhaseDecision) {
+                        choice = option;
+                        break;
+                    }
+                }
+                if (choice == null) {
+                    System.out.println(ansi().fg(RED).a("✗ Cannot end phase right now.").reset());
+                }
+                continue;
+            }
+
+            // Handle "A" for auto-play all treasures in Money phase
+            if (input.equalsIgnoreCase("a") || input.equalsIgnoreCase("auto")) {
+                if (!isMoneyPhase) {
+                    System.out.println(
+                            ansi().fg(RED)
+                                    .a("✗ Auto-play is only available during the Money phase.")
+                                    .reset());
+                    continue;
+                }
+
+                // Find the first treasure card to play and signal auto-play mode
+                for (Decision option : options) {
+                    if (option instanceof PlayCardDecision) {
+                        Card card = ((PlayCardDecision) option).card();
+                        if (card.category() == Card.Type.Category.MONEY) {
+                            choice = option;
+                            autoPlayRequested = true; // local flag, returned in DecisionResult
+                            break;
+                        }
+                    }
+                }
+
+                if (choice == null) {
+                    System.out.println(
+                            ansi().fg(RED).a("✗ No treasure cards available to play.").reset());
+                }
+                continue;
+            }
+
+            // First, find all card types that match the input
+            List<Card.Type> allMatches = findMatchingCardTypes(input);
+
+            // Check if the input uniquely identifies a card
+            if (allMatches.isEmpty()) {
+                System.out.println(
+                        ansi().fg(RED)
+                                .a("✗ Card not found matching: '" + input + "'. Try again.")
+                                .reset());
+                continue;
+            } else if (allMatches.size() > 1) {
+                // Multiple cards match - show which ones
+                System.out.print(
+                        ansi().fg(RED)
+                                .a("✗ Invalid - multiple cards match '" + input + "': ")
+                                .reset());
+                for (int i = 0; i < allMatches.size(); i++) {
+                    System.out.print(
+                            ansi().fg(YELLOW).a(getDisplayName(allMatches.get(i))).reset());
+                    if (i < allMatches.size() - 1) {
+                        System.out.print(", ");
+                    }
+                }
+                System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
+                continue;
+            }
+
+            // Exactly one card matches - try to find it in the available decisions
+            for (Decision option : options) {
+                if (option instanceof PlayCardDecision) {
+                    Card card = ((PlayCardDecision) option).card();
+                    if (matchesCard(card, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof TrashCardDecision) {
+                    Card card = ((TrashCardDecision) option).card();
+                    if (matchesCard(card, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof BuyDecision) {
+                    Card.Type cardType = ((BuyDecision) option).cardType();
+                    if (matchesCardType(cardType, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                } else if (option instanceof GainCardDecision) {
+                    Card.Type cardType = ((GainCardDecision) option).cardType();
+                    if (matchesCardType(cardType, allMatches)) {
+                        choice = option;
+                        break;
+                    }
+                }
+            }
+
+            if (choice == null) {
+                System.out.println(
+                        ansi().fg(RED)
+                                .a(
+                                        "✗ Invalid choice: Card '"
+                                                + getDisplayName(allMatches.get(0))
+                                                + "' is not available right now.")
+                                .reset());
+            }
+        }
+
+        return new DecisionResult(choice, autoPlayRequested);
+    }
+}

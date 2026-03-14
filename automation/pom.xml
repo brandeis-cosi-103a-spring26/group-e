@@ -8,8 +8,15 @@
   <groupId>edu.brandeis.cosi103a.groupe</groupId>
   <artifactId>automation</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
   <name>automation</name>
+
+  <modules>
+    <module>client</module>
+    <module>server</module>
+  </modules>
+
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
