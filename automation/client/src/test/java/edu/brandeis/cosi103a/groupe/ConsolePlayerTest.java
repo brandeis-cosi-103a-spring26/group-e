@@ -131,7 +131,7 @@ public class ConsolePlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        Decision result = player.makeDecision(state, options);
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
 
         assertSame("Should auto-return EndPhaseDecision when no actions remain", endPhase, result);
     }
@@ -152,7 +152,7 @@ public class ConsolePlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        Decision result = player.makeDecision(state, options);
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
 
         assertSame("Should auto-return EndPhaseDecision when no buys remain", endPhase, result);
     }
