@@ -128,7 +128,11 @@ public class AutoPlayer extends AbstractPlayer {
             }
         }
 
-        return options.get(0); // Fallback if no suitable gain is found
+        // Attempt to end phase before buying anything else if possible
+        return options.stream()
+                .filter(option -> option instanceof EndPhaseDecision)
+                .findFirst()
+                .orElse(options.get(0)); // Fallback if no suitable buy is found
     }
 
     /**
@@ -186,6 +190,7 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
+        // Try to find each preferred card in order
         for (Card.Type preferredType : PREFERRED_CARDS) {
             for (Decision option : options) {
                 if (option instanceof GainCardDecision gainCardDecision) {
@@ -209,7 +214,11 @@ public class AutoPlayer extends AbstractPlayer {
             }
         }
 
-        return options.get(0); // Fallback if no suitable gain is found
+        // Attempt to end phase before gaining anything else if possible
+        return options.stream()
+                .filter(option -> option instanceof EndPhaseDecision)
+                .findFirst()
+                .orElse(options.get(0)); // Fallback if no suitable gain is found
     }
 
     /**

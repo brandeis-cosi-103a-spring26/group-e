@@ -32,12 +32,12 @@ public class AutoPlayerTest {
     private Card codeReviewCard;
     private Card unitTestCard;
     private Card backlogCard;
-    private Card methodCard;
-    private Card moduleCard;
 
     // Victory cards
     private Card frameworkCard;
     private Card bugCard;
+    private Card methodCard;
+    private Card moduleCard;
 
     @Before
     public void setUp() {
@@ -47,16 +47,16 @@ public class AutoPlayerTest {
         ethereumCard = new Card(Card.Type.ETHEREUM, 2);
         dogecoinCard = new Card(Card.Type.DOGECOIN, 3);
 
-        ipoCard = new Card(Card.Type.IPO, 1);
-        techDebtCard = new Card(Card.Type.TECH_DEBT, 2);
-        codeReviewCard = new Card(Card.Type.CODE_REVIEW, 3);
-        unitTestCard = new Card(Card.Type.UNIT_TEST, 4);
-        backlogCard = new Card(Card.Type.BACKLOG, 5);
-        methodCard = new Card(Card.Type.METHOD, 4);
-        moduleCard = new Card(Card.Type.MODULE, 5);
+        ipoCard = new Card(Card.Type.IPO, 4);
+        techDebtCard = new Card(Card.Type.TECH_DEBT, 5);
+        codeReviewCard = new Card(Card.Type.CODE_REVIEW, 6);
+        unitTestCard = new Card(Card.Type.UNIT_TEST, 7);
+        backlogCard = new Card(Card.Type.BACKLOG, 8);
 
-        frameworkCard = new Card(Card.Type.FRAMEWORK, 6);
-        bugCard = new Card(Card.Type.BUG, 1);
+        frameworkCard = new Card(Card.Type.FRAMEWORK, 9);
+        bugCard = new Card(Card.Type.BUG, 10);
+        methodCard = new Card(Card.Type.METHOD, 11);
+        moduleCard = new Card(Card.Type.MODULE, 12);
     }
 
     // ========== Helper Methods ==========
@@ -376,8 +376,7 @@ public class AutoPlayerTest {
     @Test
     public void testMakeDiscardDecision_FallsBackToFirst_WhenOnlyFallback() {
         GameState state = createMockGameState(GameState.TurnPhase.DISCARD);
-        // A card with cost 0 (below loop range) and not victory/bitcoin
-        Card weirdCard = new Card(Card.Type.ETHEREUM, 0); // cost=0, below loop start of 2
+        Card weirdCard = new Card(Card.Type.ETHEREUM, 0);
         DiscardCardDecision discardWeird = new DiscardCardDecision(weirdCard);
         ImmutableList<Decision> options = ImmutableList.of(discardWeird);
 
