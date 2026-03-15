@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -31,12 +30,14 @@ public class ClientPlayer extends AbstractPlayer {
         try {
             String bodyString = om.writeValueAsString(bodyObject);
             String url = BASE_URL + "/makeDecision";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .POST(HttpRequest.BodyPublishers.ofString(bodyString))
-                    .build();
+            HttpRequest request =
+                    HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .POST(HttpRequest.BodyPublishers.ofString(bodyString))
+                            .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response =
+                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             Decision returnedDecision = om.readValue(response.body(), Decision.class);
 
             return returnedDecision;

@@ -13,8 +13,6 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.ProxySelector;
@@ -25,6 +23,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.PushPromiseHandler;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -58,7 +58,8 @@ public class ClientPlayerTest {
         Decision actual = player.makeDecision(null, ImmutableList.of());
 
         assertSame(expected, actual);
-        assertEquals("http://localhost:9000/api/makeDecision", httpClient.lastRequest.uri().toString());
+        assertEquals(
+                "http://localhost:9000/api/makeDecision", httpClient.lastRequest.uri().toString());
         assertTrue(mapper.lastWrittenValue instanceof MakeDecisionBody);
         assertEquals(httpClient.responseBody, mapper.lastReadBody);
     }
@@ -140,29 +141,32 @@ public class ClientPlayerTest {
         StringBuilder bodyBuilder = new StringBuilder();
         CountDownLatch done = new CountDownLatch(1);
 
-        publisherOptional.get().subscribe(new Flow.Subscriber<ByteBuffer>() {
-            @Override
-            public void onSubscribe(Flow.Subscription subscription) {
-                subscription.request(Long.MAX_VALUE);
-            }
+        publisherOptional
+                .get()
+                .subscribe(
+                        new Flow.Subscriber<ByteBuffer>() {
+                            @Override
+                            public void onSubscribe(Flow.Subscription subscription) {
+                                subscription.request(Long.MAX_VALUE);
+                            }
 
-            @Override
-            public void onNext(ByteBuffer item) {
-                byte[] bytes = new byte[item.remaining()];
-                item.get(bytes);
-                bodyBuilder.append(new String(bytes, StandardCharsets.UTF_8));
-            }
+                            @Override
+                            public void onNext(ByteBuffer item) {
+                                byte[] bytes = new byte[item.remaining()];
+                                item.get(bytes);
+                                bodyBuilder.append(new String(bytes, StandardCharsets.UTF_8));
+                            }
 
-            @Override
-            public void onError(Throwable throwable) {
-                done.countDown();
-            }
+                            @Override
+                            public void onError(Throwable throwable) {
+                                done.countDown();
+                            }
 
-            @Override
-            public void onComplete() {
-                done.countDown();
-            }
-        });
+                            @Override
+                            public void onComplete() {
+                                done.countDown();
+                            }
+                        });
 
         assertTrue("Timed out waiting for request body", done.await(2, TimeUnit.SECONDS));
         return bodyBuilder.toString();
@@ -205,7 +209,8 @@ public class ClientPlayerTest {
             }
             lastRequest = request;
             @SuppressWarnings("unchecked")
-            HttpResponse<T> response = (HttpResponse<T>) new FakeHttpResponse(responseBody, request);
+            HttpResponse<T> response =
+                    (HttpResponse<T>) new FakeHttpResponse(responseBody, request);
             return response;
         }
 
