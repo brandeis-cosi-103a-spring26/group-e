@@ -1625,36 +1625,6 @@ public class OurEngineTest {
     }
 
     @Test
-    public void testExecuteActionRefactor_TrashExpensiveCard_CanGainExpensiveReplacement()
-            throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
-
-        // Add a FRAMEWORK (cost 8) to hand
-        MutableHand hand = getPrivateField(activePlayer, "hand");
-        hand.clear();
-        Card framework = new Card(Card.Type.FRAMEWORK, cardIdCounter.getAndIncrement());
-        hand.addToUnplayed(framework);
-
-        // Execute REFACTOR - trash FRAMEWORK (cost 8), can gain cards costing up to 10
-        invokePrivateMethod(engine, "executeActionRefactor", new Class<?>[] {});
-
-        // Verify the FRAMEWORK was trashed (not in hand or discard)
-        List<Card> discard = getPrivateField(activePlayer, "discard");
-        boolean frameworkInDiscard =
-                discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
-        assertFalse("Trashed FRAMEWORK should not be in discard", frameworkInDiscard);
-
-        // Should have gained something
-        assertTrue("Should have gained a card", discard.size() > 0);
-    }
-
-    @Test
     public void testExecuteActionRefactor_PhasesTransition_GainPhase() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);

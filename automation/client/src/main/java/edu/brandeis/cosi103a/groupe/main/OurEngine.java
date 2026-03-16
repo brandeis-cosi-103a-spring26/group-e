@@ -243,7 +243,7 @@ public class OurEngine implements Engine {
         // Move card to played cards in hand
         activePlayer.playCard(card);
 
-        switch (card.getCategory()) {
+        switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
             case MONEY -> processPlayMoneyCard(card.type());
             default -> throw new UnsupportedOperationException("Unsupported card category");
