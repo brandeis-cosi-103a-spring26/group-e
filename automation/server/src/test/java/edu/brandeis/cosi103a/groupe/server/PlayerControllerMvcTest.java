@@ -50,12 +50,12 @@ public class PlayerControllerMvcTest {
         objectMapper.registerModule(new Jdk8Module());
 
         MappingJackson2HttpMessageConverter jsonConverter =
-            new MappingJackson2HttpMessageConverter();
+                new MappingJackson2HttpMessageConverter();
         jsonConverter.setObjectMapper(objectMapper);
 
         mockMvc =
                 MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(jsonConverter)
+                        .setMessageConverters(jsonConverter)
                         .build();
     }
 
