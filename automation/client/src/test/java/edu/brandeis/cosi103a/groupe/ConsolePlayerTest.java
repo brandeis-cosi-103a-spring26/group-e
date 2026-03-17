@@ -71,7 +71,11 @@ public class ConsolePlayerTest {
     public void testMakeDecision_MethodExists() throws NoSuchMethodException {
         // Verify: makeDecision method exists with correct signature
         Method makeDecisionMethod =
-                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class);
+                ConsolePlayer.class.getMethod(
+                        "makeDecision",
+                        GameState.class,
+                        ImmutableList.class,
+                        java.util.Optional.class);
         assertNotNull("makeDecision method should exist", makeDecisionMethod);
     }
 
@@ -79,7 +83,11 @@ public class ConsolePlayerTest {
     public void testMakeDecision_ReturnsDecision() throws Exception {
         // Verify: makeDecision returns Decision type
         Method makeDecisionMethod =
-                ConsolePlayer.class.getMethod("makeDecision", GameState.class, ImmutableList.class);
+                ConsolePlayer.class.getMethod(
+                        "makeDecision",
+                        GameState.class,
+                        ImmutableList.class,
+                        java.util.Optional.class);
         assertEquals(
                 "makeDecision should return Decision type",
                 Decision.class,
@@ -131,7 +139,7 @@ public class ConsolePlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        Decision result = player.makeDecision(state, options);
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
 
         assertSame("Should auto-return EndPhaseDecision when no actions remain", endPhase, result);
     }
@@ -152,7 +160,7 @@ public class ConsolePlayerTest {
         EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(endPhase);
 
-        Decision result = player.makeDecision(state, options);
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
 
         assertSame("Should auto-return EndPhaseDecision when no buys remain", endPhase, result);
     }

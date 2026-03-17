@@ -344,7 +344,7 @@ public class Renderer {
                 String cardText = "• " + displayName(card.type());
                 int cardPadding = (SCREEN_WIDTH - cardText.length()) / 2;
                 System.out.print(" ".repeat(cardPadding));
-                System.out.println(colorForCategory(card.getCategory()).a(cardText).reset());
+                System.out.println(colorForCategory(card.category()).a(cardText).reset());
             }
         }
 
@@ -366,7 +366,7 @@ public class Renderer {
         List<Card> victoriesInHand = new ArrayList<>();
 
         for (Card card : state.currentPlayerHand().unplayedCards()) {
-            switch (card.getCategory()) {
+            switch (card.category()) {
                 case ACTION:
                     actionsInHand.add(card);
                     break;
@@ -873,7 +873,7 @@ public class Renderer {
                 List<Card> treasures = new ArrayList<>();
                 List<Card> actions = new ArrayList<>();
                 for (Card card : deck) {
-                    switch (card.getCategory()) {
+                    switch (card.category()) {
                         case VICTORY:
                             victories.add(card);
                             break;

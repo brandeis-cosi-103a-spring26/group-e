@@ -6,7 +6,9 @@ import edu.brandeis.cosi.atg.decisions.BuyDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
+import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
+import java.util.Optional;
 
 public class BigMoneyPlayer extends AbstractPlayer {
 
@@ -19,7 +21,8 @@ public class BigMoneyPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     @Override
-    public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
+    public Decision makeDecision(
+            GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
         // If the only option is EndPhaseDecision, return it
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
             return options.get(0);
