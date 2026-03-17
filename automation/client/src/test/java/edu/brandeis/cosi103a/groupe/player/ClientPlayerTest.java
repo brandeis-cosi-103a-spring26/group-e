@@ -3,16 +3,15 @@ package edu.brandeis.cosi103a.groupe.player;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.ProxySelector;
@@ -41,109 +40,110 @@ public class ClientPlayerTest {
 
     @Test
     public void makeDecision_SendsRequestAndReturnsParsedDecision() throws Exception {
-        ClientPlayer player = new ClientPlayer();
-
-        Decision expected = new EndPhaseDecision(GameState.TurnPhase.BUY);
         FakeObjectMapper mapper = new FakeObjectMapper();
         mapper.serializedBody = "{\"request\":\"payload\"}";
-        mapper.parsedDecision = expected;
+
+        Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        Decision expected = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(fallback, expected);
 
         FakeHttpClient httpClient = new FakeHttpClient();
-        httpClient.responseBody = "{\"decision\":\"placeholder\"}";
+        httpClient.responseBody = "{\"selectedIndex\":1}";
 
-        setField(player, "BASE_URL", "http://localhost:9000/api");
-        setField(player, "om", mapper);
-        setField(player, "httpClient", httpClient);
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
-        Decision actual = player.makeDecision(null, ImmutableList.of());
+        Decision actual = player.makeDecision(null, options, Optional.empty());
 
         assertSame(expected, actual);
         assertEquals(
                 "http://localhost:9000/api/makeDecision", httpClient.lastRequest.uri().toString());
         assertTrue(mapper.lastWrittenValue instanceof MakeDecisionBody);
-        assertEquals(httpClient.responseBody, mapper.lastReadBody);
     }
 
     @Test
-    public void makeDecision_WrapsIOExceptionAsRuntimeException() throws Exception {
-        ClientPlayer player = new ClientPlayer();
-
+    public void makeDecision_ReturnsFirstOptionWhenIOExceptionOccurs() {
         FakeObjectMapper mapper = new FakeObjectMapper();
         mapper.serializedBody = "{}";
+
         FakeHttpClient httpClient = new FakeHttpClient();
         httpClient.throwIOException = true;
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
-        setField(player, "BASE_URL", "http://localhost:9000/api");
-        setField(player, "om", mapper);
-        setField(player, "httpClient", httpClient);
+        Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        Decision alternative = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(fallback, alternative);
 
-        try {
-            player.makeDecision(null, ImmutableList.of());
-            fail("Expected RuntimeException");
-        } catch (RuntimeException e) {
-            assertTrue(e.getCause() instanceof IOException);
-        }
+        Decision actual = player.makeDecision(null, options, Optional.empty());
+        assertSame(fallback, actual);
     }
 
     @Test
-    public void makeDecision_WrapsInterruptedExceptionAsRuntimeException() throws Exception {
-        ClientPlayer player = new ClientPlayer();
-
+    public void makeDecision_ReturnsFirstOptionAndPreservesInterrupt() {
         FakeObjectMapper mapper = new FakeObjectMapper();
         mapper.serializedBody = "{}";
+
         FakeHttpClient httpClient = new FakeHttpClient();
         httpClient.throwInterrupted = true;
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
-        setField(player, "BASE_URL", "http://localhost:9000/api");
-        setField(player, "om", mapper);
-        setField(player, "httpClient", httpClient);
+        Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        Decision alternative = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(fallback, alternative);
 
         try {
-            player.makeDecision(null, ImmutableList.of());
-            fail("Expected RuntimeException");
-        } catch (RuntimeException e) {
-            assertTrue(e.getCause() instanceof InterruptedException);
+            Decision actual = player.makeDecision(null, options, Optional.empty());
+            assertSame(fallback, actual);
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
         }
     }
 
     @Test
     public void makeDecision_RequestBodyContainsStateAndOptionsFields() throws Exception {
-        ClientPlayer player = new ClientPlayer();
-
         FakeObjectMapper mapper = new FakeObjectMapper();
         mapper.serializedBody = "{\"state\":null,\"options\":[]}";
-        mapper.parsedDecision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
 
         FakeHttpClient httpClient = new FakeHttpClient();
-        httpClient.responseBody = "{\"decision\":\"ignored\"}";
+        httpClient.responseBody = "{\"selectedIndex\":0}";
 
-        setField(player, "BASE_URL", "http://localhost:9000/api");
-        setField(player, "om", mapper);
-        setField(player, "httpClient", httpClient);
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
-        player.makeDecision(null, ImmutableList.of());
+        Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        player.makeDecision(null, ImmutableList.of(fallback), Optional.empty());
 
         String requestBody = readRequestBody(httpClient.lastRequest);
         assertTrue(requestBody.contains("\"state\""));
         assertTrue(requestBody.contains("\"options\""));
     }
 
-    private static void setField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
+    @Test
+    public void makeDecision_WithRealObjectMapper_MapsDecisionJsonToMatchingOption() throws Exception {
+        ObjectMapper realMapper = new ObjectMapper();
+        FakeHttpClient httpClient = new FakeHttpClient();
+
+        Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        Decision expected = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(fallback, expected);
+
+        httpClient.responseBody = realMapper.writeValueAsString(expected);
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
+
+        Decision actual = player.makeDecision(null, options, Optional.<Event>empty());
+
+        assertSame(expected, actual);
     }
 
     private static String readRequestBody(HttpRequest request) throws Exception {
         Optional<HttpRequest.BodyPublisher> publisherOptional = request.bodyPublisher();
-        assertTrue("Request should contain a body", publisherOptional.isPresent());
+        if (publisherOptional.isEmpty()) {
+            throw new IllegalStateException("Request did not contain a body publisher");
+        }
 
         StringBuilder bodyBuilder = new StringBuilder();
         CountDownLatch done = new CountDownLatch(1);
 
-        publisherOptional
-                .get()
-                .subscribe(
+        publisherOptional.get().subscribe(
                         new Flow.Subscriber<ByteBuffer>() {
                             @Override
                             public void onSubscribe(Flow.Subscription subscription) {
@@ -168,7 +168,9 @@ public class ClientPlayerTest {
                             }
                         });
 
-        assertTrue("Timed out waiting for request body", done.await(2, TimeUnit.SECONDS));
+        if (!done.await(2, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("Timed out while reading request body");
+        }
         return bodyBuilder.toString();
     }
 
@@ -176,19 +178,10 @@ public class ClientPlayerTest {
         String serializedBody;
         Object lastWrittenValue;
 
-        String lastReadBody;
-        Decision parsedDecision;
-
         @Override
         public String writeValueAsString(Object value) {
             lastWrittenValue = value;
             return serializedBody;
-        }
-
-        @Override
-        public <T> T readValue(String content, Class<T> valueType) {
-            lastReadBody = content;
-            return valueType.cast(parsedDecision);
         }
     }
 
@@ -197,6 +190,7 @@ public class ClientPlayerTest {
         String responseBody = "{}";
         boolean throwIOException;
         boolean throwInterrupted;
+        int statusCode = 200;
 
         @Override
         public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler)
@@ -210,7 +204,7 @@ public class ClientPlayerTest {
             lastRequest = request;
             @SuppressWarnings("unchecked")
             HttpResponse<T> response =
-                    (HttpResponse<T>) new FakeHttpResponse(responseBody, request);
+                    (HttpResponse<T>) new FakeHttpResponse(responseBody, request, statusCode);
             return response;
         }
 
@@ -277,15 +271,17 @@ public class ClientPlayerTest {
     private static class FakeHttpResponse implements HttpResponse<String> {
         private final String body;
         private final HttpRequest request;
+        private final int statusCode;
 
-        FakeHttpResponse(String body, HttpRequest request) {
+        FakeHttpResponse(String body, HttpRequest request, int statusCode) {
             this.body = body;
             this.request = request;
+            this.statusCode = statusCode;
         }
 
         @Override
         public int statusCode() {
-            return 200;
+            return statusCode;
         }
 
         @Override
