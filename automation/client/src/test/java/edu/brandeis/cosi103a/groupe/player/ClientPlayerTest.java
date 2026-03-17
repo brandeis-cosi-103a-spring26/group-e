@@ -118,7 +118,8 @@ public class ClientPlayerTest {
     }
 
     @Test
-    public void makeDecision_WithRealObjectMapper_MapsDecisionJsonToMatchingOption() throws Exception {
+    public void makeDecision_WithRealObjectMapper_MapsDecisionJsonToMatchingOption()
+            throws Exception {
         ObjectMapper realMapper = new ObjectMapper();
         FakeHttpClient httpClient = new FakeHttpClient();
 
@@ -143,7 +144,9 @@ public class ClientPlayerTest {
         StringBuilder bodyBuilder = new StringBuilder();
         CountDownLatch done = new CountDownLatch(1);
 
-        publisherOptional.get().subscribe(
+        publisherOptional
+                .get()
+                .subscribe(
                         new Flow.Subscriber<ByteBuffer>() {
                             @Override
                             public void onSubscribe(Flow.Subscription subscription) {
