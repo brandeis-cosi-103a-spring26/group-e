@@ -8,7 +8,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-import edu.brandeis.cosi103a.groupe.main.Harness;
+import edu.brandeis.cosi103a.groupe.main.ConsoleIO;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,7 +106,7 @@ public class ConsolePlayer extends AbstractPlayer {
         // Renderer.renderGame(state);
         Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
 
-        DecisionResult result = Harness.getDecisionFromConsole(state, options);
+        DecisionResult result = ConsoleIO.getDecisionFromConsole(state, options);
 
         // Check if user requested auto-play mode
         if (result.isAutoPlayRequested()) {
