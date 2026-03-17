@@ -1,0 +1,39 @@
+package edu.brandeis.cosi103a.groupe.server;
+
+import com.google.common.collect.ImmutableList;
+import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
+import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.GameState;
+import java.util.Optional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class PlayerController {
+    private final Player player;
+
+    public PlayerController(Player player) {
+        this.player = player;
+    }
+
+    @PostMapping("/choose")
+    public Decision choose(@RequestBody DecisionRequest decisionRequest) {
+        GameState state = decisionRequest.state();
+        ImmutableList<Decision> options = decisionRequest.options();
+        Optional<Event> reason = decisionRequest.reason();
+        return player.makeDecision(state, options, reason);
+    }
+
+    @PostMapping("/log-event")
+    public void logEvent(@RequestBody LogEventRequest eventRequest) {
+        GameState state = eventRequest.state();
+        Event event = eventRequest.event();
+        GameObserver observer = player.getObserver().orElse(null);
+        if (observer != null) {
+            observer.notifyEvent(state, event);
+        }
+    }
+}
