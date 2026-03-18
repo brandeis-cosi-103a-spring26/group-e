@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class MegaObserver implements GameObserver {
 
-    private List<Observer> observers;
+    private final List<Observer> observers;
 
     /** Creates an empty collection of observers. */
     public MegaObserver() {
