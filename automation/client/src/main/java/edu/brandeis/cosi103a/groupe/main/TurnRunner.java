@@ -38,8 +38,8 @@ public class TurnRunner {
     }
 
     /**
-     * Runs the full inner loop for one player's turn (ACTION → MONEY → BUY → CLEANUP). Calls
-     * {@code activePlayer.turnReset()} at the start; cleanup must be called by the caller.
+     * Runs the full inner loop for one player's turn (ACTION → MONEY → BUY → CLEANUP). Calls {@code
+     * activePlayer.turnReset()} at the start; cleanup must be called by the caller.
      */
     public void runTurn(PlayerInfo activePlayer, TurnLog log) {
         this.activePlayer = activePlayer;

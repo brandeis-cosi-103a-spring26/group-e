@@ -16,9 +16,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 /**
- * Tests for card playing mechanics, now exercised through {@link TurnRunner#processPlayCardDecision}
- * rather than via reflection on OurEngine private methods. This gives better isolation and clearer
- * failure messages.
+ * Tests for card playing mechanics, now exercised through {@link
+ * TurnRunner#processPlayCardDecision} rather than via reflection on OurEngine private methods. This
+ * gives better isolation and clearer failure messages.
  */
 public class EnginePlayCardTest {
 
@@ -55,9 +55,7 @@ public class EnginePlayCardTest {
             AtomicInteger counter = new AtomicInteger(1);
             com.google.common.collect.ImmutableSet<Card.Type> actionCards =
                     com.google.common.collect.ImmutableSet.of(
-                            Card.Type.CODE_REVIEW,
-                            Card.Type.REFACTOR,
-                            Card.Type.EVERGREEN_TEST);
+                            Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST);
             MutableCardStacks stacks = new MutableCardStacks(numPlayers, actionCards);
             shop = new ShopManager(stacks, counter);
 
@@ -70,7 +68,8 @@ public class EnginePlayCardTest {
             edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry registry =
                     new edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry(
                             List.of(
-                                    new edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect(),
+                                    new edu.brandeis.cosi103a.groupe.main.actions
+                                            .CodeReviewEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions
                                             .EvergreenTestEffect()));
@@ -106,8 +105,7 @@ public class EnginePlayCardTest {
         s.runner.processPlayCardDecision(new PlayCardDecision(codeReview));
 
         assertFalse(
-                "Card should not be in unplayed",
-                s.active.getUnplayedCards().contains(codeReview));
+                "Card should not be in unplayed", s.active.getUnplayedCards().contains(codeReview));
         MutableHand hand = getField(s.active, "hand");
         assertTrue("Card should be in played", hand.getPlayedCards().contains(codeReview));
     }
@@ -308,7 +306,8 @@ public class EnginePlayCardTest {
         s.runner.processPlayCardDecision(new PlayCardDecision(evergreenTest));
 
         // -1 played + 2 drawn = +1
-        assertEquals("Should draw 2 cards", initialHandSize + 1, s.active.getUnplayedCards().size());
+        assertEquals(
+                "Should draw 2 cards", initialHandSize + 1, s.active.getUnplayedCards().size());
         assertEquals(
                 "Opponent discard should have one more card",
                 initialOpponentDiscardSize + 1,
@@ -329,7 +328,8 @@ public class EnginePlayCardTest {
         hand.addToUnplayed(refactor);
         hand.addToUnplayed(bitcoin);
 
-        assertEquals("Should start in ACTION phase", GameState.TurnPhase.ACTION, s.runner.getPhase());
+        assertEquals(
+                "Should start in ACTION phase", GameState.TurnPhase.ACTION, s.runner.getPhase());
 
         // BigMoneyPlayer handles trash/gain automatically (returns options.get(0))
         s.runner.processPlayCardDecision(new PlayCardDecision(refactor));

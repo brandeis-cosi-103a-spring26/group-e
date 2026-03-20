@@ -14,7 +14,6 @@ import edu.brandeis.cosi103a.groupe.main.*;
 import edu.brandeis.cosi103a.groupe.main.actions.*;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,15 +61,6 @@ public class OurEngineTest {
         Field field = obj.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(obj, value);
-    }
-
-    /** Uses reflection to invoke a private method. */
-    @SuppressWarnings("unchecked")
-    private <T> T invokePrivateMethod(
-            Object obj, String methodName, Class<?>[] paramTypes, Object... args) throws Exception {
-        Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
-        method.setAccessible(true);
-        return (T) method.invoke(obj, args);
     }
 
     /**
@@ -688,7 +678,9 @@ public class OurEngineTest {
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> validDecisions = ImmutableList.of(decision);
 
-        assertTrue("Valid decision should return true", runner.validateDecision(decision, validDecisions));
+        assertTrue(
+                "Valid decision should return true",
+                runner.validateDecision(decision, validDecisions));
     }
 
     @Test
@@ -701,7 +693,9 @@ public class OurEngineTest {
         EndPhaseDecision decision2 = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> validDecisions = ImmutableList.of(decision1);
 
-        assertFalse("Invalid decision should return false", runner.validateDecision(decision2, validDecisions));
+        assertFalse(
+                "Invalid decision should return false",
+                runner.validateDecision(decision2, validDecisions));
     }
 
     @Test
@@ -713,7 +707,8 @@ public class OurEngineTest {
         ImmutableList<Decision> validDecisions =
                 ImmutableList.of(new EndPhaseDecision(GameState.TurnPhase.ACTION));
 
-        assertFalse("Null decision should return false", runner.validateDecision(null, validDecisions));
+        assertFalse(
+                "Null decision should return false", runner.validateDecision(null, validDecisions));
     }
 
     // ========== processEndPhaseDecision Tests ==========
@@ -727,7 +722,10 @@ public class OurEngineTest {
 
         runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.ACTION));
 
-        assertEquals("Phase should change from ACTION to MONEY", GameState.TurnPhase.MONEY, runner.getPhase());
+        assertEquals(
+                "Phase should change from ACTION to MONEY",
+                GameState.TurnPhase.MONEY,
+                runner.getPhase());
     }
 
     @Test
@@ -739,7 +737,10 @@ public class OurEngineTest {
 
         runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.MONEY));
 
-        assertEquals("Phase should change from MONEY to BUY", GameState.TurnPhase.BUY, runner.getPhase());
+        assertEquals(
+                "Phase should change from MONEY to BUY",
+                GameState.TurnPhase.BUY,
+                runner.getPhase());
     }
 
     @Test
@@ -751,7 +752,10 @@ public class OurEngineTest {
 
         runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.BUY));
 
-        assertEquals("Phase should change from BUY to CLEANUP", GameState.TurnPhase.CLEANUP, runner.getPhase());
+        assertEquals(
+                "Phase should change from BUY to CLEANUP",
+                GameState.TurnPhase.CLEANUP,
+                runner.getPhase());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -910,7 +914,10 @@ public class OurEngineTest {
 
         runner.processTrashCardDecision(new TrashCardDecision(cardToTrash));
 
-        assertEquals("Hand should lose one card", initialHandSize - 1, activePlayer.getUnplayedCards().size());
+        assertEquals(
+                "Hand should lose one card",
+                initialHandSize - 1,
+                activePlayer.getUnplayedCards().size());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -1058,10 +1065,12 @@ public class OurEngineTest {
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new CodeReviewEffect().execute(ctx);
 
-        assertEquals("Should draw 1 card", initialHandSize + 1, activePlayer.getUnplayedCards().size());
+        assertEquals(
+                "Should draw 1 card", initialHandSize + 1, activePlayer.getUnplayedCards().size());
     }
 
     @Test
@@ -1074,7 +1083,8 @@ public class OurEngineTest {
 
         int initialActions = activePlayer.numActions();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new CodeReviewEffect().execute(ctx);
 
         assertEquals("Should add 2 actions", initialActions + 2, activePlayer.numActions());
@@ -1096,10 +1106,12 @@ public class OurEngineTest {
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new EvergreenTestEffect().execute(ctx);
 
-        assertEquals("Should draw 2 cards", initialHandSize + 2, activePlayer.getUnplayedCards().size());
+        assertEquals(
+                "Should draw 2 cards", initialHandSize + 2, activePlayer.getUnplayedCards().size());
     }
 
     @Test
@@ -1114,11 +1126,14 @@ public class OurEngineTest {
         int initialPlayer2DiscardSize = player2Discard.size();
         int initialPlayer3DiscardSize = player3Discard.size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new EvergreenTestEffect().execute(ctx);
 
-        assertEquals("Player 2 should gain a BUG", initialPlayer2DiscardSize + 1, player2Discard.size());
-        assertEquals("Player 3 should gain a BUG", initialPlayer3DiscardSize + 1, player3Discard.size());
+        assertEquals(
+                "Player 2 should gain a BUG", initialPlayer2DiscardSize + 1, player2Discard.size());
+        assertEquals(
+                "Player 3 should gain a BUG", initialPlayer3DiscardSize + 1, player3Discard.size());
     }
 
     @Test
@@ -1135,11 +1150,18 @@ public class OurEngineTest {
         int initialPlayer2DiscardSize = player2Discard.size();
         int initialPlayer3DiscardSize = player3Discard.size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new EvergreenTestEffect().execute(ctx);
 
-        assertEquals("Disqualified player should not gain BUG", initialPlayer2DiscardSize, player2Discard.size());
-        assertEquals("Active player 3 should gain a BUG", initialPlayer3DiscardSize + 1, player3Discard.size());
+        assertEquals(
+                "Disqualified player should not gain BUG",
+                initialPlayer2DiscardSize,
+                player2Discard.size());
+        assertEquals(
+                "Active player 3 should gain a BUG",
+                initialPlayer3DiscardSize + 1,
+                player3Discard.size());
     }
 
     @Test
@@ -1163,7 +1185,8 @@ public class OurEngineTest {
         int initialPlayer3DiscardSize = player3Discard.size();
         int initialPlayer4DiscardSize = player4Discard.size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new EvergreenTestEffect().execute(ctx);
 
         int totalBugsGained =
@@ -1192,7 +1215,8 @@ public class OurEngineTest {
         List<Card> player2Discard = getPrivateField(players.get(1), "discard");
         int initialPlayer2DiscardSize = player2Discard.size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new EvergreenTestEffect().execute(ctx);
 
         assertEquals(
@@ -1343,7 +1367,8 @@ public class OurEngineTest {
 
         // CODE_REVIEW gives +2 actions, playing costs -1: net +1
         int expectedActions = initialActions + 2 - 1;
-        assertEquals("Actions should be correctly adjusted", expectedActions, activePlayer.numActions());
+        assertEquals(
+                "Actions should be correctly adjusted", expectedActions, activePlayer.numActions());
     }
 
     // ========== processPlayMoneyCard Tests ==========
@@ -1428,7 +1453,8 @@ public class OurEngineTest {
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new RefactorEffect().execute(ctx);
 
         assertEquals(
@@ -1448,7 +1474,8 @@ public class OurEngineTest {
         MutableHand hand = getPrivateField(activePlayer, "hand");
         hand.clear();
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new RefactorEffect().execute(ctx);
 
         assertEquals("Hand should still be empty", 0, activePlayer.getUnplayedCards().size());
@@ -1469,7 +1496,8 @@ public class OurEngineTest {
         Card dogecoin = new Card(Card.Type.DOGECOIN, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(dogecoin);
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new RefactorEffect().execute(ctx);
 
         List<Card> discard = getPrivateField(activePlayer, "discard");
@@ -1491,11 +1519,13 @@ public class OurEngineTest {
         Card framework = new Card(Card.Type.FRAMEWORK, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(framework);
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new RefactorEffect().execute(ctx);
 
         List<Card> discard = getPrivateField(activePlayer, "discard");
-        boolean frameworkInDiscard = discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
+        boolean frameworkInDiscard =
+                discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
         assertFalse("Trashed FRAMEWORK should not be in discard", frameworkInDiscard);
         assertTrue("Should have gained a card", discard.size() > 0);
     }
@@ -1514,7 +1544,8 @@ public class OurEngineTest {
         Card bitcoin = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(bitcoin);
 
-        ActionContext ctx = createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new RefactorEffect().execute(ctx);
 
         assertEquals(
@@ -1832,42 +1863,6 @@ public class OurEngineTest {
     }
 
     // ========== Phase Transition Tests ==========
-
-    @Test
-    public void testProcessEndPhaseDecision_ActionToMoney_TransitionsCorrectly() throws Exception {
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        TurnRunner runner = createTurnRunner(engine);
-        runner.setPhase(GameState.TurnPhase.ACTION);
-
-        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.ACTION));
-
-        assertEquals("Should transition from ACTION to MONEY", GameState.TurnPhase.MONEY, runner.getPhase());
-    }
-
-    @Test
-    public void testProcessEndPhaseDecision_MoneyToBuy_TransitionsCorrectly() throws Exception {
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        TurnRunner runner = createTurnRunner(engine);
-        runner.setPhase(GameState.TurnPhase.MONEY);
-
-        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.MONEY));
-
-        assertEquals("Should transition from MONEY to BUY", GameState.TurnPhase.BUY, runner.getPhase());
-    }
-
-    @Test
-    public void testProcessEndPhaseDecision_BuyToCleanup_TransitionsCorrectly() throws Exception {
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        TurnRunner runner = createTurnRunner(engine);
-        runner.setPhase(GameState.TurnPhase.BUY);
-
-        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.BUY));
-
-        assertEquals("Should transition from BUY to CLEANUP", GameState.TurnPhase.CLEANUP, runner.getPhase());
-    }
 
     @Test
     public void testProcessEndPhaseDecision_AllPhases_CompleteSequence() throws Exception {

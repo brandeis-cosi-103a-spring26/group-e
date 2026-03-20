@@ -2,7 +2,6 @@ package edu.brandeis.cosi103a.groupe.main;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
@@ -36,8 +35,8 @@ public class OurEngine implements Engine {
     private static final int MIN_PLAYERS = 2;
 
     /**
-     * Validates players, wires up {@link ShopManager}, {@link ActionEffectRegistry}, and
-     * {@link GameRunner}.
+     * Validates players, wires up {@link ShopManager}, {@link ActionEffectRegistry}, and {@link
+     * GameRunner}.
      *
      * @param players A list of 2–4 players in turn order.
      * @throws IllegalArgumentException if the list is null, too short, too long, or contains nulls.
@@ -83,8 +82,8 @@ public class OurEngine implements Engine {
     }
 
     /**
-     * Returns an unmodifiable view of the last 10 turn logs from the running game.
-     * The list is live — entries are appended as events occur.
+     * Returns an unmodifiable view of the last 10 turn logs from the running game. The list is live
+     * — entries are appended as events occur.
      */
     public List<TurnLog> getTurnLogs() {
         return runner.getTurnLogs();

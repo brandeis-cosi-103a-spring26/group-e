@@ -14,8 +14,8 @@ import java.util.Scanner;
 
 /**
  * Console I/O utilities extracted from {@link Harness}. Handles reading player decisions from stdin
- * and displaying card information. {@code ConsolePlayer} imports this class instead of
- * {@code Harness}, breaking the circular package dependency.
+ * and displaying card information. {@code ConsolePlayer} imports this class instead of {@code
+ * Harness}, breaking the circular package dependency.
  */
 public class ConsoleIO {
 
@@ -78,8 +78,7 @@ public class ConsoleIO {
 
         boolean autoPlayRequested = false;
 
-        boolean isMoneyPhase =
-                (state != null && state.phase() == GameState.TurnPhase.MONEY);
+        boolean isMoneyPhase = (state != null && state.phase() == GameState.TurnPhase.MONEY);
 
         Decision choice = null;
         while (choice == null) {

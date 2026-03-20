@@ -100,9 +100,7 @@ public class Harness {
         return CARD_DESCRIPTIONS.getOrDefault(cardType, "No description available.");
     }
 
-    /**
-     * Prompts user for number/type of players, creates Engine, and runs the game.
-     */
+    /** Prompts user for number/type of players, creates Engine, and runs the game. */
     public static void main(String[] args) {
         AnsiConsole.systemInstall();
 
