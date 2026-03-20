@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
+import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
@@ -12,6 +13,7 @@ import edu.brandeis.cosi103a.groupe.main.ConsoleIO;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ConsolePlayer extends AbstractPlayer {
 
@@ -54,10 +56,12 @@ public class ConsolePlayer extends AbstractPlayer {
      *
      * @param state The current game state.
      * @param options The list of available decisions.
+     * @param reason The reason for the decision.
      * @return The chosen decision.
      */
     @Override
-    public Decision makeDecision(GameState state, ImmutableList<Decision> options) {
+    public Decision makeDecision(
+            GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
 
         // If the only option is to end the action phase due to no actions remaining, we
         // can skip prompting the user and just return that decision
@@ -85,7 +89,7 @@ public class ConsolePlayer extends AbstractPlayer {
             for (Decision decision : options) {
                 if (decision instanceof PlayCardDecision) {
                     Card card = ((PlayCardDecision) decision).card();
-                    if (card.getCategory() == Card.Type.Category.MONEY) {
+                    if (card.category() == Card.Type.Category.MONEY) {
                         // Found a treasure, play it automatically
                         return decision;
                     }

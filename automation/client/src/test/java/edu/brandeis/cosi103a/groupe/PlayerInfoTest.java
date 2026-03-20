@@ -7,6 +7,8 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
@@ -16,6 +18,7 @@ import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,13 +47,21 @@ public class PlayerInfoTest {
         }
 
         @Override
-        public Decision makeDecision(GameState state, ImmutableList<Decision> validDecisions) {
+        public Decision makeDecision(
+                GameState state,
+                ImmutableList<Decision> validDecisions,
+                java.util.Optional<Event> optionalEvent) {
             return decisionToReturn;
         }
 
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public Optional<GameObserver> getObserver() {
+            return Optional.empty();
         }
     }
 
@@ -614,7 +625,7 @@ public class PlayerInfoTest {
             assertEquals(
                     "All cards should be ACTION category",
                     Card.Type.Category.ACTION,
-                    card.getCategory());
+                    card.type().category());
         }
     }
 
@@ -650,7 +661,7 @@ public class PlayerInfoTest {
             assertEquals(
                     "All cards should be MONEY category",
                     Card.Type.Category.MONEY,
-                    card.getCategory());
+                    card.type().category());
         }
     }
 
