@@ -17,7 +17,7 @@ public abstract class AbstractPlayer implements Player {
     /** Constructs a new AbstractPlayer with a unique UUID and a name derived from that UUID. */
     public AbstractPlayer() {
         this.id = UUID.randomUUID().toString();
-        this.name = "Player-" + id.substring(0, 8);
+        this.name = "Player-" + id.substring(0, 4);
     }
 
     /**
@@ -25,7 +25,8 @@ public abstract class AbstractPlayer implements Player {
      *
      * @return the UUID-based player ID
      */
-    public String getId() {
+    @Override
+    public String getName() {
         return id;
     }
 
@@ -34,8 +35,7 @@ public abstract class AbstractPlayer implements Player {
      *
      * @return the player name in a format based on a substring of the UUID
      */
-    @Override
-    public String getName() {
+    public String getDisplayName() {
         return name;
     }
 
