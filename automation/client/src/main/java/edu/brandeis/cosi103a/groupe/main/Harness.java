@@ -121,6 +121,7 @@ public class Harness {
                         .a("This is a 2-4 player game, with Human and AI players.\n")
                         .reset());
 
+        // Get number of human players with validation
         int numHuman =
                 getValidPlayerCount(
                         scanner,
@@ -138,6 +139,7 @@ public class Harness {
             players.add(new ConsolePlayer());
         }
 
+        // Get number of AI players with validation
         int maxAI = 4 - numHuman;
         int numAI =
                 getValidPlayerCount(
@@ -155,6 +157,7 @@ public class Harness {
             players.add(new BigMoneyPlayer());
         }
 
+        // Ensure at least 2 players total
         while (numHuman + numAI < 2) {
             System.out.println(
                     ansi().fg(YELLOW)
@@ -210,6 +213,7 @@ public class Harness {
         System.out.println(
                 ansi().fg(CYAN).a("═══════════════════════════════════════════════\n").reset());
 
+        // Instructions
         System.out.println(
                 ansi().fg(CYAN).a("── How to Play ─────────────────────────────────").reset());
         System.out.println(
@@ -241,6 +245,8 @@ public class Harness {
         scanner.nextLine();
 
         OurEngine engine = new OurEngine(players);
+        // Give every ConsolePlayer a live reference to the engine's turn log history
+        // and the player count so the log panel shows one full previous round.
         for (Player p : players) {
             if (p instanceof ConsolePlayer) {
                 ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());
@@ -265,7 +271,8 @@ public class Harness {
     }
 
     /**
-     * Prompts the user for a valid integer within the specified range.
+     * Prompts the user for a valid integer within the specified range. Reprompts on invalid input
+     * (non-integers or out of range).
      *
      * @param scanner The Scanner to read input from
      * @param prompt The message to display to the user
