@@ -14,6 +14,8 @@ import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi103a.groupe.Observers.Observer;
+
 import org.junit.Test;
 
 /** Unit tests for Observer. */

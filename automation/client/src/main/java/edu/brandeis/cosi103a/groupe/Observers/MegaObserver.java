@@ -1,9 +1,10 @@
-package edu.brandeis.cosi103a.groupe.cosi21;
+package edu.brandeis.cosi103a.groupe.Observers;
 
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
+
 import java.util.ArrayList;
 import java.util.List;
 
