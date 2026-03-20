@@ -144,7 +144,7 @@ public class ConsoleIO {
                 for (Decision option : options) {
                     if (option instanceof PlayCardDecision) {
                         Card card = ((PlayCardDecision) option).card();
-                        if (card.getCategory() == Card.Type.Category.MONEY) {
+                        if (card.category() == Card.Type.Category.MONEY) {
                             choice = option;
                             autoPlayRequested = true;
                             break;

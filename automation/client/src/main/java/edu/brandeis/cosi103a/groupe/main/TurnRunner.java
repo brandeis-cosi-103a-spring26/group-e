@@ -90,7 +90,7 @@ public class TurnRunner {
     public void processPlayCardDecision(PlayCardDecision decision) throws PlayerViolationException {
         Card card = decision.card();
         activePlayer.playCard(card);
-        switch (card.getCategory()) {
+        switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
             case MONEY -> processPlayMoneyCard(card.type());
             default -> throw new UnsupportedOperationException("Unsupported card category");
