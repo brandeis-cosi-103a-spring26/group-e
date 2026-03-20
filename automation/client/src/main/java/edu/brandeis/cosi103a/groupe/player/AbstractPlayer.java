@@ -14,9 +14,7 @@ public abstract class AbstractPlayer implements Player {
     private final String id;
     private final String name;
 
-    /**
-     * Constructs a new AbstractPlayer with a unique UUID and a name derived from that UUID.
-     */
+    /** Constructs a new AbstractPlayer with a unique UUID and a name derived from that UUID. */
     public AbstractPlayer() {
         this.id = UUID.randomUUID().toString();
         this.name = "Player-" + id.substring(0, 8);
@@ -33,7 +31,7 @@ public abstract class AbstractPlayer implements Player {
 
     /**
      * Gets the human-readable name for this player.
-     * 
+     *
      * @return the player name in a format based on a substring of the UUID
      */
     @Override
@@ -42,9 +40,9 @@ public abstract class AbstractPlayer implements Player {
     }
 
     /**
-     * Gets an optional GameObserver for this player. By default, returns an empty Optional, but
-     * can be overridden by subclasses to provide a specific observer if needed.
-     * 
+     * Gets an optional GameObserver for this player. By default, returns an empty Optional, but can
+     * be overridden by subclasses to provide a specific observer if needed.
+     *
      * @return an Optional containing a GameObserver if one is provided, or an empty Optional if not
      */
     @Override

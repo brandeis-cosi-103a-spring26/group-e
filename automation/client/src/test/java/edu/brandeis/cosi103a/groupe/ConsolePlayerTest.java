@@ -62,7 +62,9 @@ public class ConsolePlayerTest {
     public void testGetName_FollowsNamingConvention() {
         // Verify: Name follows the Player-XXXXXXXX format (UUID-based) from AbstractPlayer
         String name = player.getName();
-        assertTrue("Name should follow Player-XXXXXXXX format (8 hex chars from UUID)", name.matches("Player-[0-9a-f]{8}"));
+        assertTrue(
+                "Name should follow Player-XXXXXXXX format (8 hex chars from UUID)",
+                name.matches("Player-[0-9a-f]{8}"));
     }
 
     // ========== Method Signature Tests ==========
