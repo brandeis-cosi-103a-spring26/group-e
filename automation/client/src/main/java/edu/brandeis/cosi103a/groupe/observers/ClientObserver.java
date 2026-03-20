@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe.Observers;
+package edu.brandeis.cosi103a.groupe.observers;
 
 import java.io.IOException;
 import java.net.URI;

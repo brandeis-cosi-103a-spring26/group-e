@@ -6,8 +6,9 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.Observers.ClientObserver;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
+import edu.brandeis.cosi103a.groupe.observers.ClientObserver;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
