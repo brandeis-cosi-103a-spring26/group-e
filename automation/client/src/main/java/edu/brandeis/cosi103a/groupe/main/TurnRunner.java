@@ -111,7 +111,8 @@ public class TurnRunner {
         }
     }
 
-    private void processTrashCardDecision(TrashCardDecision decision) {
+    @VisibleForTesting
+    public void processTrashCardDecision(TrashCardDecision decision) {
         Card cardToTrash = decision.card();
         boolean wasRemoved = activePlayer.trashCard(cardToTrash);
         if (!wasRemoved) {
@@ -120,7 +121,8 @@ public class TurnRunner {
         }
     }
 
-    private void processEndPhaseDecision(EndPhaseDecision decision) {
+    @VisibleForTesting
+    public void processEndPhaseDecision(EndPhaseDecision decision) {
         if (decision.phase() != phase) {
             throw new IllegalArgumentException(
                     "EndPhaseDecision phase does not match current phase");
@@ -139,7 +141,8 @@ public class TurnRunner {
         }
     }
 
-    private void processPlayActionCard(Card.Type type) throws PlayerViolationException {
+    @VisibleForTesting
+    public void processPlayActionCard(Card.Type type) throws PlayerViolationException {
         if (activePlayer.numActions() <= 0) {
             throw new IllegalStateException("No actions remaining for active player");
         }
@@ -173,7 +176,8 @@ public class TurnRunner {
         activePlayer.adjustActions(-1);
     }
 
-    private void processPlayMoneyCard(Card.Type type) {
+    @VisibleForTesting
+    public void processPlayMoneyCard(Card.Type type) {
         int value;
         switch (type) {
             case BITCOIN -> {
@@ -194,7 +198,8 @@ public class TurnRunner {
         moneyFromTreasuresThisTurn += value;
     }
 
-    private void processBuyDecision(BuyDecision decision) {
+    @VisibleForTesting
+    public void processBuyDecision(BuyDecision decision) {
         Card.Type type = decision.cardType();
         if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
@@ -213,7 +218,8 @@ public class TurnRunner {
         }
     }
 
-    private boolean validateDecision(Decision decision, ImmutableList<Decision> validDecisions) {
+    @VisibleForTesting
+    public boolean validateDecision(Decision decision, ImmutableList<Decision> validDecisions) {
         if (decision == null || validDecisions == null) return false;
         return validDecisions.contains(decision);
     }
@@ -245,7 +251,8 @@ public class TurnRunner {
         };
     }
 
-    private GameState buildGameState() {
+    @VisibleForTesting
+    public GameState buildGameState() {
         return new GameState(
                 activePlayer.getName(),
                 activePlayer.getImmutableHand(),

@@ -75,7 +75,8 @@ public class GameRunner {
         return next;
     }
 
-    private GameResult endGame() {
+    @VisibleForTesting
+    public GameResult endGame() {
         ImmutableList.Builder<PlayerResult> builder = ImmutableList.builder();
         players.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
         for (PlayerInfo p : players) {
