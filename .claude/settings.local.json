@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cd \"/Users/liorschifrin/Desktop/Desktop/Brandeis/Semester 4/COSI 103A/group-e/automation\" && mvn test -pl client 2>&1 | tail -80)"
-    ]
-  }
-}
