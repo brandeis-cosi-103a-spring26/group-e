@@ -48,7 +48,6 @@ public class GameRunner {
             }
             TurnRunner runner = new TurnRunner(players, shop, registry);
             runner.runTurn(activePlayer, log);
-            activePlayer.cleanup();
         }
         GameResult finalResult = endGame();
         Renderer.printGameResult(finalResult);

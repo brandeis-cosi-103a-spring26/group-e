@@ -39,7 +39,7 @@ public class TurnRunner {
 
     /**
      * Runs the full inner loop for one player's turn (ACTION → MONEY → BUY → CLEANUP). Calls {@code
-     * activePlayer.turnReset()} at the start; cleanup must be called by the caller.
+     * activePlayer.turnReset()} at the start and cleanup at the end.
      */
     public void runTurn(PlayerInfo activePlayer, TurnLog log) {
         this.activePlayer = activePlayer;
@@ -59,6 +59,7 @@ public class TurnRunner {
                 phase = TurnPhase.CLEANUP;
             }
         }
+        activePlayer.cleanup();
     }
 
     // VisibleForTesting — allow tests to configure state without going through a full turn
