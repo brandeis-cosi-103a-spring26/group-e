@@ -151,8 +151,7 @@ public class TurnRunner {
             currentTurnLog.addEntry("Played " + Renderer.displayName(type));
         }
 
-        ActionContext ctx =
-                new ActionContext(activePlayer, players, shop, currentTurnLog, phase);
+        ActionContext ctx = new ActionContext(activePlayer, players, shop, currentTurnLog, phase);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
