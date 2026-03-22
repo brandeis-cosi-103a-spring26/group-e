@@ -26,7 +26,7 @@ public abstract class AbstractPlayer implements Player {
      * @return the UUID-based player ID
      */
     @Override
-    public String getName() {
+public String getName() {
         return id;
     }
 
