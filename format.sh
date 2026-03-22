@@ -10,6 +10,6 @@ mvn --file automation/pom.xml spotless:apply
 git add -A
 git commit -m "formatting"
 
-if ["$STASHED" = "true"]; then
+if [[ "$STASHED" == "true" ]]; then
     git stash pop --quiet
 fi
