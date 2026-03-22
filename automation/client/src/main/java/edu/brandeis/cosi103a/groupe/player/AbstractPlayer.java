@@ -35,7 +35,7 @@ public abstract class AbstractPlayer implements Player {
      *
      * @return the player name in a format based on a substring of the UUID
      */
-    public String getDisplayName() {
+public String getDisplayName() {
         return name;
     }
 
