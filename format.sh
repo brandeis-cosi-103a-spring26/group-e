@@ -1,7 +1,7 @@
 
 STASHED=false
 if ! git diff --quiet HEAD; then
-    git stash push --quiet -mu "formatting-temp-stash"
+    git stash push --quiet -u
     STASHED=true
 fi
 
