@@ -16,12 +16,12 @@ public class ActionEffectRegistry {
 
     public ActionEffectRegistry(List<ActionCardEffect> effects) {
         for (ActionCardEffect e : effects) {
-            Card.Type type = e.handles();  
-            if (registry.containsKey(type)) {  
-                throw new IllegalArgumentException(  
-                        "Duplicate ActionCardEffect registration for card type: " + type);  
-            }  
-            registry.put(type, e);  
+            Card.Type type = e.handles();
+            if (registry.containsKey(type)) {
+                throw new IllegalArgumentException(
+                        "Duplicate ActionCardEffect registration for card type: " + type);
+            }
+            registry.put(type, e);
         }
     }
 
