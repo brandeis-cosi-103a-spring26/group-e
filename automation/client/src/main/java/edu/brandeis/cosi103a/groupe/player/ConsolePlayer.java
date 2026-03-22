@@ -13,6 +13,7 @@ import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ConsolePlayer extends AbstractPlayer {
@@ -27,7 +28,7 @@ public class ConsolePlayer extends AbstractPlayer {
     private List<TurnLog> turnLogs = new ArrayList<>();
 
     public ConsolePlayer(ConsoleInput consoleInput) {
-        this.consoleInput = consoleInput;
+        this.consoleInput = Objects.requireNonNull(consoleInput);
     }
 
     /**
