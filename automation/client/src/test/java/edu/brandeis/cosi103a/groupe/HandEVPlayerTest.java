@@ -77,7 +77,9 @@ public class HandEVPlayerTest {
     public void testGetName_ReturnsPlayerName() {
         String name = player.getName();
         assertNotNull("Player name should not be null", name);
-        assertTrue("Player name should start with 'Player-'", name.startsWith("Player-"));
+        assertTrue(
+                "Name should follow UUID format",
+                name.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
     }
 
     @Test
