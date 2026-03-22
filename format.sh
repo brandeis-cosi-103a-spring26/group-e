@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 
 STASHED=false
 if ! git diff --quiet HEAD; then
