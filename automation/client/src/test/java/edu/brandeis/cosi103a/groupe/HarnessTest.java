@@ -12,7 +12,6 @@ import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
-import edu.brandeis.cosi103a.groupe.player.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -22,7 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-/** Unit tests for the Harness class. Tests user input validation and decision-making logic. */
+/** Unit tests for game setup and decision-making logic. */
 public class HarnessTest {
 
     private final InputStream originalIn = System.in;
@@ -49,7 +48,7 @@ public class HarnessTest {
         String input = "2\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should return 2", 2, result);
     }
@@ -59,7 +58,7 @@ public class HarnessTest {
         String input = "0\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should accept minimum value 0", 0, result);
     }
@@ -69,7 +68,7 @@ public class HarnessTest {
         String input = "4\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should accept maximum value 4", 4, result);
     }
@@ -79,7 +78,7 @@ public class HarnessTest {
         String input = "-1\n2\n"; // Invalid, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should eventually return valid input", 2, result);
         assertTrue(
@@ -91,7 +90,7 @@ public class HarnessTest {
         String input = "5\n3\n"; // Invalid (above max), then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should eventually return valid input", 3, result);
         assertTrue(
@@ -103,7 +102,7 @@ public class HarnessTest {
         String input = "abc\n2\n"; // Non-numeric, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should eventually return valid input", 2, result);
         assertTrue(
@@ -116,7 +115,7 @@ public class HarnessTest {
         String input = "abc\n-5\n10\nhello\n2\n"; // Multiple invalid, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should eventually return valid input after multiple attempts", 2, result);
     }
@@ -126,7 +125,7 @@ public class HarnessTest {
         String input = "5\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 1, 10);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 1, 10);
 
         assertEquals("Should accept valid number in different range", 5, result);
     }
@@ -136,7 +135,7 @@ public class HarnessTest {
         String input = "3\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 3, 3);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 3, 3);
 
         assertEquals("Should accept only valid value in single-value range", 3, result);
     }
@@ -146,7 +145,7 @@ public class HarnessTest {
         String input = "-2\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", -5, 0);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", -5, 0);
 
         assertEquals("Should handle negative numbers in range", -2, result);
     }
@@ -157,7 +156,7 @@ public class HarnessTest {
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
         String prompt = "Test prompt:";
 
-        Harness.getValidPlayerCount(scanner, prompt, 0, 4);
+        GameCreator.getValidPlayerCount(scanner, prompt, 0, 4);
 
         String output = outputStream.toString();
         assertTrue("Should display the prompt", output.contains(prompt));
@@ -168,7 +167,7 @@ public class HarnessTest {
         String input = "0\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should accept zero when it's in range", 0, result);
     }
@@ -178,7 +177,7 @@ public class HarnessTest {
         String input = "2.5\n2\n"; // Decimal (invalid for int), then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should reject decimal and accept integer", 2, result);
     }
@@ -188,7 +187,7 @@ public class HarnessTest {
         String input = "\n2\n"; // Empty line, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should reject empty input and accept valid number", 2, result);
     }
@@ -198,7 +197,7 @@ public class HarnessTest {
         String input = "  3\n"; // Whitespace before number
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should accept number with leading whitespace", 3, result);
     }
@@ -208,13 +207,13 @@ public class HarnessTest {
     @Test(expected = IllegalArgumentException.class)
     public void testGetDecisionFromConsole_NullOptions_ThrowsException() {
         Scanner testScanner = new Scanner(new ByteArrayInputStream("".getBytes()));
-        Harness.getDecisionFromConsole(null, testScanner);
+        new ConsoleInput(testScanner).getDecisionFromConsole(null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetDecisionFromConsole_EmptyOptions_ThrowsException() {
         Scanner testScanner = new Scanner(new ByteArrayInputStream("".getBytes()));
-        Harness.getDecisionFromConsole(ImmutableList.of(), testScanner);
+        new ConsoleInput(testScanner).getDecisionFromConsole(null, ImmutableList.of());
     }
 
     @Test
@@ -226,8 +225,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should return the single EndPhaseDecision", decision, result.getDecision());
         assertTrue(
@@ -247,8 +246,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2, decision3);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should return the second decision", decision2, result.getDecision());
     }
@@ -264,8 +263,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should return the first decision", decision1, result.getDecision());
     }
@@ -282,8 +281,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2, decision3);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should return the last decision", decision3, result.getDecision());
     }
@@ -299,8 +298,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid choice", decision2, result.getDecision());
         assertTrue(
@@ -320,8 +319,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid choice", decision1, result.getDecision());
         assertTrue(
@@ -340,8 +339,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should handle invalid card name and return valid choice",
@@ -363,8 +362,8 @@ public class HarnessTest {
 
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
-        Harness.getDecisionFromConsole(
-                options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                .getDecisionFromConsole(null, options);
 
         String output = outputStream.toString();
         assertTrue(
@@ -382,8 +381,8 @@ public class HarnessTest {
 
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
-        Harness.getDecisionFromConsole(
-                options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+        new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                .getDecisionFromConsole(null, options);
 
         String output = outputStream.toString();
         assertTrue("Should display prompt", output.contains("Enter") || output.contains("card"));
@@ -401,8 +400,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision1, decision2);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should eventually return valid choice after multiple attempts",
@@ -422,8 +421,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(playCard, buyCard, endPhase);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should correctly handle mixed decision types", endPhase, result.getDecision());
     }
@@ -434,7 +433,7 @@ public class HarnessTest {
 
     @Test
     public void testGetCardDescription_BitcoinHasDescription() {
-        String desc = Harness.getCardDescription(Card.Type.BITCOIN);
+        String desc = CardDescriptions.get(Card.Type.BITCOIN);
         assertNotNull("Description should not be null", desc);
         assertFalse("Description should not be empty", desc.isEmpty());
         assertNotEquals(
@@ -458,7 +457,7 @@ public class HarnessTest {
             Card.Type.EVERGREEN_TEST
         };
         for (Card.Type type : knownTypes) {
-            String desc = Harness.getCardDescription(type);
+            String desc = CardDescriptions.get(type);
             assertNotNull("Description for " + type + " should not be null", desc);
             assertFalse("Description for " + type + " should not be empty", desc.isEmpty());
             assertNotEquals(
@@ -477,8 +476,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(play);
         String input = "Method\n";
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
         assertFalse(
                 "Auto-play flag should be false for non-A inputs", result.isAutoPlayRequested());
     }
@@ -493,10 +492,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(playBitcoin);
         String input = "A\n";
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        moneyState,
-                        options,
-                        new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(moneyState, options);
         assertTrue(
                 "Result should indicate auto-play was requested for 'A' command",
                 result.isAutoPlayRequested());
@@ -512,8 +509,8 @@ public class HarnessTest {
         String input = "E\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("'E' should select the EndPhaseDecision", endPhase, result.getDecision());
     }
@@ -526,8 +523,8 @@ public class HarnessTest {
         String input = "end\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("'end' should select the EndPhaseDecision", endPhase, result.getDecision());
     }
@@ -539,8 +536,8 @@ public class HarnessTest {
         String input = "E\nMethod\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid card decision", decision, result.getDecision());
         assertTrue(
@@ -559,10 +556,8 @@ public class HarnessTest {
         String input = "A\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        moneyState,
-                        options,
-                        new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(moneyState, options);
 
         assertSame(
                 "'A' should return the first treasure card decision",
@@ -579,8 +574,8 @@ public class HarnessTest {
         String input = "a\nMethod\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid decision", decision, result.getDecision());
         assertTrue(
@@ -598,10 +593,8 @@ public class HarnessTest {
         String input = "A\nE\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        moneyState,
-                        options,
-                        new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(moneyState, options);
 
         assertSame("Should return end phase after A fails", endPhase, result.getDecision());
         assertTrue(
@@ -618,8 +611,8 @@ public class HarnessTest {
         String input = "man bitcoin\nBitcoin\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return the buy decision", buy, result.getDecision());
         // Description output should mention Bitcoin cost
@@ -636,8 +629,8 @@ public class HarnessTest {
         String input = "man unknownxyz\nBitcoin\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return the buy decision", buy, result.getDecision());
         assertTrue(
@@ -654,8 +647,8 @@ public class HarnessTest {
         String input = "\nMethod\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid choice", decision, result.getDecision());
         assertTrue(
@@ -673,8 +666,8 @@ public class HarnessTest {
         String input = "m\nMethod\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should eventually find valid card after ambiguous input",
@@ -695,8 +688,8 @@ public class HarnessTest {
         String input = "Ethereum\nBitcoin\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame("Should eventually return valid matching decision", buy, result.getDecision());
         assertTrue(
@@ -713,8 +706,8 @@ public class HarnessTest {
         String input = "Module\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should return the GainCardDecision for matching card type",
@@ -730,8 +723,8 @@ public class HarnessTest {
         String input = "Refactor\n";
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should return the TrashCardDecision for matching card",
@@ -744,7 +737,7 @@ public class HarnessTest {
         String input = "999999\n2\n"; // Very large number, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should reject large out-of-range number", 2, result);
     }
@@ -754,7 +747,7 @@ public class HarnessTest {
         String input = "@#$%\n2\n"; // Special characters, then valid
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-        int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
+        int result = GameCreator.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should reject special characters", 2, result);
     }
@@ -768,8 +761,8 @@ public class HarnessTest {
         ImmutableList<Decision> options = ImmutableList.of(decision);
 
         DecisionResult result =
-                Harness.getDecisionFromConsole(
-                        options, new Scanner(new ByteArrayInputStream(input.getBytes())));
+                new ConsoleInput(new Scanner(new ByteArrayInputStream(input.getBytes())))
+                        .getDecisionFromConsole(null, options);
 
         assertSame(
                 "Should return the single non-EndPhase decision", decision, result.getDecision());

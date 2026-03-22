@@ -12,57 +12,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Console I/O utilities extracted from {@link Harness}. Handles reading player decisions from stdin
- * and displaying card information. {@code ConsolePlayer} imports this class instead of {@code
- * Harness}, breaking the circular package dependency.
- */
-public class ConsoleIO {
+/** Handles reading player decisions from stdin and displaying card information. */
+public class ConsoleInput {
 
-    private static Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
+
+    public ConsoleInput(Scanner scanner) {
+        this.scanner = scanner;
+    }
 
     /**
      * Prompts the user to select a {@link Decision} from the provided options. If the only
      * available option is an {@link EndPhaseDecision}, the user is prompted to press enter to
      * continue and that decision is returned.
-     */
-    public static DecisionResult getDecisionFromConsole(ImmutableList<Decision> options) {
-        return getDecisionFromConsole(null, options, scanner);
-    }
-
-    /**
-     * Prompts the user to select a {@link Decision} from the provided options using the specified
-     * Scanner.
-     */
-    public static DecisionResult getDecisionFromConsole(
-            ImmutableList<Decision> options, Scanner inputScanner) {
-        return getDecisionFromConsole(null, options, inputScanner);
-    }
-
-    /**
-     * Prompts the user to select a {@link Decision} from the provided options.
      *
      * @param state the current game state (may be null)
      * @param options an immutable list of available {@link Decision} options for the user
-     */
-    public static DecisionResult getDecisionFromConsole(
-            GameState state, ImmutableList<Decision> options) {
-        return getDecisionFromConsole(state, options, scanner);
-    }
-
-    /**
-     * Prompts the user to select a {@link Decision} from the provided options using the specified
-     * Scanner. If the only available option is an {@link EndPhaseDecision}, the user is prompted to
-     * press enter to continue and that decision is returned.
-     *
-     * @param state the current game state (may be null)
-     * @param options an immutable list of available {@link Decision} options for the user
-     * @param inputScanner the Scanner to use for reading user input
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    public static DecisionResult getDecisionFromConsole(
-            GameState state, ImmutableList<Decision> options, Scanner inputScanner) {
+    public DecisionResult getDecisionFromConsole(
+            GameState state, ImmutableList<Decision> options) {
 
         if (options == null || options.isEmpty()) {
             throw new IllegalArgumentException(
@@ -72,7 +42,7 @@ public class ConsoleIO {
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
             System.out.print(
                     ansi().fg(WHITE).a("No choices available. Press enter to continue...").reset());
-            inputScanner.nextLine();
+            scanner.nextLine();
             return new DecisionResult(options.get(0), false);
         }
 
@@ -97,7 +67,7 @@ public class ConsoleIO {
                                                 + " info: ")
                                 .reset());
             }
-            String input = inputScanner.nextLine().trim();
+            String input = scanner.nextLine().trim();
 
             if (input.isEmpty()) {
                 System.out.println(
@@ -274,7 +244,7 @@ public class ConsoleIO {
             System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
             System.out.println(
                     ansi().fg(WHITE)
-                            .a("Description: " + Harness.getCardDescription(foundType))
+                            .a("Description: " + CardDescriptions.get(foundType))
                             .reset());
             System.out.println();
         }

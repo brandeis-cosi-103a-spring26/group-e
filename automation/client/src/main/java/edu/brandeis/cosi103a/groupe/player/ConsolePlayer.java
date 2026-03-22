@@ -9,7 +9,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-import edu.brandeis.cosi103a.groupe.main.ConsoleIO;
+import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ import java.util.Optional;
 
 public class ConsolePlayer extends AbstractPlayer {
 
+    private final ConsoleInput consoleInput;
     private boolean autoPlayTreasures = false;
 
     /**
@@ -24,6 +25,10 @@ public class ConsolePlayer extends AbstractPlayer {
      * #setTurnLogs(List)}. All turns from all players are visible.
      */
     private List<TurnLog> turnLogs = new ArrayList<>();
+
+    public ConsolePlayer(ConsoleInput consoleInput) {
+        this.consoleInput = consoleInput;
+    }
 
     /**
      * Sets the shared turn log list from the engine. Should be called once after the engine is
@@ -105,12 +110,9 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        // Not in auto-play mode or no treasures available - get user input
-        // Render the current game state to the console
-        // Renderer.renderGame(state);
         Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
 
-        DecisionResult result = ConsoleIO.getDecisionFromConsole(state, options);
+        DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
 
         // Check if user requested auto-play mode
         if (result.isAutoPlayRequested()) {
