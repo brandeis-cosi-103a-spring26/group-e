@@ -60,8 +60,7 @@ public class GameCreator {
                         0,
                         maxAI);
         for (int i = 0; i < numAI; i++) {
-            System.out.println(
-                    ansi().fg(MAGENTA).a("  ✓ AI player " + (i + 1) + " added").reset());
+            System.out.println(ansi().fg(MAGENTA).a("  ✓ AI player " + (i + 1) + " added").reset());
             players.add(new BigMoneyPlayer());
         }
 

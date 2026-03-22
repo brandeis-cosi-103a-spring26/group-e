@@ -31,8 +31,7 @@ public class ConsoleInput {
      * @return a {@link DecisionResult} containing the chosen decision and whether auto-play was
      *     requested
      */
-    public DecisionResult getDecisionFromConsole(
-            GameState state, ImmutableList<Decision> options) {
+    public DecisionResult getDecisionFromConsole(GameState state, ImmutableList<Decision> options) {
 
         if (options == null || options.isEmpty()) {
             throw new IllegalArgumentException(
@@ -243,9 +242,7 @@ public class ConsoleInput {
             System.out.println(ansi().fg(YELLOW).a("Cost: $" + foundType.cost()).reset());
             System.out.println(ansi().fg(WHITE).a("Category: " + foundType.category()).reset());
             System.out.println(
-                    ansi().fg(WHITE)
-                            .a("Description: " + CardDescriptions.get(foundType))
-                            .reset());
+                    ansi().fg(WHITE).a("Description: " + CardDescriptions.get(foundType)).reset());
             System.out.println();
         }
     }
