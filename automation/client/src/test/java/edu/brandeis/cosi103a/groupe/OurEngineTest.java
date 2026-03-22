@@ -88,28 +88,13 @@ public class OurEngineTest {
         return new ShopManager(shop, cardIdCounter);
     }
 
-    /**
-     * Creates an ActionContext for direct effect testing. Uses a self-referential ctxHolder so the
-     * DecisionMaker lambda can call ctx.buildGameState().
-     */
+    /** Creates an ActionContext for direct effect testing. */
     private ActionContext createActionContext(
             PlayerInfo activePlayer,
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        ActionContext[] ctxHolder = new ActionContext[1];
-        ctxHolder[0] =
-                new ActionContext(
-                        activePlayer,
-                        players,
-                        shopManager,
-                        null,
-                        initialPhase,
-                        options -> {
-                            GameState gs = ctxHolder[0].buildGameState();
-                            return activePlayer.makeDecision(gs, options);
-                        });
-        return ctxHolder[0];
+        return new ActionContext(activePlayer, players, shopManager, null, initialPhase);
     }
 
     // ========== Constructor Validation Tests ==========

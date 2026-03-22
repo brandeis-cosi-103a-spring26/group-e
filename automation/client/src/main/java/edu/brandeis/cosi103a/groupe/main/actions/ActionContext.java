@@ -19,16 +19,10 @@ import java.util.List;
  */
 public class ActionContext {
 
-    @FunctionalInterface
-    public interface DecisionMaker {
-        Decision decide(ImmutableList<Decision> options) throws PlayerViolationException;
-    }
-
     private final PlayerInfo active;
     private final List<PlayerInfo> allPlayers;
     private final ShopManager shop;
     private final TurnLog turnLog;
-    private final DecisionMaker decisionMaker;
     private TurnPhase phase;
 
     public ActionContext(
@@ -36,14 +30,12 @@ public class ActionContext {
             List<PlayerInfo> allPlayers,
             ShopManager shop,
             TurnLog turnLog,
-            TurnPhase initialPhase,
-            DecisionMaker decisionMaker) {
+            TurnPhase initialPhase) {
         this.active = active;
         this.allPlayers = allPlayers;
         this.shop = shop;
         this.turnLog = turnLog;
         this.phase = initialPhase;
-        this.decisionMaker = decisionMaker;
     }
 
     public void drawCard() {
@@ -63,7 +55,13 @@ public class ActionContext {
     }
 
     public Decision makeDecision(ImmutableList<Decision> opts) throws PlayerViolationException {
-        return decisionMaker.decide(opts);
+        GameState gs = buildGameState();
+        Decision d = active.makeDecision(gs, opts);
+        if (d == null || !opts.contains(d)) {
+            throw new PlayerViolationException(
+                    "Player made an invalid decision: " + (d == null ? "null" : d.toString()));
+        }
+        return d;
     }
 
     public void trashCard(Card card) {

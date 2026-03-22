@@ -151,26 +151,8 @@ public class TurnRunner {
             currentTurnLog.addEntry("Played " + Renderer.displayName(type));
         }
 
-        // Use a holder to allow the lambda to reference ctx before assignment
-        ActionContext[] ctxHolder = new ActionContext[1];
         ActionContext ctx =
-                new ActionContext(
-                        activePlayer,
-                        players,
-                        shop,
-                        currentTurnLog,
-                        phase,
-                        options -> {
-                            GameState gs = ctxHolder[0].buildGameState();
-                            Decision d = activePlayer.makeDecision(gs, options);
-                            if (!validateDecision(d, options)) {
-                                throw new PlayerViolationException(
-                                        "Player made an invalid decision: "
-                                                + (d == null ? "null" : d.toString()));
-                            }
-                            return d;
-                        });
-        ctxHolder[0] = ctx;
+                new ActionContext(activePlayer, players, shop, currentTurnLog, phase);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
