@@ -17,5 +17,5 @@ else
 fi
 
 if [[ "$STASHED" == "true" ]]; then
-    git stash pop --quiet --keep-index
+    git stash pop --quiet --index
 fi

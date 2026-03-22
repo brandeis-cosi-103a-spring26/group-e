@@ -25,14 +25,14 @@ public class PlayerInfo {
     private MutableHand hand;
     private List<Card> deck;
     private List<Card> discard;
-    private TurnInfo turnInfo;
+private TurnInfo turnInfo;
     private int score;
     private boolean disqualified;
 
     // Constants
     private static final int PLAYER_STARTING_BITCOINS = 7;
     private static final int PLAYER_STARTING_METHODS = 3;
-    private static final int HAND_SIZE = 5;
+private static final int HAND_SIZE = 5;
 
     /**
      * Constructs a new PlayerInfo with initialized deck and hand. Creates a starting deck of 7
