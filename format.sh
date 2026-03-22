@@ -16,8 +16,6 @@ else
     echo "No formatting changes made, nothing to commit"
 fi
 
-
-
 if [[ "$STASHED" == "true" ]]; then
-    git stash pop --quiet
+    git stash pop --quiet --keep-index
 fi
