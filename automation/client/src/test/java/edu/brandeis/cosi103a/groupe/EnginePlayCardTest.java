@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
-import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
@@ -23,26 +22,6 @@ import org.junit.Test;
 public class EnginePlayCardTest {
 
     // ========== Helper Methods ==========
-
-    private List<Player> createPlayers(int count) {
-        List<Player> players = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            players.add(new BigMoneyPlayer());
-        }
-        return players;
-    }
-
-    /** Creates a TurnRunner backed by a fresh 2-player shop. */
-    private TurnRunner createRunner(List<PlayerInfo> playerInfos, ShopManager shop) {
-        edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry registry =
-                new edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry(
-                        List.of(
-                                new edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect(),
-                                new edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect(),
-                                new edu.brandeis.cosi103a.groupe.main.actions
-                                        .EvergreenTestEffect()));
-        return new TurnRunner(playerInfos, shop, registry);
-    }
 
     /** Sets up a standard 2-player game and returns (playerInfos, shop, runner). */
     private static class Setup {
