@@ -67,7 +67,11 @@ public class ActionContext {
     }
 
     public void trashCard(Card card) {
-        active.trashCard(card);
+         // Ensure trashing actually removed the card from the active player's unplayed hand.  
+        boolean trashed = active.trashCard(card);  
+        if (!trashed) {  
+            throw new IllegalStateException("Attempted to trash a card that is not in the active player's unplayed hand.");  
+        }  
     }
 
     public void setPhase(TurnPhase p) {
