@@ -28,6 +28,16 @@ public class AutoPlayer extends AbstractPlayer {
     };
 
     /**
+     * Gets the human-readable name for this player.
+     * 
+     * @return the player name in a format based on a substring of the UUID
+     */
+    @Override
+    public String getDisplayName() {
+        return "AutoPlayer-" + id.substring(0, 4);
+    }
+
+    /**
      * Makes a decision based on the current game state and available options.
      *
      * @param state The current game state.

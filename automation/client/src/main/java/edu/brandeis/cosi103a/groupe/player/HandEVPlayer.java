@@ -24,6 +24,16 @@ public class HandEVPlayer extends BigMoneyPlayer {
     }
 
     /**
+     * Gets the human-readable name for this player.
+     * 
+     * @return the player name in a format based on a substring of the UUID
+     */
+    @Override
+    public String getDisplayName() {
+        return "HandEVPlayer-" + id.substring(0, 4);
+    }
+
+    /**
      * Handle decision-making for the BUY phase. This method attempts to buy a Framework if possible
      * and if the expected value of a hand is greater than the Framework cost, otherwise it buys the
      * most expensive money card the player can afford.

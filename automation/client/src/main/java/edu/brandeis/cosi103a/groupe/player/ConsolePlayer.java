@@ -17,7 +17,31 @@ import java.util.Optional;
 
 public class ConsolePlayer extends AbstractPlayer {
 
+    private final String customDisplayName;
     private boolean autoPlayTreasures = false;
+
+    /** Creates a console player with the default display name format. */
+    public ConsolePlayer() {
+        this(null);
+    }
+
+    /**
+     * Creates a console player with an optional custom display name.
+     *
+     * @param customDisplayName the custom name to use in logs/UI; blank values are ignored
+     */
+    public ConsolePlayer(String customDisplayName) {
+        String trimmedName = customDisplayName == null ? "" : customDisplayName.trim();
+        this.customDisplayName = trimmedName.isEmpty() ? null : trimmedName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        if (customDisplayName != null) {
+            return customDisplayName;
+        }
+        return super.getDisplayName();
+    }
 
     /**
      * Live reference to the engine's turn log history; set after engine creation via {@link

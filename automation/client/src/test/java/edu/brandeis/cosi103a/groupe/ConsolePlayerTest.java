@@ -10,8 +10,6 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
-import edu.brandeis.cosi103a.groupe.cosi21.*;
-import edu.brandeis.cosi103a.groupe.main.*;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Method;
 import org.junit.Before;
@@ -104,6 +102,22 @@ public class ConsolePlayerTest {
         ConsolePlayer newPlayer = new ConsolePlayer();
         assertNotNull("Constructor should create non-null instance", newPlayer);
         assertNotNull("New player should have a name", newPlayer.getName());
+    }
+
+    @Test
+    public void testConstructor_WithCustomDisplayName_UsesCustomName() {
+        ConsolePlayer namedPlayer = new ConsolePlayer("Alice");
+
+        assertEquals("Custom display name should be used", "Alice", namedPlayer.getDisplayName());
+    }
+
+    @Test
+    public void testConstructor_WithBlankDisplayName_FallsBackToDefaultPattern() {
+        ConsolePlayer namedPlayer = new ConsolePlayer("   ");
+
+        assertTrue(
+                "Blank custom display name should fall back to default display name",
+                namedPlayer.getDisplayName().matches("Player-[0-9a-f]{4}"));
     }
 
     @Test

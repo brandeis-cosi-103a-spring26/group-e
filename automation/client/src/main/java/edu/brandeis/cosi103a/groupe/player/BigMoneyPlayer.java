@@ -13,6 +13,16 @@ import java.util.Optional;
 public class BigMoneyPlayer extends AbstractPlayer {
 
     /**
+     * Gets the human-readable name for this player.
+     * 
+     * @return the player name in a format based on a substring of the UUID
+     */
+    @Override
+    public String getDisplayName() {
+        return "BigMoneyPlayer-" + id.substring(0, 4);
+    }
+
+    /**
      * Makes a decision based on the current game state and available options. This player follows
      * the basic Big Money strategy
      *

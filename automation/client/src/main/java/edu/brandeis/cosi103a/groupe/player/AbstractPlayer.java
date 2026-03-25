@@ -11,13 +11,11 @@ import java.util.UUID;
 
 public abstract class AbstractPlayer implements Player {
 
-    private final String id;
-    private final String name;
+    protected final String id;
 
     /** Constructs a new AbstractPlayer with a unique UUID and a name derived from that UUID. */
     public AbstractPlayer() {
         this.id = UUID.randomUUID().toString();
-        this.name = "Player-" + id.substring(0, 4);
     }
 
     /**
@@ -36,7 +34,7 @@ public abstract class AbstractPlayer implements Player {
      * @return the player name in a format based on a substring of the UUID
      */
     public String getDisplayName() {
-        return name;
+        return "Player-" + id.substring(0, 4);
     }
 
     /**

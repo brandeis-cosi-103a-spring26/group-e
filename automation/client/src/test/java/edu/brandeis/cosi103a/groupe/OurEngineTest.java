@@ -565,7 +565,7 @@ public class OurEngineTest {
 
         assertEquals(
                 "GameState should have correct active player name",
-                firstPlayer.getName(),
+                firstPlayer.getDisplayName(),
                 gameState.currentPlayerName());
     }
 
