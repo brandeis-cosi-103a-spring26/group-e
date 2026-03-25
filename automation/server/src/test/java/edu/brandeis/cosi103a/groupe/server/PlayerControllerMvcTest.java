@@ -47,13 +47,13 @@ public class PlayerControllerMvcTest {
         objectMapper.registerModule(new AppConfig().guavaModule());
 
         MappingJackson2HttpMessageConverter jsonConverter =
-            new MappingJackson2HttpMessageConverter();
+                new MappingJackson2HttpMessageConverter();
         jsonConverter.setObjectMapper(objectMapper);
 
         mockMvc =
-            MockMvcBuilders.standaloneSetup(controller)
-                .setMessageConverters(jsonConverter)
-                .build();
+                MockMvcBuilders.standaloneSetup(controller)
+                        .setMessageConverters(jsonConverter)
+                        .build();
     }
 
     private GameState createState(GameState.TurnPhase phase) {
