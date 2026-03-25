@@ -142,7 +142,8 @@ public class ClientPlayer extends AbstractPlayer {
                 "Decision response did not match any available option: " + decisionNode);
     }
 
-    private Decision tryResolveDecisionNode(JsonNode decisionNode, ImmutableList<Decision> options) {
+    private Decision tryResolveDecisionNode(
+            JsonNode decisionNode, ImmutableList<Decision> options) {
         for (Decision option : options) {
             JsonNode optionNode = om.valueToTree(option);
             if (optionNode.equals(decisionNode)) {
