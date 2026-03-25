@@ -1,7 +1,7 @@
 package edu.brandeis.cosi103a.groupe.player;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.event.Event;
@@ -10,7 +10,6 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResponseBody;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
 import edu.brandeis.cosi103a.groupe.observers.ClientObserver;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;

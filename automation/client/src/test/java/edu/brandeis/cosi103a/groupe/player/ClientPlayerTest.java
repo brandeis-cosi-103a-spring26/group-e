@@ -50,15 +50,14 @@ public class ClientPlayerTest {
         FakeHttpClient httpClient = new FakeHttpClient();
         ObjectMapper payloadMapper = new ObjectMapper();
         httpClient.responseBody =
-            "{\"decision\":" + payloadMapper.writeValueAsString(expected) + "}";
+                "{\"decision\":" + payloadMapper.writeValueAsString(expected) + "}";
 
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
         Decision actual = player.makeDecision(null, options, Optional.empty());
 
         assertSame(expected, actual);
-        assertEquals(
-                "http://localhost:9000/api/decide", httpClient.lastRequest.uri().toString());
+        assertEquals("http://localhost:9000/api/decide", httpClient.lastRequest.uri().toString());
         assertTrue(mapper.lastWrittenValue instanceof MakeDecisionBody);
     }
 
@@ -110,7 +109,7 @@ public class ClientPlayerTest {
         Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ObjectMapper payloadMapper = new ObjectMapper();
         httpClient.responseBody =
-            "{\"decision\":" + payloadMapper.writeValueAsString(fallback) + "}";
+                "{\"decision\":" + payloadMapper.writeValueAsString(fallback) + "}";
 
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, mapper);
 
@@ -131,8 +130,7 @@ public class ClientPlayerTest {
         Decision expected = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> options = ImmutableList.of(fallback, expected);
 
-        httpClient.responseBody =
-            "{\"decision\":" + realMapper.writeValueAsString(expected) + "}";
+        httpClient.responseBody = "{\"decision\":" + realMapper.writeValueAsString(expected) + "}";
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
 
         Decision actual = player.makeDecision(null, options, Optional.<Event>empty());
@@ -151,8 +149,7 @@ public class ClientPlayerTest {
         ImmutableList<Decision> options = ImmutableList.of(fallback, alternative);
 
         Decision unmatched = new EndPhaseDecision(GameState.TurnPhase.MONEY);
-        httpClient.responseBody =
-                "{\"decision\":" + realMapper.writeValueAsString(unmatched) + "}";
+        httpClient.responseBody = "{\"decision\":" + realMapper.writeValueAsString(unmatched) + "}";
 
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
 

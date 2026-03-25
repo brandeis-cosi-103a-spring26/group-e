@@ -5,7 +5,6 @@ import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.EventNotif;
-
 import java.util.ArrayList;
 import java.util.List;
 
