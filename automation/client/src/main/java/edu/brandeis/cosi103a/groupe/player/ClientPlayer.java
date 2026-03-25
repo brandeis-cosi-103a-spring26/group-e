@@ -1,11 +1,13 @@
 package edu.brandeis.cosi103a.groupe.player;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi103a.groupe.cosi21.DecisionResponseBody;
 import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
 import edu.brandeis.cosi103a.groupe.observers.ClientObserver;
 
@@ -17,8 +19,12 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientPlayer extends AbstractPlayer {
+    private static final Logger LOGGER = Logger.getLogger(ClientPlayer.class.getName());
+
     private final String BASE_URL;
     private final HttpClient httpClient;
     private final ObjectMapper om;
@@ -46,6 +52,7 @@ public class ClientPlayer extends AbstractPlayer {
         try {
             return makeDecisionHandler(state, options, reason);
         } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Falling back to first decision after remote failure", e);
             return options.get(0);
         }
     }
@@ -75,7 +82,9 @@ public class ClientPlayer extends AbstractPlayer {
                                 + ": "
                                 + response.body());
             }
-            return om.readValue(response.body(), Decision.class);
+            DecisionResponseBody responseBody =
+                    om.readValue(response.body(), DecisionResponseBody.class);
+            return resolveDecisionFromResponse(responseBody, options);
 
         } catch (HttpTimeoutException e) {
             throw new RuntimeException("Timed out while waiting for decision server response", e);
@@ -85,6 +94,24 @@ public class ClientPlayer extends AbstractPlayer {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
+    }
+
+    private Decision resolveDecisionFromResponse(
+            DecisionResponseBody responseBody, ImmutableList<Decision> options) {
+        if (responseBody == null || responseBody.decision() == null) {
+            throw new RuntimeException("Decision response must include a decision field");
+        }
+
+        JsonNode decisionNode = responseBody.decision();
+        for (Decision option : options) {
+            JsonNode optionNode = om.valueToTree(option);
+            if (optionNode.equals(decisionNode)) {
+                return option;
+            }
+        }
+
+        throw new RuntimeException(
+                "Decision response did not match any available option: " + decisionNode);
     }
 
     @Override

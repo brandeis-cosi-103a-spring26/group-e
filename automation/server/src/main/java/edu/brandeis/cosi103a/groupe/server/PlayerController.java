@@ -18,12 +18,12 @@ public class PlayerController {
         this.player = player;
     }
 
-    @PostMapping("/choose")
-    public Decision choose(@RequestBody DecisionRequest decisionRequest) {
+    @PostMapping("/decide")
+    public DecisionResponse choose(@RequestBody DecisionRequest decisionRequest) {
         GameState state = decisionRequest.state();
         ImmutableList<Decision> options = decisionRequest.options();
         Optional<Event> reason = decisionRequest.reason();
-        return player.makeDecision(state, options, reason);
+        return new DecisionResponse(player.makeDecision(state, options, reason));
     }
 
     @PostMapping("/log-event")

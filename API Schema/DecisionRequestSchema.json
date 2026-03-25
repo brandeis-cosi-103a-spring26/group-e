@@ -1,0 +1,27 @@
+{
+    "title": "DecisionRequest",
+    "description": "An object representing a request for a player to choose a decision",
+    "type": "object",
+    "properties": {
+        "state": {
+            "description": "A serialized GameState object",
+            "type": "GameState"
+        },
+        "options": {
+            "description": "The list of possible Decisions",
+            "type": "array",
+            "items": {
+                "description": "A serialized Decision object",
+                "type": "Decision"
+            },
+            "reason": {
+                "description": "A serialized Event object",
+                "type": "Event"
+            },
+            "player_uuid": {
+                "description": "A unique identifier for the player making the request",
+                "type": "string"
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "title": "LogEventRequest",
+    "description": "An object representing a game event that can be logged",
+    "type": "object",
+    "properties": {
+        "state": {
+            "description": "A serialized GameState object",
+            "type": "GameState"
+        },
+        "event": {
+            "description": "A serialized Event object",
+            "type": "Event"
+        },
+        "player_uuid": {
+            "description": "A unique identifier for the player this event is being sent to",
+            "type": "string"
+        }
+    }
+}
