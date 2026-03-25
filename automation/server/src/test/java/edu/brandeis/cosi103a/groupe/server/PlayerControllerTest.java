@@ -45,9 +45,9 @@ public class PlayerControllerTest {
         when(player.makeDecision(state, options, reason)).thenReturn(expected);
 
         DecisionRequest request = new DecisionRequest(state, options, reason, "uuid-1");
-        Decision actual = controller.choose(request);
+        DecisionResponse actual = controller.choose(request);
 
-        assertSame(expected, actual);
+        assertSame(expected, actual.decision());
         verify(player).makeDecision(state, options, reason);
     }
 

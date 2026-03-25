@@ -76,7 +76,7 @@ public class PlayerControllerMvcTest {
 
         MvcResult result =
                 mockMvc.perform(
-                                post("/choose")
+                                post("/decide")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request)))
                         .andExpect(status().isOk())
@@ -125,7 +125,7 @@ public class PlayerControllerMvcTest {
     @Test
     public void choose_InvalidJsonReturnsBadRequest() throws Exception {
         mockMvc.perform(
-                        post("/choose")
+                        post("/decide")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{bad-json"))
                 .andExpect(status().isBadRequest());
