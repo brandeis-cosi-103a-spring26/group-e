@@ -14,7 +14,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
 
     /**
      * Gets the human-readable name for this player.
-     * 
+     *
      * @return the player name in a format based on a substring of the UUID
      */
     @Override

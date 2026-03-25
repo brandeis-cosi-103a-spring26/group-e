@@ -202,37 +202,37 @@ public class HarnessTest {
         assertEquals("Should accept number with leading whitespace", 3, result);
     }
 
-        // ========== getValidPlayerName Tests ==========
+    // ========== getValidPlayerName Tests ==========
 
-        @Test
-        public void testGetValidPlayerName_UsesProvidedName() {
-                String input = "Alice\n";
-                Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+    @Test
+    public void testGetValidPlayerName_UsesProvidedName() {
+        String input = "Alice\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-                String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
 
-                assertEquals("Should return entered name", "Alice", result);
-        }
+        assertEquals("Should return entered name", "Alice", result);
+    }
 
-        @Test
-        public void testGetValidPlayerName_TrimsWhitespace() {
-                String input = "   Alice   \n";
-                Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+    @Test
+    public void testGetValidPlayerName_TrimsWhitespace() {
+        String input = "   Alice   \n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-                String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
 
-                assertEquals("Should trim leading and trailing whitespace", "Alice", result);
-        }
+        assertEquals("Should trim leading and trailing whitespace", "Alice", result);
+    }
 
-        @Test
-        public void testGetValidPlayerName_BlankUsesDefault() {
-                String input = "   \n";
-                Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+    @Test
+    public void testGetValidPlayerName_BlankUsesDefault() {
+        String input = "   \n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
 
-                String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
 
-                assertEquals("Blank input should fall back to default name", "Human 1", result);
-        }
+        assertEquals("Blank input should fall back to default name", "Human 1", result);
+    }
 
     // ========== getDecisionFromConsole Tests ==========
 
