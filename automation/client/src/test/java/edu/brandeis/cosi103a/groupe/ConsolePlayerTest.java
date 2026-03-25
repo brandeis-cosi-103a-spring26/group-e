@@ -60,9 +60,11 @@ public class ConsolePlayerTest {
 
     @Test
     public void testGetName_FollowsNamingConvention() {
-        // Verify: Name follows the Player-X format from AbstractPlayer
+        // Verify: Name follows UUID format
         String name = player.getName();
-        assertTrue("Name should follow Player-X format", name.matches("Player-\\d+"));
+        assertTrue(
+                "Name should follow UUID format",
+                name.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
     }
 
     // ========== Method Signature Tests ==========
