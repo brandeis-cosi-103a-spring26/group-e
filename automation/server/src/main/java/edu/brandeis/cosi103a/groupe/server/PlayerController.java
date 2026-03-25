@@ -31,9 +31,6 @@ public class PlayerController {
     public void logEvent(@RequestBody LogEventRequest eventRequest) {
         GameState state = eventRequest.state();
         Event event = eventRequest.event();
-        GameObserver observer = player.getObserver().orElse(null);
-        if (observer != null) {
-            observer.notifyEvent(state, event);
-        }
+        player.getObserver().ifPresent(o -> o.notifyEvent(state, event));
     }
 }

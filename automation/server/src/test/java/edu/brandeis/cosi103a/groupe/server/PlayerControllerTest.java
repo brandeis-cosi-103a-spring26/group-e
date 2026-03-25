@@ -2,8 +2,8 @@ package edu.brandeis.cosi103a.groupe.server;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -71,7 +71,6 @@ public class PlayerControllerTest {
     @Test
     public void logEvent_DoesNothingWhenObserverMissing() {
         Player player = mock(Player.class);
-        GameObserver observer = mock(GameObserver.class);
         PlayerController controller = new PlayerController(player);
 
         GameState state = createState(GameState.TurnPhase.BUY);
@@ -82,6 +81,7 @@ public class PlayerControllerTest {
         LogEventRequest request = new LogEventRequest(state, event, "uuid-3");
         controller.logEvent(request);
 
-        verify(observer, never()).notifyEvent(state, event);
+        verify(player).getObserver();
+        verifyNoMoreInteractions(player);
     }
 }

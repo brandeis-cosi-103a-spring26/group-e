@@ -2,15 +2,13 @@ package edu.brandeis.cosi103a.groupe.server;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
@@ -32,11 +30,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-@SuppressWarnings("removal")
 public class PlayerControllerMvcTest {
 
     private Player player;
     private MockMvc mockMvc;
+
     private ObjectMapper objectMapper;
 
     @Before
@@ -46,17 +44,16 @@ public class PlayerControllerMvcTest {
 
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
-        objectMapper.registerModule(new GuavaModule());
-        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new AppConfig().guavaModule());
 
         MappingJackson2HttpMessageConverter jsonConverter =
-                new MappingJackson2HttpMessageConverter();
+            new MappingJackson2HttpMessageConverter();
         jsonConverter.setObjectMapper(objectMapper);
 
         mockMvc =
-                MockMvcBuilders.standaloneSetup(controller)
-                        .setMessageConverters(jsonConverter)
-                        .build();
+            MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(jsonConverter)
+                .build();
     }
 
     private GameState createState(GameState.TurnPhase phase) {
@@ -111,7 +108,6 @@ public class PlayerControllerMvcTest {
     public void logEvent_PostWithoutObserverStillReturnsOk() throws Exception {
         GameState state = createState(GameState.TurnPhase.BUY);
         Event event = new PlayCardEvent(new Card(Card.Type.ETHEREUM, 4), "Player-2");
-        GameObserver observer = mock(GameObserver.class);
         when(player.getObserver()).thenReturn(Optional.empty());
 
         LogEventRequest request = new LogEventRequest(state, event, "uuid-3");
@@ -122,7 +118,8 @@ public class PlayerControllerMvcTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(observer, never()).notifyEvent(state, event);
+        verify(player).getObserver();
+        verifyNoMoreInteractions(player);
     }
 
     @Test
