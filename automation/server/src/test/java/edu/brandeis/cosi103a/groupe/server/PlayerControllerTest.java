@@ -18,6 +18,9 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi103a.groupe.api.DecisionRequest;
+import edu.brandeis.cosi103a.groupe.api.DecisionResponse;
+import edu.brandeis.cosi103a.groupe.api.LogEventRequest;
 import java.util.Optional;
 import org.junit.Test;
 

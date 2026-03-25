@@ -7,8 +7,8 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.cosi21.DecisionResponseBody;
-import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
+import edu.brandeis.cosi103a.groupe.api.DecisionRequest;
+import edu.brandeis.cosi103a.groupe.api.DecisionResponse;
 import edu.brandeis.cosi103a.groupe.observers.ClientObserver;
 import java.io.IOException;
 import java.net.URI;
@@ -41,8 +41,8 @@ public class ClientPlayer extends AbstractPlayer {
         super();
         this.BASE_URL = baseUrl;
         this.httpClient = httpClient;
-        this.om = objectMapper;
-        this.observer = new ClientObserver(baseUrl, httpClient, objectMapper, getName());
+        this.om = objectMapper.findAndRegisterModules();
+        this.observer = new ClientObserver(baseUrl, httpClient, this.om, getName());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ClientPlayer extends AbstractPlayer {
 
     private Decision makeDecisionHandler(
             GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
-        MakeDecisionBody bodyObject = new MakeDecisionBody(state, options, getName());
+        DecisionRequest bodyObject = new DecisionRequest(state, options, reason, getName());
         try {
             String bodyString = om.writeValueAsString(bodyObject);
             String url = BASE_URL + "/decide";
@@ -81,9 +81,7 @@ public class ClientPlayer extends AbstractPlayer {
                                 + ": "
                                 + response.body());
             }
-            DecisionResponseBody responseBody =
-                    om.readValue(response.body(), DecisionResponseBody.class);
-            return resolveDecisionFromResponse(responseBody, options);
+            return resolveDecisionFromResponse(response.body(), options);
 
         } catch (HttpTimeoutException e) {
             throw new RuntimeException("Timed out while waiting for decision server response", e);
@@ -96,21 +94,62 @@ public class ClientPlayer extends AbstractPlayer {
     }
 
     private Decision resolveDecisionFromResponse(
-            DecisionResponseBody responseBody, ImmutableList<Decision> options) {
-        if (responseBody == null || responseBody.decision() == null) {
-            throw new RuntimeException("Decision response must include a decision field");
+            String responseBody, ImmutableList<Decision> options) {
+        try {
+            DecisionResponse typedResponse = om.readValue(responseBody, DecisionResponse.class);
+            if (typedResponse != null && typedResponse.decision() != null) {
+                for (Decision option : options) {
+                    if (option.equals(typedResponse.decision())) {
+                        return option;
+                    }
+                }
+
+                JsonNode typedDecisionNode = om.valueToTree(typedResponse.decision());
+                Decision matchedTypedDecision = tryResolveDecisionNode(typedDecisionNode, options);
+                if (matchedTypedDecision != null) {
+                    return matchedTypedDecision;
+                }
+            }
+        } catch (IOException ignored) {
+            // Fall back to raw node parsing to preserve compatibility for polymorphic decisions.
         }
 
-        JsonNode decisionNode = responseBody.decision();
+        JsonNode decisionNode = extractRawDecisionNode(responseBody);
+        return resolveDecisionFromNode(decisionNode, options);
+    }
+
+    private JsonNode extractRawDecisionNode(String responseBody) {
+        try {
+            JsonNode rawResponse = om.readTree(responseBody);
+            JsonNode decisionNode = rawResponse.get("decision");
+            if (decisionNode == null || decisionNode.isNull()) {
+                throw new RuntimeException("Decision response must include a decision field");
+            }
+            return decisionNode;
+        } catch (IOException rawParseFailure) {
+            throw new RuntimeException("Failed to parse decision response", rawParseFailure);
+        }
+    }
+
+    private Decision resolveDecisionFromNode(
+            JsonNode decisionNode, ImmutableList<Decision> options) {
+        Decision match = tryResolveDecisionNode(decisionNode, options);
+        if (match != null) {
+            return match;
+        }
+
+        throw new RuntimeException(
+                "Decision response did not match any available option: " + decisionNode);
+    }
+
+    private Decision tryResolveDecisionNode(JsonNode decisionNode, ImmutableList<Decision> options) {
         for (Decision option : options) {
             JsonNode optionNode = om.valueToTree(option);
             if (optionNode.equals(decisionNode)) {
                 return option;
             }
         }
-
-        throw new RuntimeException(
-                "Decision response did not match any available option: " + decisionNode);
+        return null;
     }
 
     @Override

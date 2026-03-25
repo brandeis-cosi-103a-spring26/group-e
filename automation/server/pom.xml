@@ -29,6 +29,12 @@
   <dependencies>
     <dependency>
       <groupId>edu.brandeis.cosi103a.groupe</groupId>
+      <artifactId>api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.brandeis.cosi103a.groupe</groupId>
       <artifactId>client</artifactId>
       <version>${project.version}</version>
     </dependency>

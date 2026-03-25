@@ -13,6 +13,7 @@
   <name>automation</name>
 
   <modules>
+    <module>api</module>
     <module>client</module>
     <module>server</module>
   </modules>

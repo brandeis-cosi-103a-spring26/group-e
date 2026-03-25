@@ -10,7 +10,7 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.cosi21.MakeDecisionBody;
+import edu.brandeis.cosi103a.groupe.api.DecisionRequest;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.CookieHandler;
@@ -58,7 +58,7 @@ public class ClientPlayerTest {
 
         assertSame(expected, actual);
         assertEquals("http://localhost:9000/api/decide", httpClient.lastRequest.uri().toString());
-        assertTrue(mapper.lastWrittenValue instanceof MakeDecisionBody);
+        assertTrue(mapper.lastWrittenValue instanceof DecisionRequest);
     }
 
     @Test
