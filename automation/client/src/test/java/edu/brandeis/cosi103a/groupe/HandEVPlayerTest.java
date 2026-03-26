@@ -83,6 +83,21 @@ public class HandEVPlayerTest {
     }
 
     @Test
+    public void testGetDisplayName_UsesExpectedPattern_AndIsSeparateFromUuid() {
+        String uuidName = player.getName();
+        String displayName = player.getDisplayName();
+
+        assertNotEquals("Display name should not be the raw UUID", uuidName, displayName);
+        assertEquals(
+                "Display name should be based on UUID prefix",
+                "HandEVPlayer-" + uuidName.substring(0, 4),
+                displayName);
+        assertTrue(
+                "Display name should match expected prefix and 4 hex chars",
+                displayName.matches("HandEVPlayer-[0-9a-f]{4}"));
+    }
+
+    @Test
     public void testConstructor_GeneratesUniqueNames() {
         HandEVPlayer player1 = new HandEVPlayer();
         HandEVPlayer player2 = new HandEVPlayer();

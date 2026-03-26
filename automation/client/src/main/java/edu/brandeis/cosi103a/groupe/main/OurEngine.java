@@ -100,7 +100,7 @@ public class OurEngine implements Engine {
             // Get next PlayerInfo, set phase to ACTION, and reset turn resources
             activePlayer = getNextPlayer();
             turnNumber++;
-            currentTurnLog = new TurnLog(turnNumber, activePlayer.getName());
+            currentTurnLog = new TurnLog(turnNumber, activePlayer.getDisplayName());
             allTurnLogs.add(currentTurnLog);
             // Keep memory usage bounded to the last 10 turns
             if (allTurnLogs.size() > 10) {
@@ -571,7 +571,7 @@ public class OurEngine implements Engine {
     private GameState buildGameState() {
         GameState gamestate =
                 new GameState(
-                        activePlayer.getName(),
+                        activePlayer.getDisplayName(),
                         activePlayer.getImmutableHand(),
                         phase,
                         activePlayer.numActions(),
@@ -607,7 +607,7 @@ public class OurEngine implements Engine {
         players.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
         for (PlayerInfo p : players) {
             playerResultsBuilder.add(
-                    new PlayerResult(p.getName(), p.getScore(), p.getEndingDeck()));
+                    new PlayerResult(p.getDisplayName(), p.getScore(), p.getEndingDeck()));
         }
         GameResult result = new GameResult(playerResultsBuilder.build());
         return result;

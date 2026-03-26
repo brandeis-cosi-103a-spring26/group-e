@@ -135,9 +135,22 @@ public class Harness {
                         0,
                         4);
         for (int i = 0; i < numHuman; i++) {
+            String defaultName = "Human " + (i + 1);
+            String customName =
+                    getValidPlayerName(
+                            scanner,
+                            ansi().fg(GREEN)
+                                    .a("Name for Human player " + (i + 1) + " ")
+                                    .fg(CYAN)
+                                    .a("(press Enter for \"" + defaultName + "\")")
+                                    .reset()
+                                    .toString(),
+                            defaultName);
             System.out.println(
-                    ansi().fg(GREEN).a("  ✓ Human player " + (i + 1) + " added").reset());
-            players.add(new ConsolePlayer());
+                    ansi().fg(GREEN)
+                            .a("  ✓ Human player " + (i + 1) + " added as \"" + customName + "\"")
+                            .reset());
+            players.add(new ConsolePlayer(customName));
         }
 
         // Get number of AI players with validation
@@ -189,11 +202,27 @@ public class Harness {
                             0,
                             additionalPlayers);
             for (int i = 0; i < additionalHuman; i++) {
+                String defaultName = "Human " + (numHuman + i + 1);
+                String customName =
+                        getValidPlayerName(
+                                scanner,
+                                ansi().fg(GREEN)
+                                        .a("Name for Human player " + (numHuman + i + 1) + " ")
+                                        .fg(CYAN)
+                                        .a("(press Enter for \"" + defaultName + "\")")
+                                        .reset()
+                                        .toString(),
+                                defaultName);
                 System.out.println(
                         ansi().fg(GREEN)
-                                .a("  ✓ Human player " + (numHuman + i + 1) + " added")
+                                .a(
+                                        "  ✓ Human player "
+                                                + (numHuman + i + 1)
+                                                + " added as \""
+                                                + customName
+                                                + "\"")
                                 .reset());
-                players.add(new ConsolePlayer());
+                players.add(new ConsolePlayer(customName));
             }
             numHuman += additionalHuman;
 
@@ -313,6 +342,32 @@ public class Harness {
         }
 
         return value;
+    }
+
+    /**
+     * Prompts the user for a player name. Empty or whitespace-only input falls back to the provided
+     * default name.
+     *
+     * @param scanner The Scanner to read input from
+     * @param prompt The message to display to the user
+     * @param defaultName Name to use if the user enters an empty value
+     * @return The chosen player name (trimmed), or defaultName when blank
+     */
+    public static String getValidPlayerName(Scanner scanner, String prompt, String defaultName) {
+        System.out.print(prompt + " ");
+
+        // If there is no next line (EOF), fall back to the default name instead of throwing.
+        if (!scanner.hasNextLine()) {
+            return defaultName;
+        }
+
+        String input = scanner.nextLine();
+        String trimmed = input.trim();
+        if (trimmed.isEmpty()) {
+            return defaultName;
+        }
+
+        return trimmed;
     }
 
     /**

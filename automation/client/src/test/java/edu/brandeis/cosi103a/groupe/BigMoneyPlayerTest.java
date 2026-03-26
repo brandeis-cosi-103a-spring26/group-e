@@ -79,6 +79,21 @@ public class BigMoneyPlayerTest {
     }
 
     @Test
+    public void testGetDisplayName_UsesExpectedPattern_AndIsSeparateFromUuid() {
+        String uuidName = player.getName();
+        String displayName = player.getDisplayName();
+
+        assertNotEquals("Display name should not be the raw UUID", uuidName, displayName);
+        assertEquals(
+                "Display name should be based on UUID prefix",
+                "BigMoneyPlayer-" + uuidName.substring(0, 4),
+                displayName);
+        assertTrue(
+                "Display name should match expected prefix and 4 hex chars",
+                displayName.matches("BigMoneyPlayer-[0-9a-f]{4}"));
+    }
+
+    @Test
     public void testConstructor_GeneratesUniqueNames() {
         BigMoneyPlayer player1 = new BigMoneyPlayer();
         BigMoneyPlayer player2 = new BigMoneyPlayer();

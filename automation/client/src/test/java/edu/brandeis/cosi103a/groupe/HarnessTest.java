@@ -12,7 +12,6 @@ import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
-import edu.brandeis.cosi103a.groupe.player.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -201,6 +200,38 @@ public class HarnessTest {
         int result = Harness.getValidPlayerCount(scanner, "Enter number:", 0, 4);
 
         assertEquals("Should accept number with leading whitespace", 3, result);
+    }
+
+    // ========== getValidPlayerName Tests ==========
+
+    @Test
+    public void testGetValidPlayerName_UsesProvidedName() {
+        String input = "Alice\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+
+        assertEquals("Should return entered name", "Alice", result);
+    }
+
+    @Test
+    public void testGetValidPlayerName_TrimsWhitespace() {
+        String input = "   Alice   \n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+
+        assertEquals("Should trim leading and trailing whitespace", "Alice", result);
+    }
+
+    @Test
+    public void testGetValidPlayerName_BlankUsesDefault() {
+        String input = "   \n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes()));
+
+        String result = Harness.getValidPlayerName(scanner, "Enter name:", "Human 1");
+
+        assertEquals("Blank input should fall back to default name", "Human 1", result);
     }
 
     // ========== getDecisionFromConsole Tests ==========
