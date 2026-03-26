@@ -366,7 +366,7 @@ public class Harness {
         if (trimmed.isEmpty()) {
             return defaultName;
         }
-        
+
         return trimmed;
     }
 
