@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe.server;
+package edu.brandeis.cosi103a.groupe.api;
 
 import edu.brandeis.cosi.atg.decisions.Decision;
 
