@@ -19,7 +19,7 @@ public class BigMoneyPlayer extends AbstractPlayer {
      */
     @Override
     public String getDisplayName() {
-        return "BigMoneyPlayer-" + id.substring(0, 4);
+        return "BigMoneyPlayer-" + this.getName().substring(0, 4);
     }
 
     /**

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public abstract class AbstractPlayer implements Player {
 
-    protected final String id;
+    private final String id;
 
     /** Constructs a new AbstractPlayer with a unique UUID and a name derived from that UUID. */
     public AbstractPlayer() {

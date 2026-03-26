@@ -34,7 +34,7 @@ public class AutoPlayer extends AbstractPlayer {
      */
     @Override
     public String getDisplayName() {
-        return "AutoPlayer-" + id.substring(0, 4);
+        return "AutoPlayer-" + this.getName().substring(0, 4);
     }
 
     /**

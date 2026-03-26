@@ -354,20 +354,20 @@ public class Harness {
      * @return The chosen player name (trimmed), or defaultName when blank
      */
     public static String getValidPlayerName(Scanner scanner, String prompt, String defaultName) {
-        while (true) {
-            System.out.print(prompt + " ");
-            String input = scanner.nextLine();
-            if (input == null) {
-                return defaultName;
-            }
+        System.out.print(prompt + " ");
 
-            String trimmed = input.trim();
-            if (trimmed.isEmpty()) {
-                return defaultName;
-            }
-
-            return trimmed;
+        // If there is no next line (EOF), fall back to the default name instead of throwing.
+        if (!scanner.hasNextLine()) {
+            return defaultName;
         }
+
+        String input = scanner.nextLine();
+        String trimmed = input.trim();
+        if (trimmed.isEmpty()) {
+            return defaultName;
+        }
+        
+        return trimmed;
     }
 
     /**

@@ -40,7 +40,7 @@ public class ConsolePlayer extends AbstractPlayer {
         if (customDisplayName != null) {
             return customDisplayName;
         }
-        return super.getDisplayName();
+        return "Human " + super.getDisplayName();
     }
 
     /**

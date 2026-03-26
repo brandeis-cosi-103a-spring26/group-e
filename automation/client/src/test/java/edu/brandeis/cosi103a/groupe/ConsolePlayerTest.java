@@ -117,7 +117,7 @@ public class ConsolePlayerTest {
 
         assertTrue(
                 "Blank custom display name should fall back to default display name",
-                namedPlayer.getDisplayName().matches("Player-[0-9a-f]{4}"));
+                namedPlayer.getDisplayName().matches("Human Player-[0-9a-f]{4}"));
     }
 
     @Test

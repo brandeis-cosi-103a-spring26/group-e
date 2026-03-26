@@ -30,7 +30,7 @@ public class HandEVPlayer extends BigMoneyPlayer {
      */
     @Override
     public String getDisplayName() {
-        return "HandEVPlayer-" + id.substring(0, 4);
+        return "HandEVPlayer-" + this.getName().substring(0, 4);
     }
 
     /**
