@@ -3,11 +3,13 @@ package edu.brandeis.cosi103a.groupe.player;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.BuyDecision;
+import edu.brandeis.cosi.atg.decisions.ChooseEffectDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.GainCardDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
+import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.state.GameState;
 import java.util.Optional;
@@ -25,6 +27,10 @@ public class AutoPlayer extends AbstractPlayer {
 
     private static final Card.Type[] PREFERRED_CARDS = {
         Card.Type.FRAMEWORK, Card.Type.IPO, Card.Type.DOGECOIN
+    };
+
+    private static final Card.Type[] TRASH_CARDS = {
+        Card.Type.BUG, Card.Type.METHOD, Card.Type.BITCOIN
     };
 
     /**
@@ -51,6 +57,16 @@ public class AutoPlayer extends AbstractPlayer {
         // If the only option is EndPhaseDecision, return it
         if (options.size() == 1 && options.get(0) instanceof EndPhaseDecision) {
             return options.get(0);
+        }
+
+        // If presented with a trashing decision, handle it
+        if (options.stream().anyMatch(option -> option instanceof TrashCardDecision)) {
+            return handleTrashing(state, options);
+        }
+
+        // If presented with a choose effect decision, handle it
+        if (options.stream().anyMatch(option -> option instanceof ChooseEffectDecision)) {
+            return handleChooseEffect(state, options);
         }
 
         // Delegate decision based on the current phase
@@ -259,5 +275,72 @@ public class AutoPlayer extends AbstractPlayer {
                 .filter(option -> option instanceof PlayCardDecision)
                 .findFirst()
                 .orElse(options.get(0));
+    }
+
+    /**
+     * Handle decision-making for trashing cards.
+     * 
+     * @param state The current game state.
+     * @param options The list of available decisions.
+     * @return The chosen decision.
+     */
+    protected Decision handleTrashing(GameState state, ImmutableList<Decision> options) {
+        // Try to trash least wanted cards in order of preference
+        for (Card.Type trashType : TRASH_CARDS) {
+            for (Decision option : options) {
+                if (option instanceof TrashCardDecision trashDecision) {
+                    if (trashDecision.card().type() == trashType) {
+                        return trashDecision;
+                    }
+                }
+            }
+        }
+        
+        // Always try to trash the least expensive card first
+        for (int cost = 2; cost <= 8; cost++) {
+            for (Decision option : options) {
+                if (option instanceof TrashCardDecision trashDecision) {
+                    if (trashDecision.card().cost() == cost) {
+                        return trashDecision;
+                    }
+                }
+            }
+        }
+
+        return options.get(0); // Fallback if no suitable trash is found
+    }
+
+    /**
+     * Handle decision-making for choosing between multiple effects.
+     * 
+     * @param state The current game state.
+     * @param options The list of available decisions.
+     * @return The chosen decision.
+     */
+    protected Decision handleChooseEffect(GameState state, ImmutableList<Decision> options) {
+        // For Ransomware, always choose to discard 2 cards over gaining a Bug
+        for (Decision option : options) {
+            if (option instanceof ChooseEffectDecision chooseEffectDecision) {
+                if (chooseEffectDecision.effect() ==
+                    ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO) {
+                    return chooseEffectDecision;
+                }
+            }
+        }
+
+        // If above loop doesn't return, then we must be in Unit Test
+
+        // TODO: Update logic
+        // For Unit Test, always choose to gain +2 money
+        for (Decision option : options) {
+            if (option instanceof ChooseEffectDecision chooseEffectDecision) {
+                if (chooseEffectDecision.effect() ==
+                    ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY) {
+                    return chooseEffectDecision;
+                }
+            }
+        }
+
+        return options.get(0); // Fallback if no ChooseEffectDecision is found
     }
 }
