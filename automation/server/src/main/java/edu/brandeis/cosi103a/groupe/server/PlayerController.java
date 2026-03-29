@@ -11,7 +11,6 @@ import edu.brandeis.cosi103a.groupe.api.LogEventRequest;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,7 +39,6 @@ public class PlayerController {
         Event event = eventRequest.event();
         player.getObserver().ifPresent(o -> o.notifyEvent(state, event));
     }
-
 
     private Player getOrCreatePlayer(String playerUUID) {
         return playerMap.computeIfAbsent(playerUUID, ignored -> new AutoPlayer());

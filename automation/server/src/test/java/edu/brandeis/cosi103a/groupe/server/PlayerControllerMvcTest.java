@@ -44,11 +44,11 @@ public class PlayerControllerMvcTest {
     @Before
     public void setUp() {
         player = mock(Player.class);
-                ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
-                playerMap.put("uuid-1", player);
-                playerMap.put("uuid-2", player);
-                playerMap.put("uuid-3", player);
-                PlayerController controller = new PlayerController(playerMap);
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        playerMap.put("uuid-1", player);
+        playerMap.put("uuid-2", player);
+        playerMap.put("uuid-3", player);
+        PlayerController controller = new PlayerController(playerMap);
 
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
@@ -138,7 +138,4 @@ public class PlayerControllerMvcTest {
                                 .content("{bad-json"))
                 .andExpect(status().isBadRequest());
     }
-
-
-
 }
