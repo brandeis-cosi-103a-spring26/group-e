@@ -73,7 +73,24 @@ public class BigMoneyPlayerTest {
     public void testGetName_ReturnsPlayerName() {
         String name = player.getName();
         assertNotNull("Player name should not be null", name);
-        assertTrue("Player name should start with 'Player-'", name.startsWith("Player-"));
+        assertTrue(
+                "Name should follow UUID format",
+                name.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
+    }
+
+    @Test
+    public void testGetDisplayName_UsesExpectedPattern_AndIsSeparateFromUuid() {
+        String uuidName = player.getName();
+        String displayName = player.getDisplayName();
+
+        assertNotEquals("Display name should not be the raw UUID", uuidName, displayName);
+        assertEquals(
+                "Display name should be based on UUID prefix",
+                "BigMoneyPlayer-" + uuidName.substring(0, 4),
+                displayName);
+        assertTrue(
+                "Display name should match expected prefix and 4 hex chars",
+                displayName.matches("BigMoneyPlayer-[0-9a-f]{4}"));
     }
 
     @Test
