@@ -111,7 +111,7 @@ public class ActionContext {
     /** Builds an immutable GameState snapshot using the current context state. */
     public GameState buildGameState() {
         return new GameState(
-                active.getName(),
+                active.getDisplayName(),
                 active.getImmutableHand(),
                 phase,
                 active.numActions(),

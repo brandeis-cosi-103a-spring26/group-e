@@ -41,7 +41,7 @@ public class GameRunner {
         while (!isGameOver()) {
             activePlayer = getNextPlayer();
             turnNumber++;
-            TurnLog log = new TurnLog(turnNumber, activePlayer.getName());
+            TurnLog log = new TurnLog(turnNumber, activePlayer.getDisplayName());
             allTurnLogs.add(log);
             if (allTurnLogs.size() > 10) {
                 allTurnLogs.remove(0);
@@ -79,7 +79,7 @@ public class GameRunner {
         ImmutableList.Builder<PlayerResult> builder = ImmutableList.builder();
         players.sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
         for (PlayerInfo p : players) {
-            builder.add(new PlayerResult(p.getName(), p.getScore(), p.getEndingDeck()));
+            builder.add(new PlayerResult(p.getDisplayName(), p.getScore(), p.getEndingDeck()));
         }
         return new GameResult(builder.build());
     }
