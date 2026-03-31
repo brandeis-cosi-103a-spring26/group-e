@@ -61,9 +61,11 @@ public class ConsolePlayerTest {
 
     @Test
     public void testGetName_FollowsNamingConvention() {
-        // Verify: Name follows the Player-X format from AbstractPlayer
+        // Verify: Name follows UUID format
         String name = player.getName();
-        assertTrue("Name should follow Player-X format", name.matches("Player-\\d+"));
+        assertTrue(
+                "Name should follow UUID format",
+                name.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
     }
 
     // ========== Method Signature Tests ==========
@@ -103,6 +105,22 @@ public class ConsolePlayerTest {
         ConsolePlayer newPlayer = new ConsolePlayer(dummyConsoleInput());
         assertNotNull("Constructor should create non-null instance", newPlayer);
         assertNotNull("New player should have a name", newPlayer.getName());
+    }
+
+    @Test
+    public void testConstructor_WithCustomDisplayName_UsesCustomName() {
+        ConsolePlayer namedPlayer = new ConsolePlayer(dummyConsoleInput(), "Alice");
+
+        assertEquals("Custom display name should be used", "Alice", namedPlayer.getDisplayName());
+    }
+
+    @Test
+    public void testConstructor_WithBlankDisplayName_FallsBackToDefaultPattern() {
+        ConsolePlayer namedPlayer = new ConsolePlayer(dummyConsoleInput(), "   ");
+
+        assertTrue(
+                "Blank custom display name should fall back to default display name",
+                namedPlayer.getDisplayName().matches("Human Player-[0-9a-f]{4}"));
     }
 
     @Test

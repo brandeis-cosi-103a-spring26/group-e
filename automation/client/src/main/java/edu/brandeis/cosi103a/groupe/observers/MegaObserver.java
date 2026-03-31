@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe.cosi21;
+package edu.brandeis.cosi103a.groupe.observers;
 
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.event.Event;

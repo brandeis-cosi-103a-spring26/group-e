@@ -7,6 +7,7 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi103a.groupe.player.AbstractPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +73,18 @@ public class PlayerInfo {
      */
     public String getName() {
         return player.getName();
+    }
+
+    /**
+     * Gets a human-readable display name for the player.
+     *
+     * @return The player's display name
+     */
+    public String getDisplayName() {
+        if (player instanceof AbstractPlayer abstPlayer) {
+            return abstPlayer.getDisplayName();
+        }
+        return getName(); // Fallback to getName() if not an AbstractPlayer
     }
 
     /**

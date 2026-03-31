@@ -236,7 +236,7 @@ public class TurnRunner {
     @VisibleForTesting
     public GameState buildGameState() {
         return new GameState(
-                activePlayer.getName(),
+                activePlayer.getDisplayName(),
                 activePlayer.getImmutableHand(),
                 phase,
                 activePlayer.numActions(),

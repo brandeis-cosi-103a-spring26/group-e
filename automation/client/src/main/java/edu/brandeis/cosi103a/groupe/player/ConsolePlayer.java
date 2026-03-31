@@ -19,17 +19,43 @@ import java.util.Optional;
 public class ConsolePlayer extends AbstractPlayer {
 
     private final ConsoleInput consoleInput;
+    private final String customDisplayName;
     private boolean autoPlayTreasures = false;
+
+    /**
+     * Creates a console player with the default display name format.
+     *
+     * @param consoleInput the ConsoleInput instance for handling user input
+     */
+    public ConsolePlayer(ConsoleInput consoleInput) {
+        this(consoleInput, null);
+    }
+
+    /**
+     * Creates a console player with an optional custom display name.
+     *
+     * @param consoleInput the ConsoleInput instance for handling user input
+     * @param customDisplayName the custom name to use in logs/UI; blank values are ignored
+     */
+    public ConsolePlayer(ConsoleInput consoleInput, String customDisplayName) {
+        this.consoleInput = Objects.requireNonNull(consoleInput);
+        String trimmedName = customDisplayName == null ? "" : customDisplayName.trim();
+        this.customDisplayName = trimmedName.isEmpty() ? null : trimmedName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        if (customDisplayName != null) {
+            return customDisplayName;
+        }
+        return "Human " + super.getDisplayName();
+    }
 
     /**
      * Live reference to the engine's turn log history; set after engine creation via {@link
      * #setTurnLogs(List)}. All turns from all players are visible.
      */
     private List<TurnLog> turnLogs = new ArrayList<>();
-
-    public ConsolePlayer(ConsoleInput consoleInput) {
-        this.consoleInput = Objects.requireNonNull(consoleInput);
-    }
 
     /**
      * Sets the shared turn log list from the engine. Should be called once after the engine is
