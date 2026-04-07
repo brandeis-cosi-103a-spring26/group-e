@@ -11,9 +11,9 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.main.actions.*;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -63,13 +63,38 @@ public class OurEngineTest {
         field.set(obj, value);
     }
 
-    /** Uses reflection to invoke a private method. */
-    @SuppressWarnings("unchecked")
-    private <T> T invokePrivateMethod(
-            Object obj, String methodName, Class<?>[] paramTypes, Object... args) throws Exception {
-        Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
-        method.setAccessible(true);
-        return (T) method.invoke(obj, args);
+    /**
+     * Creates a TurnRunner backed by the same players/shop as the given engine, so tests can call
+     * TurnRunner methods directly without going through a full turn.
+     */
+    private TurnRunner createTurnRunner(OurEngine engine) throws Exception {
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        ShopManager shopManager = new ShopManager(shop, cardIdCounter);
+        ActionEffectRegistry registry =
+                new ActionEffectRegistry(
+                        java.util.List.of(
+                                new CodeReviewEffect(),
+                                new RefactorEffect(),
+                                new EvergreenTestEffect()));
+        return new TurnRunner(players, shopManager, registry);
+    }
+
+    /** Creates a ShopManager backed by the same MutableCardStacks as the given engine. */
+    private ShopManager createShopManager(OurEngine engine) throws Exception {
+        MutableCardStacks shop = getPrivateField(engine, "shop");
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        return new ShopManager(shop, cardIdCounter);
+    }
+
+    /** Creates an ActionContext for direct effect testing. */
+    private ActionContext createActionContext(
+            PlayerInfo activePlayer,
+            List<PlayerInfo> players,
+            ShopManager shopManager,
+            GameState.TurnPhase initialPhase) {
+        return new ActionContext(activePlayer, players, shopManager, null, initialPhase);
     }
 
     // ========== Constructor Validation Tests ==========
@@ -552,16 +577,16 @@ public class OurEngineTest {
 
     @Test
     public void testBuildGameState_CorrectActivePlayerName() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
-
-        // Set first player as active
         PlayerInfo firstPlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", firstPlayer);
 
-        GameState gameState = invokePrivateMethod(engine, "buildGameState", new Class<?>[] {});
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(firstPlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
+
+        GameState gameState = runner.buildGameState();
 
         assertEquals(
                 "GameState should have correct active player name",
@@ -571,12 +596,15 @@ public class OurEngineTest {
 
     @Test
     public void testBuildGameState_CorrectPhase() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.BUY);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
 
-        GameState gameState = invokePrivateMethod(engine, "buildGameState", new Class<?>[] {});
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(players.get(0));
+        runner.setPhase(GameState.TurnPhase.BUY);
+
+        GameState gameState = runner.buildGameState();
 
         assertEquals(
                 "GameState should reflect current phase",
@@ -586,21 +614,21 @@ public class OurEngineTest {
 
     @Test
     public void testBuildGameState_CorrectTurnResources() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Set turn resources (turnReset already gave 1 action and 1 buy)
-        activePlayer.adjustActions(2); // Now has 3 actions total
-        activePlayer.adjustMoney(5); // Now has 5 money
-        // Don't adjust buys - turnReset already gave 1
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
-        GameState gameState = invokePrivateMethod(engine, "buildGameState", new Class<?>[] {});
+        activePlayer.turnReset(); // gives 1 action, 0 money, 1 buy
+        activePlayer.adjustActions(2); // now 3 actions
+        activePlayer.adjustMoney(5); // now 5 money
 
-        // turnReset() sets actions to 1, then we adjusted by +2, so total is 3
+        GameState gameState = runner.buildGameState();
+
         assertEquals("GameState should have correct actions", 3, gameState.availableActions());
         assertEquals("GameState should have correct money", 5, gameState.spendableMoney());
         assertEquals("GameState should have correct buys", 1, gameState.availableBuys());
@@ -608,13 +636,15 @@ public class OurEngineTest {
 
     @Test
     public void testBuildGameState_ContainsShopState() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
-        setPrivateField(engine, "activePlayer", players.get(0));
 
-        GameState gameState = invokePrivateMethod(engine, "buildGameState", new Class<?>[] {});
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(players.get(0));
+        runner.setPhase(GameState.TurnPhase.ACTION);
+
+        GameState gameState = runner.buildGameState();
 
         assertNotNull("GameState should have shop", gameState.buyableCards());
         assertTrue(
@@ -626,166 +656,123 @@ public class OurEngineTest {
 
     @Test
     public void testValidateDecision_ValidDecision_ReturnsTrue() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
+        TurnRunner runner = createTurnRunner(engine);
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         ImmutableList<Decision> validDecisions = ImmutableList.of(decision);
 
-        boolean result =
-                invokePrivateMethod(
-                        engine,
-                        "validateDecision",
-                        new Class<?>[] {Decision.class, ImmutableList.class},
-                        decision,
-                        validDecisions);
-
-        assertTrue("Valid decision should return true", result);
+        assertTrue(
+                "Valid decision should return true",
+                runner.validateDecision(decision, validDecisions));
     }
 
     @Test
     public void testValidateDecision_InvalidDecision_ReturnsFalse() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
+        TurnRunner runner = createTurnRunner(engine);
 
         EndPhaseDecision decision1 = new EndPhaseDecision(GameState.TurnPhase.ACTION);
         EndPhaseDecision decision2 = new EndPhaseDecision(GameState.TurnPhase.BUY);
         ImmutableList<Decision> validDecisions = ImmutableList.of(decision1);
 
-        boolean result =
-                invokePrivateMethod(
-                        engine,
-                        "validateDecision",
-                        new Class<?>[] {Decision.class, ImmutableList.class},
-                        decision2,
-                        validDecisions);
-
-        assertFalse("Invalid decision should return false", result);
+        assertFalse(
+                "Invalid decision should return false",
+                runner.validateDecision(decision2, validDecisions));
     }
 
     @Test
     public void testValidateDecision_NullDecision_ReturnsFalse() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
+        TurnRunner runner = createTurnRunner(engine);
 
         ImmutableList<Decision> validDecisions =
                 ImmutableList.of(new EndPhaseDecision(GameState.TurnPhase.ACTION));
 
-        boolean result =
-                invokePrivateMethod(
-                        engine,
-                        "validateDecision",
-                        new Class<?>[] {Decision.class, ImmutableList.class},
-                        null,
-                        validDecisions);
-
-        assertFalse("Null decision should return false", result);
+        assertFalse(
+                "Null decision should return false", runner.validateDecision(null, validDecisions));
     }
 
     // ========== processEndPhaseDecision Tests ==========
 
     @Test
     public void testProcessEndPhaseDecision_ActionToMoney_ChangesPhase() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.ACTION));
 
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
         assertEquals(
-                "Phase should change from ACTION to MONEY", GameState.TurnPhase.MONEY, newPhase);
+                "Phase should change from ACTION to MONEY",
+                GameState.TurnPhase.MONEY,
+                runner.getPhase());
     }
 
     @Test
     public void testProcessEndPhaseDecision_MoneyToBuy_ChangesPhase() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setPhase(GameState.TurnPhase.MONEY);
 
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.MONEY));
 
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals("Phase should change from MONEY to BUY", GameState.TurnPhase.BUY, newPhase);
+        assertEquals(
+                "Phase should change from MONEY to BUY",
+                GameState.TurnPhase.BUY,
+                runner.getPhase());
     }
 
     @Test
     public void testProcessEndPhaseDecision_BuyToCleanup_ChangesPhase() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.BUY);
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.BUY));
 
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
         assertEquals(
-                "Phase should change from BUY to CLEANUP", GameState.TurnPhase.CLEANUP, newPhase);
+                "Phase should change from BUY to CLEANUP",
+                GameState.TurnPhase.CLEANUP,
+                runner.getPhase());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testProcessEndPhaseDecision_MismatchedPhase_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessEndPhaseDecision_MismatchedPhase_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         // Try to end BUY phase when in ACTION phase
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
-
-        try {
-            invokePrivateMethod(
-                    engine,
-                    "processEndPhaseDecision",
-                    new Class<?>[] {EndPhaseDecision.class},
-                    decision);
-        } catch (Exception e) {
-            throw e.getCause(); // Unwrap reflection exception
-        }
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.BUY));
     }
 
     // ========== processBuyDecision Tests ==========
 
     @Test
     public void testProcessBuyDecision_ValidBuy_DecrementsBuysAndMoney() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Give player money and buys
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
 
         int initialMoney = activePlayer.numMoney();
         int initialBuys = activePlayer.numBuys();
 
-        // Buy a BITCOIN (costs 0)
-        BuyDecision decision = new BuyDecision(Card.Type.BITCOIN);
-        invokePrivateMethod(
-                engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
+        runner.processBuyDecision(new BuyDecision(Card.Type.BITCOIN));
 
         assertEquals(
                 "Money should decrease by card cost",
@@ -796,12 +783,13 @@ public class OurEngineTest {
 
     @Test
     public void testProcessBuyDecision_ValidBuy_AddsCardToDiscard() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
@@ -809,31 +797,28 @@ public class OurEngineTest {
         List<Card> discard = getPrivateField(activePlayer, "discard");
         int initialDiscardSize = discard.size();
 
-        BuyDecision decision = new BuyDecision(Card.Type.ETHEREUM);
-        invokePrivateMethod(
-                engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
+        runner.processBuyDecision(new BuyDecision(Card.Type.ETHEREUM));
 
         assertEquals("Discard should gain one card", initialDiscardSize + 1, discard.size());
     }
 
     @Test
     public void testProcessBuyDecision_ValidBuy_DecrementsShop() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
         MutableCardStacks shop = getPrivateField(engine, "shop");
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
 
         int initialShopCount = shop.getNumAvailable(Card.Type.ETHEREUM);
 
-        BuyDecision decision = new BuyDecision(Card.Type.ETHEREUM);
-        invokePrivateMethod(
-                engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
+        runner.processBuyDecision(new BuyDecision(Card.Type.ETHEREUM));
 
         assertEquals(
                 "Shop should decrease by 1",
@@ -842,147 +827,111 @@ public class OurEngineTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessBuyDecision_InsufficientMoney_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessBuyDecision_InsufficientMoney_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Give player buys but not enough money
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         activePlayer.adjustMoney(1);
         activePlayer.adjustBuys(1);
 
-        // Try to buy FRAMEWORK (costs 8)
-        BuyDecision decision = new BuyDecision(Card.Type.FRAMEWORK);
-
-        try {
-            invokePrivateMethod(
-                    engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        runner.processBuyDecision(new BuyDecision(Card.Type.FRAMEWORK));
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessBuyDecision_NoBuysRemaining_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessBuyDecision_NoBuysRemaining_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Give player money but no buys (turnReset gives 1 buy, so adjust by -1)
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         activePlayer.turnReset();
         activePlayer.adjustMoney(10);
         activePlayer.adjustBuys(-1);
         assertEquals("Should have 0 buys", 0, activePlayer.numBuys());
 
-        BuyDecision decision = new BuyDecision(Card.Type.BITCOIN);
-
-        try {
-            invokePrivateMethod(
-                    engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        runner.processBuyDecision(new BuyDecision(Card.Type.BITCOIN));
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessBuyDecision_CardOutOfStock_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessBuyDecision_CardOutOfStock_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
         MutableCardStacks shop = getPrivateField(engine, "shop");
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         activePlayer.adjustMoney(10);
         activePlayer.adjustBuys(1);
 
-        // Sell out all FRAMEWORKs
         while (shop.getNumAvailable(Card.Type.FRAMEWORK) > 0) {
             shop.decrementCount(Card.Type.FRAMEWORK);
         }
 
-        BuyDecision decision = new BuyDecision(Card.Type.FRAMEWORK);
-
-        try {
-            invokePrivateMethod(
-                    engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, decision);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        runner.processBuyDecision(new BuyDecision(Card.Type.FRAMEWORK));
     }
 
     // ========== processTrashCardDecision Tests ==========
 
     @Test
     public void testProcessTrashCardDecision_ValidTrash_RemovesCard() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Get a card from hand
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card cardToTrash = unplayedCards.get(0);
-
         int initialHandSize = unplayedCards.size();
 
-        TrashCardDecision decision = new TrashCardDecision(cardToTrash);
-        invokePrivateMethod(
-                engine,
-                "processTrashCardDecision",
-                new Class<?>[] {TrashCardDecision.class},
-                decision);
+        runner.processTrashCardDecision(new TrashCardDecision(cardToTrash));
 
-        int newHandSize = activePlayer.getUnplayedCards().size();
-        assertEquals("Hand should lose one card", initialHandSize - 1, newHandSize);
+        assertEquals(
+                "Hand should lose one card",
+                initialHandSize - 1,
+                activePlayer.getUnplayedCards().size());
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessTrashCardDecision_CardNotInHand_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessTrashCardDecision_CardNotInHand_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         // Create a card that's not in the player's hand
         Card fakeCard = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
-
-        TrashCardDecision decision = new TrashCardDecision(fakeCard);
-
-        try {
-            invokePrivateMethod(
-                    engine,
-                    "processTrashCardDecision",
-                    new Class<?>[] {TrashCardDecision.class},
-                    decision);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        runner.processTrashCardDecision(new TrashCardDecision(fakeCard));
     }
 
     @Test
     public void testProcessTrashCardDecision_VictoryCard_DecreasesScore() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
 
-        // Add a victory card to the player's deck and draw it
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         Card methodCard = new Card(Card.Type.METHOD, cardIdCounter.getAndIncrement());
         List<Card> deck = getPrivateField(activePlayer, "deck");
         deck.add(methodCard);
@@ -990,12 +939,7 @@ public class OurEngineTest {
 
         int initialScore = activePlayer.getScore();
 
-        TrashCardDecision decision = new TrashCardDecision(methodCard);
-        invokePrivateMethod(
-                engine,
-                "processTrashCardDecision",
-                new Class<?>[] {TrashCardDecision.class},
-                decision);
+        runner.processTrashCardDecision(new TrashCardDecision(methodCard));
 
         assertEquals(
                 "Score should decrease by 1 for METHOD card",
@@ -1005,14 +949,14 @@ public class OurEngineTest {
 
     @Test
     public void testProcessTrashCardDecision_NonVictoryCard_DoesNotChangeScore() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Get a BITCOIN card from hand (starting hand has 7 BITCOINs)
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card bitcoinCard = null;
         for (Card card : unplayedCards) {
@@ -1024,12 +968,7 @@ public class OurEngineTest {
 
         int initialScore = activePlayer.getScore();
 
-        TrashCardDecision decision = new TrashCardDecision(bitcoinCard);
-        invokePrivateMethod(
-                engine,
-                "processTrashCardDecision",
-                new Class<?>[] {TrashCardDecision.class},
-                decision);
+        runner.processTrashCardDecision(new TrashCardDecision(bitcoinCard));
 
         assertEquals(
                 "Score should not change for non-victory card",
@@ -1041,23 +980,16 @@ public class OurEngineTest {
 
     @Test
     public void testProcessGainingCard_ValidGain_AddsCardToDiscard() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
         List<Card> discard = getPrivateField(activePlayer, "discard");
         int initialDiscardSize = discard.size();
 
-        boolean result =
-                invokePrivateMethod(
-                        engine,
-                        "processGainingCard",
-                        new Class<?>[] {Card.Type.class, PlayerInfo.class},
-                        Card.Type.BITCOIN,
-                        activePlayer);
+        boolean result = shopManager.gain(Card.Type.BITCOIN, activePlayer);
 
         assertTrue("Gaining should succeed", result);
         assertEquals("Discard should gain one card", initialDiscardSize + 1, discard.size());
@@ -1065,21 +997,16 @@ public class OurEngineTest {
 
     @Test
     public void testProcessGainingCard_ValidGain_DecrementsShop() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
+        ShopManager shopManager = createShopManager(engine);
 
         int initialShopCount = shop.getNumAvailable(Card.Type.BITCOIN);
 
-        invokePrivateMethod(
-                engine,
-                "processGainingCard",
-                new Class<?>[] {Card.Type.class, PlayerInfo.class},
-                Card.Type.BITCOIN,
-                activePlayer);
+        shopManager.gain(Card.Type.BITCOIN, activePlayer);
 
         assertEquals(
                 "Shop should decrease by 1",
@@ -1089,25 +1016,18 @@ public class OurEngineTest {
 
     @Test
     public void testProcessGainingCard_CardNotAvailable_ReturnsFalse() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
+        ShopManager shopManager = createShopManager(engine);
 
-        // Sell out all FRAMEWORKs
         while (shop.getNumAvailable(Card.Type.FRAMEWORK) > 0) {
             shop.decrementCount(Card.Type.FRAMEWORK);
         }
 
-        boolean result =
-                invokePrivateMethod(
-                        engine,
-                        "processGainingCard",
-                        new Class<?>[] {Card.Type.class, PlayerInfo.class},
-                        Card.Type.FRAMEWORK,
-                        activePlayer);
+        boolean result = shopManager.gain(Card.Type.FRAMEWORK, activePlayer);
 
         assertFalse("Gaining should fail when card unavailable", result);
     }
@@ -1116,56 +1036,53 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionCodeReview_DrawsCard() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
-        // Ensure deck has cards
         List<Card> deck = getPrivateField(activePlayer, "deck");
         if (deck.isEmpty()) {
-            // Add a card to deck if empty
             AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
             deck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
         }
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        invokePrivateMethod(engine, "executeActionCodeReview", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new CodeReviewEffect().execute(ctx);
 
-        int newHandSize = activePlayer.getUnplayedCards().size();
-        assertEquals("Should draw 1 card", initialHandSize + 1, newHandSize);
+        assertEquals(
+                "Should draw 1 card", initialHandSize + 1, activePlayer.getUnplayedCards().size());
     }
 
     @Test
     public void testExecuteActionCodeReview_AddsTwoActions() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
         int initialActions = activePlayer.numActions();
 
-        invokePrivateMethod(engine, "executeActionCodeReview", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new CodeReviewEffect().execute(ctx);
 
-        int newActions = activePlayer.numActions();
-        assertEquals("Should add 2 actions", initialActions + 2, newActions);
+        assertEquals("Should add 2 actions", initialActions + 2, activePlayer.numActions());
     }
 
     @Test
     public void testExecuteActionEvergreenTest_DrawsTwoCards() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
-        // Ensure deck has enough cards
         List<Card> deck = getPrivateField(activePlayer, "deck");
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
         while (deck.size() < 2) {
@@ -1174,10 +1091,12 @@ public class OurEngineTest {
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new EvergreenTestEffect().execute(ctx);
 
-        int newHandSize = activePlayer.getUnplayedCards().size();
-        assertEquals("Should draw 2 cards", initialHandSize + 2, newHandSize);
+        assertEquals(
+                "Should draw 2 cards", initialHandSize + 2, activePlayer.getUnplayedCards().size());
     }
 
     @Test
@@ -1185,15 +1104,16 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
-        // Get initial discard sizes of other players
         List<Card> player2Discard = getPrivateField(players.get(1), "discard");
         List<Card> player3Discard = getPrivateField(players.get(2), "discard");
         int initialPlayer2DiscardSize = player2Discard.size();
         int initialPlayer3DiscardSize = player3Discard.size();
 
-        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new EvergreenTestEffect().execute(ctx);
 
         assertEquals(
                 "Player 2 should gain a BUG", initialPlayer2DiscardSize + 1, player2Discard.size());
@@ -1206,9 +1126,8 @@ public class OurEngineTest {
         OurEngine engine = new OurEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+        ShopManager shopManager = createShopManager(engine);
 
-        // Disqualify player 2
         players.get(1).forfeit();
 
         List<Card> player2Discard = getPrivateField(players.get(1), "discard");
@@ -1216,7 +1135,9 @@ public class OurEngineTest {
         int initialPlayer2DiscardSize = player2Discard.size();
         int initialPlayer3DiscardSize = player3Discard.size();
 
-        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new EvergreenTestEffect().execute(ctx);
 
         assertEquals(
                 "Disqualified player should not gain BUG",
@@ -1230,22 +1151,18 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionEvergreenTest_InsufficientBugsInSupply() throws Exception {
-        // Create 4 players - active player + 3 opponents who should each get a BUG
         OurEngine engine = new OurEngine(fourPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-
-        // Get the shop and deplete BUGs to just 1 (insufficient for 3 opponents)
         MutableCardStacks shop = getPrivateField(engine, "shop");
+        ShopManager shopManager = createShopManager(engine);
+
         int initialBugCount = shop.getNumAvailable(Card.Type.BUG);
-        // Deplete to 1 BUG remaining
         for (int i = 0; i < initialBugCount - 1; i++) {
             shop.decrementCount(Card.Type.BUG);
         }
         assertEquals("Should have exactly 1 BUG in supply", 1, shop.getNumAvailable(Card.Type.BUG));
 
-        // Track initial discard sizes
         List<Card> player2Discard = getPrivateField(players.get(1), "discard");
         List<Card> player3Discard = getPrivateField(players.get(2), "discard");
         List<Card> player4Discard = getPrivateField(players.get(3), "discard");
@@ -1253,9 +1170,10 @@ public class OurEngineTest {
         int initialPlayer3DiscardSize = player3Discard.size();
         int initialPlayer4DiscardSize = player4Discard.size();
 
-        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new EvergreenTestEffect().execute(ctx);
 
-        // Only 1 BUG should be distributed (to one of the three opponents)
         int totalBugsGained =
                 (player2Discard.size() - initialPlayer2DiscardSize)
                         + (player3Discard.size() - initialPlayer3DiscardSize)
@@ -1266,29 +1184,26 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionEvergreenTest_NoBugsInSupply() throws Exception {
-        // Create 2 players - active player + 1 opponent who should get a BUG normally
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-
-        // Get the shop and deplete all BUGs to 0
         MutableCardStacks shop = getPrivateField(engine, "shop");
+        ShopManager shopManager = createShopManager(engine);
+
         int initialBugCount = shop.getNumAvailable(Card.Type.BUG);
         for (int i = 0; i < initialBugCount; i++) {
             shop.decrementCount(Card.Type.BUG);
         }
         assertEquals("Should have 0 BUGs in supply", 0, shop.getNumAvailable(Card.Type.BUG));
 
-        // Track initial discard size for opponent
         List<Card> player2Discard = getPrivateField(players.get(1), "discard");
         int initialPlayer2DiscardSize = player2Discard.size();
 
-        // Execute EVERGREEN_TEST - should handle gracefully with no BUGs available
-        invokePrivateMethod(engine, "executeActionEvergreenTest", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new EvergreenTestEffect().execute(ctx);
 
-        // No BUG should be gained (silent fail when supply is empty)
         assertEquals(
                 "Opponent should not gain BUG when supply is empty",
                 initialPlayer2DiscardSize,
@@ -1300,7 +1215,6 @@ public class OurEngineTest {
 
     @Test
     public void testHandleCheating_DisqualifiesPlayer() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
@@ -1308,14 +1222,8 @@ public class OurEngineTest {
 
         assertFalse("Player should not be disqualified initially", cheater.isDisqualified());
 
-        invokePrivateMethod(
-                engine,
-                "handleCheating",
-                new Class<?>[] {
-                    PlayerInfo.class, edu.brandeis.cosi.atg.engine.PlayerViolationException.class
-                },
-                cheater,
-                new edu.brandeis.cosi.atg.engine.PlayerViolationException("test violation"));
+        // forfeit() is what the engine calls when a PlayerViolationException is caught
+        cheater.forfeit();
 
         assertTrue("Player should be disqualified after cheating", cheater.isDisqualified());
     }
@@ -1324,13 +1232,11 @@ public class OurEngineTest {
 
     @Test
     public void testEndGame_ReturnsGameResult() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        setPrivateField(engine, "activePlayer", players.get(0));
+        GameRunner gameRunner = getPrivateField(engine, "runner");
 
-        GameResult result = invokePrivateMethod(engine, "endGame", new Class<?>[] {});
+        GameResult result = gameRunner.endGame();
 
         assertNotNull("Should return a GameResult", result);
     }
@@ -1338,30 +1244,27 @@ public class OurEngineTest {
     @Test
     public void testEndGame_IncludesAllPlayers() throws Exception {
         OurEngine engine = new OurEngine(threePlayers);
-        List<PlayerInfo> players = getPrivateField(engine, "players");
-        setPrivateField(engine, "activePlayer", players.get(0));
+        GameRunner gameRunner = getPrivateField(engine, "runner");
 
-        GameResult result = invokePrivateMethod(engine, "endGame", new Class<?>[] {});
+        GameResult result = gameRunner.endGame();
 
         assertEquals("Should include all players in result", 3, result.playerResults().size());
     }
 
     @Test
     public void testEndGame_SortsPlayersByScore() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
-
-        // Give player 2 a higher score (add victory cards)
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        GameRunner gameRunner = getPrivateField(engine, "runner");
+
         for (int i = 0; i < 3; i++) {
             players.get(1).gainCard(new Card(Card.Type.FRAMEWORK, cardIdCounter.getAndIncrement()));
         }
 
-        GameResult result = invokePrivateMethod(engine, "endGame", new Class<?>[] {});
+        GameResult result = gameRunner.endGame();
 
-        // First player in results should have higher score
         PlayerResult first = result.playerResults().get(0);
         PlayerResult second = result.playerResults().get(1);
 
@@ -1413,51 +1316,41 @@ public class OurEngineTest {
     // ========== processPlayActionCard Tests ==========
 
     @Test(expected = IllegalStateException.class)
-    public void testProcessPlayActionCard_NoActionsRemaining_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessPlayActionCard_NoActionsRemaining_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Set actions to exactly 0 (turnReset gives 1, so adjust by -1)
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+        runner.setCurrentTurnLog(null);
+
         activePlayer.turnReset();
         activePlayer.adjustActions(-1);
         assertEquals("Should have 0 actions", 0, activePlayer.numActions());
 
-        try {
-            invokePrivateMethod(
-                    engine,
-                    "processPlayActionCard",
-                    new Class<?>[] {Card.Type.class},
-                    Card.Type.CODE_REVIEW);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        runner.processPlayActionCard(Card.Type.CODE_REVIEW);
     }
 
     @Test
     public void testProcessPlayActionCard_ValidAction_DecrementsActions() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Give player actions
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+        runner.setCurrentTurnLog(null);
+        runner.setPhase(GameState.TurnPhase.ACTION);
+
         activePlayer.adjustActions(3);
         int initialActions = activePlayer.numActions();
 
-        invokePrivateMethod(
-                engine,
-                "processPlayActionCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.CODE_REVIEW);
+        runner.processPlayActionCard(Card.Type.CODE_REVIEW);
 
-        // CODE_REVIEW gives +2 actions, but we should decrement by 1 at the end
-        // So net effect is +1 action (starts with 3, +2 from card effect, -1 from playing = 4)
+        // CODE_REVIEW gives +2 actions, playing costs -1: net +1
         int expectedActions = initialActions + 2 - 1;
         assertEquals(
                 "Actions should be correctly adjusted", expectedActions, activePlayer.numActions());
@@ -1467,189 +1360,183 @@ public class OurEngineTest {
 
     @Test
     public void testProcessPlayMoneyCard_Bitcoin_AddsOneMoney() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         int initialMoney = activePlayer.numMoney();
 
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.BITCOIN);
+        runner.processPlayMoneyCard(Card.Type.BITCOIN);
 
         assertEquals("BITCOIN should add 1 money", initialMoney + 1, activePlayer.numMoney());
     }
 
     @Test
     public void testProcessPlayMoneyCard_Ethereum_AddsTwoMoney() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         int initialMoney = activePlayer.numMoney();
 
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.ETHEREUM);
+        runner.processPlayMoneyCard(Card.Type.ETHEREUM);
 
         assertEquals("ETHEREUM should add 2 money", initialMoney + 2, activePlayer.numMoney());
     }
 
     @Test
     public void testProcessPlayMoneyCard_Dogecoin_AddsThreeMoney() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         int initialMoney = activePlayer.numMoney();
 
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.DOGECOIN);
+        runner.processPlayMoneyCard(Card.Type.DOGECOIN);
 
         assertEquals("DOGECOIN should add 3 money", initialMoney + 3, activePlayer.numMoney());
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testProcessPlayMoneyCard_NonMoneyCard_ThrowsException() throws Throwable {
-        // Create fresh players to avoid any state sharing
+    public void testProcessPlayMoneyCard_NonMoneyCard_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
-        setPrivateField(engine, "activePlayer", players.get(0));
 
-        try {
-            invokePrivateMethod(
-                    engine,
-                    "processPlayMoneyCard",
-                    new Class<?>[] {Card.Type.class},
-                    Card.Type.CODE_REVIEW);
-        } catch (Exception e) {
-            throw e.getCause();
-        }
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(players.get(0));
+
+        runner.processPlayMoneyCard(Card.Type.CODE_REVIEW);
     }
 
     // ========== executeActionRefactor Tests ==========
 
     @Test
     public void testExecuteActionRefactor_TrashAndGain_Success() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        ShopManager shopManager = createShopManager(engine);
 
-        // Get the hand and add a BITCOIN to trash (cost 3)
         MutableHand hand = getPrivateField(activePlayer, "hand");
         Card bitcoinToTrash = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(bitcoinToTrash);
 
         int initialHandSize = activePlayer.getUnplayedCards().size();
 
-        // Execute REFACTOR - it will prompt for trash, then gain
-        // BigMoneyPlayer should make valid decisions
-        invokePrivateMethod(engine, "executeActionRefactor", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new RefactorEffect().execute(ctx);
 
-        // After trash and gain, hand size should be same (removed 1, gained 1 to discard)
-        // But card was gained to discard, not hand
-        int finalHandSize = activePlayer.getUnplayedCards().size();
         assertEquals(
                 "Hand should have one less card after trashing",
                 initialHandSize - 1,
-                finalHandSize);
+                activePlayer.getUnplayedCards().size());
     }
 
     @Test
     public void testExecuteActionRefactor_NoCardsInHand_ReturnsEarly() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
+        ShopManager shopManager = createShopManager(engine);
 
-        // Clear the hand completely
         MutableHand hand = getPrivateField(activePlayer, "hand");
         hand.clear();
 
-        // Execute REFACTOR with empty hand - should return early without error
-        invokePrivateMethod(engine, "executeActionRefactor", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new RefactorEffect().execute(ctx);
 
-        // Verify hand is still empty and no exception was thrown
         assertEquals("Hand should still be empty", 0, activePlayer.getUnplayedCards().size());
     }
 
     @Test
     public void testExecuteActionRefactor_CostCalculation_AllowsCardsUpToCostPlusTwo()
             throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        ShopManager shopManager = createShopManager(engine);
 
-        // Add a DOGECOIN (cost 0) to hand
         MutableHand hand = getPrivateField(activePlayer, "hand");
         hand.clear();
         Card dogecoin = new Card(Card.Type.DOGECOIN, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(dogecoin);
 
-        // Execute REFACTOR - trash DOGECOIN (cost 0), can gain cards costing up to 2
-        // BigMoneyPlayer should gain a card
-        invokePrivateMethod(engine, "executeActionRefactor", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new RefactorEffect().execute(ctx);
 
-        // Verify a card was gained from the shop
         List<Card> discard = getPrivateField(activePlayer, "discard");
         assertTrue("Should have gained a card to discard", discard.size() > 0);
     }
 
     @Test
-    public void testExecuteActionRefactor_PhasesTransition_GainPhase() throws Exception {
-        // Create fresh players to avoid any state sharing
+    public void testExecuteActionRefactor_TrashExpensiveCard_CanGainExpensiveReplacement()
+            throws Exception {
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        ShopManager shopManager = createShopManager(engine);
 
-        // Add a card to trash
+        MutableHand hand = getPrivateField(activePlayer, "hand");
+        hand.clear();
+        Card framework = new Card(Card.Type.FRAMEWORK, cardIdCounter.getAndIncrement());
+        hand.addToUnplayed(framework);
+
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new RefactorEffect().execute(ctx);
+
+        List<Card> discard = getPrivateField(activePlayer, "discard");
+        boolean frameworkInDiscard =
+                discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
+        assertFalse("Trashed FRAMEWORK should not be in discard", frameworkInDiscard);
+        assertTrue("Should have gained a card", discard.size() > 0);
+    }
+
+    @Test
+    public void testExecuteActionRefactor_PhasesTransition_GainPhase() throws Exception {
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        ShopManager shopManager = createShopManager(engine);
+
         MutableHand hand = getPrivateField(activePlayer, "hand");
         hand.clear();
         Card bitcoin = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
         hand.addToUnplayed(bitcoin);
 
-        // Execute REFACTOR
-        invokePrivateMethod(engine, "executeActionRefactor", new Class<?>[] {});
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new RefactorEffect().execute(ctx);
 
-        // After REFACTOR completes, phase should be back to ACTION
-        GameState.TurnPhase currentPhase = getPrivateField(engine, "phase");
         assertEquals(
                 "Phase should return to ACTION after REFACTOR",
                 GameState.TurnPhase.ACTION,
-                currentPhase);
+                ctx.getPhase());
     }
 
     // ========== Card Drawing Edge Case Tests ==========
@@ -1781,79 +1668,46 @@ public class OurEngineTest {
 
     @Test
     public void testMoneyPhase_PlayAllMoneyCardsSequentially_AccumulatesMoney() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
 
-        // Clear hand and add specific money cards
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         MutableHand hand = getPrivateField(activePlayer, "hand");
         hand.clear();
         activePlayer.turnReset();
 
-        Card bitcoin = new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement());
-        Card ethereum = new Card(Card.Type.ETHEREUM, cardIdCounter.getAndIncrement());
-        Card dogecoin = new Card(Card.Type.DOGECOIN, cardIdCounter.getAndIncrement());
-        hand.addToUnplayed(bitcoin);
-        hand.addToUnplayed(ethereum);
-        hand.addToUnplayed(dogecoin);
+        hand.addToUnplayed(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        hand.addToUnplayed(new Card(Card.Type.ETHEREUM, cardIdCounter.getAndIncrement()));
+        hand.addToUnplayed(new Card(Card.Type.DOGECOIN, cardIdCounter.getAndIncrement()));
 
-        // Play all money cards
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.BITCOIN);
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.ETHEREUM);
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.DOGECOIN);
+        runner.processPlayMoneyCard(Card.Type.BITCOIN);
+        runner.processPlayMoneyCard(Card.Type.ETHEREUM);
+        runner.processPlayMoneyCard(Card.Type.DOGECOIN);
 
-        // Total money should be 1 + 2 + 3 = 6
-        int totalMoney = activePlayer.numMoney();
-        assertEquals("Money should accumulate correctly", 6, totalMoney);
+        assertEquals("Money should accumulate correctly", 6, activePlayer.numMoney());
     }
 
     @Test
     public void testMoneyPhase_MultipleSameTypeCards_EachAddsValue() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
-        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
+
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
 
         activePlayer.turnReset();
 
-        // Play 3 DOGECOINs (3 money each)
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.DOGECOIN);
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.DOGECOIN);
-        invokePrivateMethod(
-                engine,
-                "processPlayMoneyCard",
-                new Class<?>[] {Card.Type.class},
-                Card.Type.DOGECOIN);
+        runner.processPlayMoneyCard(Card.Type.DOGECOIN);
+        runner.processPlayMoneyCard(Card.Type.DOGECOIN);
+        runner.processPlayMoneyCard(Card.Type.DOGECOIN);
 
-        // Total money should be 3 + 3 + 3 = 9
         assertEquals("Multiple cards of same type should accumulate", 9, activePlayer.numMoney());
     }
 
@@ -1996,116 +1850,34 @@ public class OurEngineTest {
     // ========== Phase Transition Tests ==========
 
     @Test
-    public void testProcessEndPhaseDecision_ActionToMoney_TransitionsCorrectly() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
-
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
-
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals("Should transition from ACTION to MONEY", GameState.TurnPhase.MONEY, newPhase);
-    }
-
-    @Test
-    public void testProcessEndPhaseDecision_MoneyToBuy_TransitionsCorrectly() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.MONEY);
-
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.MONEY);
-
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
-
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals("Should transition from MONEY to BUY", GameState.TurnPhase.BUY, newPhase);
-    }
-
-    @Test
-    public void testProcessEndPhaseDecision_BuyToCleanup_TransitionsCorrectly() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
-        setPrivateField(engine, "phase", GameState.TurnPhase.BUY);
-
-        EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.BUY);
-
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                decision);
-
-        GameState.TurnPhase newPhase = getPrivateField(engine, "phase");
-        assertEquals(
-                "Should transition from BUY to CLEANUP", GameState.TurnPhase.CLEANUP, newPhase);
-    }
-
-    @Test
     public void testProcessEndPhaseDecision_AllPhases_CompleteSequence() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
+        TurnRunner runner = createTurnRunner(engine);
 
-        // Start at ACTION phase
-        setPrivateField(engine, "phase", GameState.TurnPhase.ACTION);
-        EndPhaseDecision actionEnd = new EndPhaseDecision(GameState.TurnPhase.ACTION);
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                actionEnd);
-        assertEquals(
-                "After ACTION phase",
-                GameState.TurnPhase.MONEY,
-                (GameState.TurnPhase) getPrivateField(engine, "phase"));
+        runner.setPhase(GameState.TurnPhase.ACTION);
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.ACTION));
+        assertEquals("After ACTION phase", GameState.TurnPhase.MONEY, runner.getPhase());
 
-        // MONEY to BUY
-        EndPhaseDecision moneyEnd = new EndPhaseDecision(GameState.TurnPhase.MONEY);
-        invokePrivateMethod(
-                engine,
-                "processEndPhaseDecision",
-                new Class<?>[] {EndPhaseDecision.class},
-                moneyEnd);
-        assertEquals(
-                "After MONEY phase",
-                GameState.TurnPhase.BUY,
-                (GameState.TurnPhase) getPrivateField(engine, "phase"));
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.MONEY));
+        assertEquals("After MONEY phase", GameState.TurnPhase.BUY, runner.getPhase());
 
-        // BUY to CLEANUP
-        EndPhaseDecision buyEnd = new EndPhaseDecision(GameState.TurnPhase.BUY);
-        invokePrivateMethod(
-                engine, "processEndPhaseDecision", new Class<?>[] {EndPhaseDecision.class}, buyEnd);
-        assertEquals(
-                "After BUY phase",
-                GameState.TurnPhase.CLEANUP,
-                (GameState.TurnPhase) getPrivateField(engine, "phase"));
+        runner.processEndPhaseDecision(new EndPhaseDecision(GameState.TurnPhase.BUY));
+        assertEquals("After BUY phase", GameState.TurnPhase.CLEANUP, runner.getPhase());
     }
 
     // ========== Multiple Sequential Buys Tests ==========
 
     @Test
     public void testProcessBuyDecision_MultipleBuys_DecrementsCorrectly() throws Exception {
-        // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
         OurEngine engine = new OurEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
-        setPrivateField(engine, "activePlayer", activePlayer);
 
-        // Give player money and multiple buys
+        TurnRunner runner = createTurnRunner(engine);
+        runner.setActivePlayer(activePlayer);
+
         activePlayer.turnReset();
         activePlayer.adjustMoney(10);
         activePlayer.adjustBuys(1); // Total 2 buys (1 from reset + 1)
@@ -2113,18 +1885,12 @@ public class OurEngineTest {
         assertEquals("Should start with 2 buys", 2, activePlayer.numBuys());
         assertEquals("Should start with 10 money", 10, activePlayer.numMoney());
 
-        // First buy: ETHEREUM (cost 3)
-        BuyDecision firstBuy = new BuyDecision(Card.Type.ETHEREUM);
-        invokePrivateMethod(
-                engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, firstBuy);
+        runner.processBuyDecision(new BuyDecision(Card.Type.ETHEREUM));
 
         assertEquals("Should have 1 buy remaining", 1, activePlayer.numBuys());
         assertEquals("Should have 7 money remaining", 7, activePlayer.numMoney());
 
-        // Second buy: BITCOIN (cost 1)
-        BuyDecision secondBuy = new BuyDecision(Card.Type.BITCOIN);
-        invokePrivateMethod(
-                engine, "processBuyDecision", new Class<?>[] {BuyDecision.class}, secondBuy);
+        runner.processBuyDecision(new BuyDecision(Card.Type.BITCOIN));
 
         assertEquals("Should have 0 buys remaining", 0, activePlayer.numBuys());
         assertEquals("Should have 7 money remaining", 7, activePlayer.numMoney());

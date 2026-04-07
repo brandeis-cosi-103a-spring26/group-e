@@ -9,28 +9,36 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
-import edu.brandeis.cosi103a.groupe.main.Harness;
+import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ConsolePlayer extends AbstractPlayer {
 
+    private final ConsoleInput consoleInput;
     private final String customDisplayName;
     private boolean autoPlayTreasures = false;
 
-    /** Creates a console player with the default display name format. */
-    public ConsolePlayer() {
-        this(null);
+    /**
+     * Creates a console player with the default display name format.
+     *
+     * @param consoleInput the ConsoleInput instance for handling user input
+     */
+    public ConsolePlayer(ConsoleInput consoleInput) {
+        this(consoleInput, null);
     }
 
     /**
      * Creates a console player with an optional custom display name.
      *
+     * @param consoleInput the ConsoleInput instance for handling user input
      * @param customDisplayName the custom name to use in logs/UI; blank values are ignored
      */
-    public ConsolePlayer(String customDisplayName) {
+    public ConsolePlayer(ConsoleInput consoleInput, String customDisplayName) {
+        this.consoleInput = Objects.requireNonNull(consoleInput);
         String trimmedName = customDisplayName == null ? "" : customDisplayName.trim();
         this.customDisplayName = trimmedName.isEmpty() ? null : trimmedName;
     }
@@ -129,12 +137,9 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        // Not in auto-play mode or no treasures available - get user input
-        // Render the current game state to the console
-        // Renderer.renderGame(state);
         Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
 
-        DecisionResult result = Harness.getDecisionFromConsole(state, options);
+        DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
 
         // Check if user requested auto-play mode
         if (result.isAutoPlayRequested()) {
