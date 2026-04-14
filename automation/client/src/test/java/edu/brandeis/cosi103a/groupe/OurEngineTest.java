@@ -79,6 +79,7 @@ public class OurEngineTest {
                                 new RefactorEffect(),
                     new EvergreenTestEffect(),
                     new IPOEffect(),
+                    new MonitoringEffect(),
                     new DailyScrumEffect()));
         return new TurnRunner(players, shopManager, registry);
     }
@@ -300,6 +301,7 @@ public class OurEngineTest {
                 "EVERGREEN_TEST should have 10",
                 10,
                 shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("MONITORING should have 10", 10, shop.getNumAvailable(Card.Type.MONITORING));
         assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
         assertEquals(
             "DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));

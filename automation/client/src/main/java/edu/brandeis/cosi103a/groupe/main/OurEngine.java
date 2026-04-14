@@ -17,6 +17,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.DailyScrumEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ public class OurEngine implements Engine {
                         Type.REFACTOR,
                         Type.EVERGREEN_TEST,
                         Type.IPO,
+                        Type.MONITORING,
                         Type.PARALLELIZATION,
                         Type.BACKLOG,
                         Type.DAILY_SCRUM);
@@ -88,6 +90,7 @@ public class OurEngine implements Engine {
                                 new RefactorEffect(),
                                 new EvergreenTestEffect(),
                                 new IPOEffect(),
+                                new MonitoringEffect(),
                                 new BacklogEffect(),
                                 new DailyScrumEffect(),
                                 parallelization));

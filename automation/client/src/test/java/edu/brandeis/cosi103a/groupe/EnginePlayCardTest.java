@@ -37,6 +37,7 @@ public class EnginePlayCardTest {
                         Card.Type.CODE_REVIEW,
                         Card.Type.REFACTOR,
                         Card.Type.EVERGREEN_TEST,
+                        Card.Type.MONITORING,
                         Card.Type.DAILY_SCRUM);
             MutableCardStacks stacks = new MutableCardStacks(numPlayers, actionCards);
             shop = new ShopManager(stacks, counter);
@@ -55,6 +56,8 @@ public class EnginePlayCardTest {
                                     new edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions
                                         .EvergreenTestEffect(),
+                                    new edu.brandeis.cosi103a.groupe.main.actions
+                                            .MonitoringEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions
                                         .DailyScrumEffect()));
             runner = new TurnRunner(players, shop, registry);
@@ -298,6 +301,70 @@ public class EnginePlayCardTest {
                 opponentDiscard.size());
         Card gainedCard = opponentDiscard.get(opponentDiscard.size() - 1);
         assertEquals("Gained card should be a BUG", Card.Type.BUG, gainedCard.type());
+    }
+
+    @Test
+    public void testProcessPlayCardDecision_Monitoring_DrawsTwoCards() throws Exception {
+        Setup s = new Setup(2);
+        s.active.turnReset();
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+        List<Card> deck = getField(s.active, "deck");
+        while (deck.size() < 2) {
+            deck.add(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+
+        MutableHand hand = getField(s.active, "hand");
+        Card monitoring = new Card(Card.Type.MONITORING, counter.getAndIncrement());
+        hand.addToUnplayed(monitoring);
+
+        int initialHandSize = s.active.getUnplayedCards().size();
+        int initialActions = s.active.numActions();
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(monitoring));
+
+        assertEquals(
+                "Monitoring should net +1 card in hand (-1 played, +2 drawn)",
+                initialHandSize + 1,
+                s.active.getUnplayedCards().size());
+        assertEquals("Monitoring should consume one action", initialActions - 1, s.active.numActions());
+    }
+
+    @Test
+    public void testProcessPlayCardDecision_EvergreenBlockedByMonitoring_LogsAndKeepsCardInHand()
+            throws Exception {
+        Setup s = new Setup(2);
+        s.active.turnReset();
+        s.runner.setCurrentTurnLog(new TurnLog(1, s.active.getDisplayName()));
+
+        PlayerInfo opponent = s.players.get(1);
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+
+        MutableHand activeHand = getField(s.active, "hand");
+        Card evergreenTest = new Card(Card.Type.EVERGREEN_TEST, counter.getAndIncrement());
+        activeHand.addToUnplayed(evergreenTest);
+
+        MutableHand opponentHand = getField(opponent, "hand");
+        Card monitoring = new Card(Card.Type.MONITORING, counter.getAndIncrement());
+        opponentHand.addToUnplayed(monitoring);
+
+        List<Card> opponentDiscard = getField(opponent, "discard");
+        int initialOpponentDiscardSize = opponentDiscard.size();
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(evergreenTest));
+
+        assertEquals(
+                "Opponent should be unaffected and gain no BUG",
+                initialOpponentDiscardSize,
+                opponentDiscard.size());
+        assertTrue(
+                "Monitoring used as reaction should remain in opponent hand",
+                opponent.getUnplayedCards().contains(monitoring));
+
+        TurnLog log = getField(s.runner, "currentTurnLog");
+        assertTrue(
+                "Turn log should mention attack was avoided by Monitoring",
+                log.getEntries().stream().anyMatch(e -> e.contains("revealed Monitoring")));
     }
 
     @Test

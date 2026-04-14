@@ -81,6 +81,15 @@ public class CardDescriptions {
                                     + "When this card is played, the engine immediately adds a BUG"
                                     + " to the discard pile of each other player.")
                     .put(
+                            Card.Type.MONITORING,
+                            "(Reaction card) +2 Cards; When another player plays an Attack card,"
+                                    + " reveal this from your hand to be unaffected by the"
+                                    + " attack.\n\n"
+                                    + "When this card is played, the player immediately draws two"
+                                    + " cards into their hand. While this card remains unplayed in"
+                                    + " a player's hand, it automatically protects that player from"
+                                    + " attack effects.")
+                    .put(
                             Card.Type.PARALLELIZATION,
                             "You may play an Action card from your hand twice.\n\n"
                                     + "When this card is played, the player is immediately prompted"

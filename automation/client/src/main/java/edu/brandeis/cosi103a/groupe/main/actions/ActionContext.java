@@ -9,6 +9,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,21 @@ public class ActionContext {
 
     public void giveCardTo(PlayerInfo p, Card.Type t) {
         shop.gain(t, p);
+    }
+
+    /** Returns true when the player should be unaffected by the given attack card. */
+    public boolean isUnaffectedByAttack(PlayerInfo target, Card.Type attackType) {
+        for (Card card : target.getUnplayedCards()) {
+            if (card.type() == Card.Type.MONITORING) {
+                log(
+                        "  "
+                                + target.getDisplayName()
+                                + " revealed Monitoring and was unaffected by "
+                                + Renderer.displayName(attackType));
+                return true;
+            }
+        }
+        return false;
     }
 
     public Decision makeDecision(ImmutableList<Decision> opts) throws PlayerViolationException {
