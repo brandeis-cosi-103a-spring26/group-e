@@ -14,6 +14,7 @@ import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,16 +63,27 @@ public class OurEngine implements Engine {
         activePlayer = this.players.get(this.players.size() - 1);
 
         ImmutableSet<Type> actionCards =
-                ImmutableSet.of(Type.CODE_REVIEW, Type.REFACTOR, Type.EVERGREEN_TEST);
+                ImmutableSet.of(
+                        Type.CODE_REVIEW,
+                        Type.REFACTOR,
+                        Type.EVERGREEN_TEST,
+                        Type.PARALLELIZATION);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
+
+        // Instantiate ParallelizationEffect first (no registry yet) so all effects
+        // are created exactly once, then inject the registry back in via setter.
+        ParallelizationEffect parallelization = new ParallelizationEffect();
         ActionEffectRegistry registry =
                 new ActionEffectRegistry(
                         List.of(
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
-                                new EvergreenTestEffect()));
+                                new EvergreenTestEffect(),
+                                parallelization));
+        parallelization.setRegistry(registry);
+
         runner = new GameRunner(this.players, shopManager, registry);
     }
 

@@ -74,6 +74,14 @@ public class CardDescriptions {
                             "(Attack card) +2 Cards; Each other player gains a Bug.\n\n"
                                     + "When this card is played, the engine immediately adds a BUG"
                                     + " to the discard pile of each other player.")
+                    .put(
+                            Card.Type.PARALLELIZATION,
+                            "You may play an Action card from your hand twice.\n\n"
+                                    + "When this card is played, the player is immediately prompted"
+                                    + " with PlayCardDecisions for every other unplayed action card"
+                                    + " in their hand. The chosen card will then be executed twice."
+                                    + " Executing the chosen card does not use additional actions"
+                                    + " beyond the one action used to play Parallelization.")
                     .build();
 
     public static String get(Card.Type cardType) {
