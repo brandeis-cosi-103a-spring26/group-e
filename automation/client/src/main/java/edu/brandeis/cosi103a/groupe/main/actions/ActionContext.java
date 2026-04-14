@@ -73,6 +73,14 @@ public class ActionContext {
         }
     }
 
+    public void discardCard(Card card) {
+        boolean discarded = active.discardCard(card);
+        if (!discarded) {
+            throw new IllegalStateException(
+                    "Attempted to discard a card that is not in the active player's unplayed hand.");
+        }
+    }
+
     public void setPhase(TurnPhase p) {
         this.phase = p;
     }

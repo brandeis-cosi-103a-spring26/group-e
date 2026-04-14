@@ -298,6 +298,7 @@ public class OurEngineTest {
                 "EVERGREEN_TEST should have 10",
                 10,
                 shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
     }
 
     @Test

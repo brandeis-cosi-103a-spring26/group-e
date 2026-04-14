@@ -16,6 +16,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,7 +68,8 @@ public class OurEngine implements Engine {
                         Type.CODE_REVIEW,
                         Type.REFACTOR,
                         Type.EVERGREEN_TEST,
-                        Type.PARALLELIZATION);
+                        Type.PARALLELIZATION,
+                        Type.BACKLOG);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -81,6 +83,7 @@ public class OurEngine implements Engine {
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
                                 new EvergreenTestEffect(),
+                                new BacklogEffect(),
                                 parallelization));
         parallelization.setRegistry(registry);
 

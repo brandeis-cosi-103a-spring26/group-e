@@ -82,6 +82,19 @@ public class CardDescriptions {
                                     + " in their hand. The chosen card will then be executed twice."
                                     + " Executing the chosen card does not use additional actions"
                                     + " beyond the one action used to play Parallelization.")
+                    .put(
+                            Card.Type.BACKLOG,
+                            "+1 Action; Discard any number of cards, then draw that many.\n\n"
+                                    + "After playing this card, the player will be prompted with a"
+                                    + " list of DiscardCardDecisions, one for each card in their"
+                                    + " hand. The list of decisions will also contain a"
+                                    + " EndPhaseDecision. The player can continue to choose"
+                                    + " DiscardCardDecisions until they wish to stop or run out of"
+                                    + " cards, at which point they should choose the"
+                                    + " EndPhaseDecision. After the Discard phase ends, the Engine"
+                                    + " will draw the number of cards discarded into the player's"
+                                    + " hand, and prompt the player with the next appropriate set of"
+                                    + " decisions, based on actions remaining.")
                     .build();
 
     public static String get(Card.Type cardType) {
