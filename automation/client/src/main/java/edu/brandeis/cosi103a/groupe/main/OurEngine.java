@@ -18,7 +18,6 @@ import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,15 +87,17 @@ public class OurEngine implements Engine {
         for (PlayerInfo player : players) {
             playerNames.add(player.getName());
         }
-        GameStartEvent startEvent = new GameStartEvent(ImmutableList.copyOf(playerNames), shop.toImmutableCardStacks());
-        GameState state = new GameState(
-            activePlayer.getDisplayName(),
-            activePlayer.getImmutableHand(),
-            phase,
-            activePlayer.numActions(),
-            activePlayer.numMoney(),
-            activePlayer.numBuys(),
-            shop.toImmutableCardStacks());
+        GameStartEvent startEvent =
+                new GameStartEvent(ImmutableList.copyOf(playerNames), shop.toImmutableCardStacks());
+        GameState state =
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        phase,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
         observer.notifyEvent(state, startEvent);
         return runner.play();
     }
