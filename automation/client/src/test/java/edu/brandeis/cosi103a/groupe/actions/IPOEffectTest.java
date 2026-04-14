@@ -1,4 +1,4 @@
-package edu.brandeis.cosi103a.groupe;
+package edu.brandeis.cosi103a.groupe.actions;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,10 +18,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
-/** Focused unit tests for IPOEffect. */
 public class IPOEffectTest {
 
-    /** Creates a list of BigMoneyPlayer instances. */
     private List<Player> createPlayers(int count) {
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -30,7 +28,6 @@ public class IPOEffectTest {
         return players;
     }
 
-    /** Uses reflection to access a private field from an object. */
     @SuppressWarnings("unchecked")
     private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
@@ -38,14 +35,12 @@ public class IPOEffectTest {
         return (T) field.get(obj);
     }
 
-    /** Creates a ShopManager backed by the same MutableCardStacks as the given engine. */
     private ShopManager createShopManager(OurEngine engine) throws Exception {
         MutableCardStacks shop = getPrivateField(engine, "shop");
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
         return new ShopManager(shop, cardIdCounter);
     }
 
-    /** Creates an ActionContext for direct effect testing. */
     private ActionContext createActionContext(
             PlayerInfo activePlayer,
             List<PlayerInfo> players,
@@ -73,10 +68,7 @@ public class IPOEffectTest {
                 createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new IPOEffect().execute(ctx);
 
-        assertEquals(
-                "IPO should draw 2 cards",
-                initialHandSize + 2,
-                activePlayer.getUnplayedCards().size());
+        assertEquals(initialHandSize + 2, activePlayer.getUnplayedCards().size());
     }
 
     @Test
@@ -92,7 +84,7 @@ public class IPOEffectTest {
                 createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new IPOEffect().execute(ctx);
 
-        assertEquals("IPO should add 1 action", initialActions + 1, activePlayer.numActions());
+        assertEquals(initialActions + 1, activePlayer.numActions());
     }
 
     @Test
@@ -108,7 +100,7 @@ public class IPOEffectTest {
                 createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new IPOEffect().execute(ctx);
 
-        assertEquals("IPO should add 2 money", initialMoney + 2, activePlayer.numMoney());
+        assertEquals(initialMoney + 2, activePlayer.numMoney());
     }
 
     @Test
@@ -132,8 +124,8 @@ public class IPOEffectTest {
                 createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
         new IPOEffect().execute(ctx);
 
-        assertEquals("IPO should draw 2 cards", initialHandSize + 2, activePlayer.getUnplayedCards().size());
-        assertEquals("IPO should add 1 action", initialActions + 1, activePlayer.numActions());
-        assertEquals("IPO should add 2 money", initialMoney + 2, activePlayer.numMoney());
+        assertEquals(initialHandSize + 2, activePlayer.getUnplayedCards().size());
+        assertEquals(initialActions + 1, activePlayer.numActions());
+        assertEquals(initialMoney + 2, activePlayer.numMoney());
     }
 }
