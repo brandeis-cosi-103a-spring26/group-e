@@ -29,8 +29,9 @@ public class MutableCardStacksTest {
                         Card.Type.REFACTOR,
                         Card.Type.EVERGREEN_TEST,
                         Card.Type.IPO,
-                    Card.Type.HACK,
-                        Card.Type.DAILY_SCRUM);
+                        Card.Type.HACK,
+                        Card.Type.DAILY_SCRUM,
+                        Card.Type.SPRINT_PLANNING);
 
         singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
         emptyActionCards = ImmutableSet.of();
@@ -67,6 +68,10 @@ public class MutableCardStacksTest {
         assertEquals("HACK should be 10", 10, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals(
             "DAILY_SCRUM should be 10", 10, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
+        assertEquals(
+            "SPRINT_PLANNING should be 10",
+            10,
+            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test
@@ -110,6 +115,10 @@ public class MutableCardStacksTest {
             "DAILY_SCRUM should be 0 (not included)",
             0,
             stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
+        assertEquals(
+            "SPRINT_PLANNING should be 0 (not included)",
+            0,
+            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test
@@ -127,6 +136,10 @@ public class MutableCardStacksTest {
         assertEquals("IPO should be 0", 0, stacks.getNumAvailable(Card.Type.IPO));
         assertEquals("HACK should be 0", 0, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals("DAILY_SCRUM should be 0", 0, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
+        assertEquals(
+            "SPRINT_PLANNING should be 0",
+            0,
+            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -339,7 +352,7 @@ public class MutableCardStacksTest {
         ImmutableSet<Card.Type> available = stacks.availableCardsForCost(999);
 
         // Should include all cards with count > 0
-        assertEquals("Should include all 13 card types", 13, available.size());
+        assertEquals("Should include all 14 card types", 14, available.size());
     }
 
     @Test

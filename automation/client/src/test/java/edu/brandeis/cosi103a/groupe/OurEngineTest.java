@@ -307,6 +307,10 @@ public class OurEngineTest {
         assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
         assertEquals(
             "DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));
+        assertEquals(
+            "SPRINT_PLANNING should have 10",
+            10,
+            shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test

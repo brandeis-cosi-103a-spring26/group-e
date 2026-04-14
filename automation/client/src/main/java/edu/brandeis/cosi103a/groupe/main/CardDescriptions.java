@@ -136,6 +136,12 @@ public class CardDescriptions {
                                     + " cards into the active player's hand and adds 1 buy. Then,"
                                     + " before any other actions, each other non-disqualified player"
                                     + " draws exactly 1 card into their hand in turn order.")
+                    .put(
+                            Card.Type.SPRINT_PLANNING,
+                            "+1 Card, +1 Action, +1 Buy.\n\n"
+                                    + "When this card is played, the player immediately draws one"
+                                    + " card, gains one additional action for this turn, and gains"
+                                    + " one additional buy for this turn.")
                     .build();
 
     public static String get(Card.Type cardType) {
