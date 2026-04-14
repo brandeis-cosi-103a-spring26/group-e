@@ -150,6 +150,8 @@ public class Renderer {
         for (Decision decision : options) {
             if (decision instanceof PlayCardDecision) {
                 actionableHandCards.add(((PlayCardDecision) decision).card());
+            } else if (decision instanceof DiscardCardDecision) {
+                actionableHandCards.add(((DiscardCardDecision) decision).card());
             } else if (decision instanceof TrashCardDecision) {
                 actionableHandCards.add(((TrashCardDecision) decision).card());
             } else if (decision instanceof BuyDecision) {
@@ -194,6 +196,9 @@ public class Renderer {
             case GameState.TurnPhase.GAIN:
                 phaseText = "Phase: Gain";
                 break;
+            case GameState.TurnPhase.DISCARD:
+                phaseText = "Phase: Discard";
+                break;
         }
 
         int phasePosition = SCREEN_WIDTH - phaseText.length();
@@ -215,6 +220,9 @@ public class Renderer {
                 break;
             case GameState.TurnPhase.GAIN:
                 System.out.print(ansi().fgGreen().a(phaseText).reset());
+                break;
+            case GameState.TurnPhase.DISCARD:
+                System.out.print(ansi().fgBrightBlue().a(phaseText).reset());
                 break;
         }
 

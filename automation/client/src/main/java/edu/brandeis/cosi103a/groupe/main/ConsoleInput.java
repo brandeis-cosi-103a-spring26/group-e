@@ -158,6 +158,12 @@ public class ConsoleInput {
                         choice = option;
                         break;
                     }
+                } else if (option instanceof DiscardCardDecision) {
+                    Card card = ((DiscardCardDecision) option).card();
+                    if (matchesCard(card, allMatches)) {
+                        choice = option;
+                        break;
+                    }
                 } else if (option instanceof TrashCardDecision) {
                     Card card = ((TrashCardDecision) option).card();
                     if (matchesCard(card, allMatches)) {

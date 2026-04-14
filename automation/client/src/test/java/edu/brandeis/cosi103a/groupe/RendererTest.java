@@ -121,13 +121,24 @@ public class RendererTest {
     }
 
     @Test
+    public void testRenderGame_DisplaysDiscardPhase() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.DISCARD);
+
+        Renderer.renderGame(state);
+
+        String output = outputStream.toString();
+        assertTrue("Output should show Discard phase", output.contains("Phase: Discard"));
+    }
+
+    @Test
     public void testRenderGame_AllPhases_ContainPhaseLabel() {
         GameState.TurnPhase[] phases = {
             GameState.TurnPhase.ACTION,
             GameState.TurnPhase.BUY,
             GameState.TurnPhase.MONEY,
             GameState.TurnPhase.CLEANUP,
-            GameState.TurnPhase.GAIN
+            GameState.TurnPhase.GAIN,
+            GameState.TurnPhase.DISCARD
         };
 
         for (GameState.TurnPhase phase : phases) {
@@ -628,6 +639,30 @@ public class RendererTest {
 
         String output = outputStream.toString();
         assertTrue("Output should contain * marker for trashable hand card", output.contains("*"));
+        assertEquals("Exactly one hand card should be marked", 1, countOccurrences(output, "*"));
+    }
+
+    @Test
+    public void testRenderGameWithDecisions_DiscardCardDecision_MarksHandCard() {
+        Card refactor = new Card(Card.Type.REFACTOR, 1);
+        Card bitcoin = new Card(Card.Type.BITCOIN, 2);
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of(refactor, bitcoin));
+        GameState state =
+                new GameState(
+                        "Player1",
+                        hand,
+                        GameState.TurnPhase.DISCARD,
+                        1,
+                        0,
+                        1,
+                        createTestCardStacks());
+        ImmutableList<Decision> decisions = ImmutableList.of(new DiscardCardDecision(bitcoin));
+
+        Renderer.renderGameWithDecisions(state, decisions);
+
+        String output = outputStream.toString();
+        assertTrue(
+                "Output should contain * marker for discardable hand card", output.contains("*"));
         assertEquals("Exactly one hand card should be marked", 1, countOccurrences(output, "*"));
     }
 
