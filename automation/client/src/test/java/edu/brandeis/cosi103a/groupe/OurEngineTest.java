@@ -78,6 +78,7 @@ public class OurEngineTest {
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
                     new EvergreenTestEffect(),
+                    new IPOEffect(),
                     new DailyScrumEffect()));
         return new TurnRunner(players, shopManager, registry);
     }

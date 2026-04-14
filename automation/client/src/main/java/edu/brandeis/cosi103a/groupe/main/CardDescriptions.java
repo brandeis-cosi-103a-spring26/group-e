@@ -70,6 +70,12 @@ public class CardDescriptions {
                                     + "When this card is played, the player immediately draws a"
                                     + " card, and is granted two additional actions for this turn.")
                     .put(
+                            Card.Type.IPO,
+                            "+2 Cards, +1 Action, +2 Money.\n\n"
+                                    + "When this card is played, the player immediately draws two"
+                                    + " cards into their hand, is granted an additional action, and"
+                                    + " gains 2 spendable money for this turn.")
+                    .put(
                             Card.Type.EVERGREEN_TEST,
                             "(Attack card) +2 Cards; Each other player gains a Bug.\n\n"
                                     + "When this card is played, the engine immediately adds a BUG"

@@ -54,6 +54,10 @@ public class ActionContext {
         active.adjustBuys(delta);
     }
 
+    public void adjustMoney(int delta) {
+        active.adjustMoney(delta);
+    }
+
     public void gainCard(Card.Type type) {
         shop.gain(type, active);
     }
