@@ -100,6 +100,15 @@ public class CardDescriptions {
                                     + " Monitoring in hand reveal it and are unaffected by this"
                                     + " attack.")
                     .put(
+                            Card.Type.TECH_DEBT,
+                            "+1 Card, +1 Action, +1 Money; Discard one card per empty Supply"
+                                    + " pile.\n\n"
+                                    + "When this card is played, the player immediately draws one"
+                                    + " card, gains one action, and gains one spendable money. The"
+                                    + " engine then counts empty supply piles currently in the game."
+                                    + " The player is prompted with DiscardCardDecisions (without an"
+                                    + " EndPhaseDecision option) once per empty pile.")
+                    .put(
                             Card.Type.PARALLELIZATION,
                             "You may play an Action card from your hand twice.\n\n"
                                     + "When this card is played, the player is immediately prompted"

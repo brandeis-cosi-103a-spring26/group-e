@@ -21,6 +21,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -76,6 +77,7 @@ public class OurEngine implements Engine {
                         Type.MONITORING,
                         Type.HACK,
                         Type.PARALLELIZATION,
+                        Type.TECH_DEBT,
                         Type.BACKLOG,
                         Type.DAILY_SCRUM);
         shop = new MutableCardStacks(this.players.size(), actionCards);
@@ -96,6 +98,7 @@ public class OurEngine implements Engine {
                                 new HackEffect(),
                                 new BacklogEffect(),
                                 new DailyScrumEffect(),
+                                new TechDebtEffect(),
                                 parallelization));
         parallelization.setRegistry(registry);
 
