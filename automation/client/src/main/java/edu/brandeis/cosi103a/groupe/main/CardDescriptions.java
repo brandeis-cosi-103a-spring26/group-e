@@ -95,6 +95,13 @@ public class CardDescriptions {
                                     + " will draw the number of cards discarded into the player's"
                                     + " hand, and prompt the player with the next appropriate set of"
                                     + " decisions, based on actions remaining.")
+                    .put(
+                            Card.Type.DAILY_SCRUM,
+                            "+4 Cards, +1 Buy; Each other player draws a card.\n\n"
+                                    + "When this card is played, the engine immediately draws 4"
+                                    + " cards into the active player's hand and adds 1 buy. Then,"
+                                    + " before any other actions, each other non-disqualified player"
+                                    + " draws exactly 1 card into their hand in turn order.")
                     .build();
 
     public static String get(Card.Type cardType) {

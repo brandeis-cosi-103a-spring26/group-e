@@ -34,7 +34,10 @@ public class EnginePlayCardTest {
             AtomicInteger counter = new AtomicInteger(1);
             com.google.common.collect.ImmutableSet<Card.Type> actionCards =
                     com.google.common.collect.ImmutableSet.of(
-                            Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST);
+                        Card.Type.CODE_REVIEW,
+                        Card.Type.REFACTOR,
+                        Card.Type.EVERGREEN_TEST,
+                        Card.Type.DAILY_SCRUM);
             MutableCardStacks stacks = new MutableCardStacks(numPlayers, actionCards);
             shop = new ShopManager(stacks, counter);
 
@@ -51,7 +54,9 @@ public class EnginePlayCardTest {
                                             .CodeReviewEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions
-                                            .EvergreenTestEffect()));
+                                        .EvergreenTestEffect(),
+                                    new edu.brandeis.cosi103a.groupe.main.actions
+                                        .DailyScrumEffect()));
             runner = new TurnRunner(players, shop, registry);
             runner.setActivePlayer(active);
             runner.setPhase(GameState.TurnPhase.ACTION);
@@ -293,6 +298,62 @@ public class EnginePlayCardTest {
                 opponentDiscard.size());
         Card gainedCard = opponentDiscard.get(opponentDiscard.size() - 1);
         assertEquals("Gained card should be a BUG", Card.Type.BUG, gainedCard.type());
+    }
+
+    @Test
+    public void testProcessPlayCardDecision_DailyScrum_DrawsAndAddsBuyAndOthersDraw()
+            throws Exception {
+        Setup s = new Setup(3);
+        s.active.turnReset();
+
+        PlayerInfo opponent1 = s.players.get(1);
+        PlayerInfo opponent2 = s.players.get(2);
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+
+        List<Card> activeDeck = getField(s.active, "deck");
+        while (activeDeck.size() < 4) {
+            activeDeck.add(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+
+        List<Card> opponent1Deck = getField(opponent1, "deck");
+        List<Card> opponent2Deck = getField(opponent2, "deck");
+        if (opponent1Deck.isEmpty()) {
+            opponent1Deck.add(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+        if (opponent2Deck.isEmpty()) {
+            opponent2Deck.add(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+
+        MutableHand hand = getField(s.active, "hand");
+        Card dailyScrum = new Card(Card.Type.DAILY_SCRUM, counter.getAndIncrement());
+        hand.addToUnplayed(dailyScrum);
+
+        int initialHandSize = s.active.getUnplayedCards().size();
+        int initialBuys = s.active.numBuys();
+        int initialActions = s.active.numActions();
+        int initialOpponent1HandSize = opponent1.getUnplayedCards().size();
+        int initialOpponent2HandSize = opponent2.getUnplayedCards().size();
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(dailyScrum));
+
+        assertEquals(
+                "Active player should net +3 cards (-1 played, +4 drawn)",
+                initialHandSize + 3,
+                s.active.getUnplayedCards().size());
+        assertEquals("Active player should gain +1 buy", initialBuys + 1, s.active.numBuys());
+        assertEquals(
+                "Playing Daily Scrum should consume exactly 1 action",
+                initialActions - 1,
+                s.active.numActions());
+        assertEquals(
+                "Opponent 1 should draw one card",
+                initialOpponent1HandSize + 1,
+                opponent1.getUnplayedCards().size());
+        assertEquals(
+                "Opponent 2 should draw one card",
+                initialOpponent2HandSize + 1,
+                opponent2.getUnplayedCards().size());
     }
 
     @Test

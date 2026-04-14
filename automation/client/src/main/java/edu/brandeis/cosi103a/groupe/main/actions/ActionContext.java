@@ -39,11 +39,19 @@ public class ActionContext {
     }
 
     public void drawCard() {
-        active.drawCard();
+        drawCard(active);
+    }
+
+    public void drawCard(PlayerInfo player) {
+        player.drawCard();
     }
 
     public void adjustActions(int delta) {
         active.adjustActions(delta);
+    }
+
+    public void adjustBuys(int delta) {
+        active.adjustBuys(delta);
     }
 
     public void gainCard(Card.Type type) {

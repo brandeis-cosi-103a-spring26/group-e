@@ -12,11 +12,12 @@ import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
+import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.DailyScrumEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
-import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,7 +70,8 @@ public class OurEngine implements Engine {
                         Type.REFACTOR,
                         Type.EVERGREEN_TEST,
                         Type.PARALLELIZATION,
-                        Type.BACKLOG);
+                        Type.BACKLOG,
+                        Type.DAILY_SCRUM);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -84,6 +86,7 @@ public class OurEngine implements Engine {
                                 new RefactorEffect(),
                                 new EvergreenTestEffect(),
                                 new BacklogEffect(),
+                                new DailyScrumEffect(),
                                 parallelization));
         parallelization.setRegistry(registry);
 

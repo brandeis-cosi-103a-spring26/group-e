@@ -25,7 +25,10 @@ public class MutableCardStacksTest {
     public void setUp() {
         standardActionCards =
                 ImmutableSet.of(
-                        Card.Type.CODE_REVIEW, Card.Type.REFACTOR, Card.Type.EVERGREEN_TEST);
+                Card.Type.CODE_REVIEW,
+                Card.Type.REFACTOR,
+                Card.Type.EVERGREEN_TEST,
+                Card.Type.DAILY_SCRUM);
 
         singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
         emptyActionCards = ImmutableSet.of();
@@ -58,6 +61,8 @@ public class MutableCardStacksTest {
                 "EVERGREEN_TEST should be 10",
                 10,
                 stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals(
+            "DAILY_SCRUM should be 10", 10, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
     }
 
     @Test
@@ -95,6 +100,10 @@ public class MutableCardStacksTest {
                 "EVERGREEN_TEST should be 0 (not included)",
                 0,
                 stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals(
+            "DAILY_SCRUM should be 0 (not included)",
+            0,
+            stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
     }
 
     @Test
@@ -109,6 +118,7 @@ public class MutableCardStacksTest {
         assertEquals("REFACTOR should be 0", 0, stacks.getNumAvailable(Card.Type.REFACTOR));
         assertEquals(
                 "EVERGREEN_TEST should be 0", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("DAILY_SCRUM should be 0", 0, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -321,7 +331,7 @@ public class MutableCardStacksTest {
         ImmutableSet<Card.Type> available = stacks.availableCardsForCost(999);
 
         // Should include all cards with count > 0
-        assertEquals("Should include all 10 card types", 10, available.size());
+        assertEquals("Should include all 11 card types", 11, available.size());
     }
 
     @Test
