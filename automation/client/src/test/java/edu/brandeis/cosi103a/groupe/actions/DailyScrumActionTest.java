@@ -16,7 +16,9 @@ public class DailyScrumActionTest extends ActionTestSupport {
 
     @Test
     public void testDailyScrum_DrawsAddsBuyAndOthersDraw() throws Exception {
-        Setup s = new Setup(3, ImmutableSet.of(Card.Type.DAILY_SCRUM), List.of(new DailyScrumEffect()));
+        Setup s =
+                new Setup(
+                        3, ImmutableSet.of(Card.Type.DAILY_SCRUM), List.of(new DailyScrumEffect()));
         s.active.turnReset();
 
         PlayerInfo opponent1 = s.players.get(1);

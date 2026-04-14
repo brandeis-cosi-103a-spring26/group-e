@@ -28,7 +28,8 @@ public class HackEffect implements ActionCardEffect {
             }
 
             while (player.getUnplayedCards().size() > 3) {
-                ImmutableList<Decision> options = DecisionBuilder.buildForcedDiscardDecisions(player);
+                ImmutableList<Decision> options =
+                        DecisionBuilder.buildForcedDiscardDecisions(player);
                 Decision choice = ctx.makeDecisionForPlayer(player, options);
 
                 if (!(choice instanceof DiscardCardDecision discardDecision)) {

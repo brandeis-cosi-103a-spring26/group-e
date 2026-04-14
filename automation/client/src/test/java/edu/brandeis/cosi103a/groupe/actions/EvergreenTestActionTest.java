@@ -16,7 +16,11 @@ public class EvergreenTestActionTest extends ActionTestSupport {
 
     @Test
     public void testEvergreen_DrawsTwoAndAttacks() throws Exception {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.EVERGREEN_TEST), List.of(new EvergreenTestEffect()));
+        Setup s =
+                new Setup(
+                        2,
+                        ImmutableSet.of(Card.Type.EVERGREEN_TEST),
+                        List.of(new EvergreenTestEffect()));
         s.active.turnReset();
 
         PlayerInfo opponent = s.players.get(1);

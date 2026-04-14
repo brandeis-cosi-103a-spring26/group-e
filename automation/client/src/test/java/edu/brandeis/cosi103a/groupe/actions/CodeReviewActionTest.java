@@ -17,7 +17,9 @@ public class CodeReviewActionTest extends ActionTestSupport {
 
     @Test
     public void testCodeReview_MovesToPlayed() throws Exception {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
+        Setup s =
+                new Setup(
+                        2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
         s.active.turnReset();
 
         List<Card> deck = getField(s.active, "deck");
@@ -35,7 +37,9 @@ public class CodeReviewActionTest extends ActionTestSupport {
 
     @Test
     public void testCodeReview_DecrementsAndAddsActions() throws Exception {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
+        Setup s =
+                new Setup(
+                        2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
         s.active.turnReset();
         s.active.adjustActions(1);
 
@@ -52,7 +56,9 @@ public class CodeReviewActionTest extends ActionTestSupport {
 
     @Test
     public void testCodeReview_EmptyDeckStillAddsActions() throws Exception {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
+        Setup s =
+                new Setup(
+                        2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
         s.active.turnReset();
         s.active.adjustActions(1);
 
@@ -77,7 +83,9 @@ public class CodeReviewActionTest extends ActionTestSupport {
 
     @Test(expected = IllegalStateException.class)
     public void testCodeReview_ZeroActionsThrows() throws Throwable {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
+        Setup s =
+                new Setup(
+                        2, ImmutableSet.of(Card.Type.CODE_REVIEW), List.of(new CodeReviewEffect()));
         s.active.turnReset();
         s.active.adjustActions(-1);
 

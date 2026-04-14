@@ -66,12 +66,11 @@ public class MutableCardStacksTest {
                 stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
         assertEquals("IPO should be 10", 10, stacks.getNumAvailable(Card.Type.IPO));
         assertEquals("HACK should be 10", 10, stacks.getNumAvailable(Card.Type.HACK));
+        assertEquals("DAILY_SCRUM should be 10", 10, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
         assertEquals(
-            "DAILY_SCRUM should be 10", 10, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
-        assertEquals(
-            "SPRINT_PLANNING should be 10",
-            10,
-            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+                "SPRINT_PLANNING should be 10",
+                10,
+                stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test
@@ -112,13 +111,13 @@ public class MutableCardStacksTest {
         assertEquals("IPO should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.IPO));
         assertEquals("HACK should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals(
-            "DAILY_SCRUM should be 0 (not included)",
-            0,
-            stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
+                "DAILY_SCRUM should be 0 (not included)",
+                0,
+                stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
         assertEquals(
-            "SPRINT_PLANNING should be 0 (not included)",
-            0,
-            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+                "SPRINT_PLANNING should be 0 (not included)",
+                0,
+                stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test
@@ -137,9 +136,9 @@ public class MutableCardStacksTest {
         assertEquals("HACK should be 0", 0, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals("DAILY_SCRUM should be 0", 0, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
         assertEquals(
-            "SPRINT_PLANNING should be 0",
-            0,
-            stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+                "SPRINT_PLANNING should be 0",
+                0,
+                stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test(expected = IllegalArgumentException.class)

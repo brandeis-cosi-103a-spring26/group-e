@@ -77,10 +77,10 @@ public class OurEngineTest {
                         java.util.List.of(
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
-                    new EvergreenTestEffect(),
-                    new IPOEffect(),
-                    new MonitoringEffect(),
-                    new DailyScrumEffect()));
+                                new EvergreenTestEffect(),
+                                new IPOEffect(),
+                                new MonitoringEffect(),
+                                new DailyScrumEffect()));
         return new TurnRunner(players, shopManager, registry);
     }
 
@@ -305,12 +305,11 @@ public class OurEngineTest {
         assertEquals("HACK should have 10", 10, shop.getNumAvailable(Card.Type.HACK));
         assertEquals("TECH_DEBT should have 10", 10, shop.getNumAvailable(Card.Type.TECH_DEBT));
         assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
+        assertEquals("DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));
         assertEquals(
-            "DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));
-        assertEquals(
-            "SPRINT_PLANNING should have 10",
-            10,
-            shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
+                "SPRINT_PLANNING should have 10",
+                10,
+                shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
     }
 
     @Test

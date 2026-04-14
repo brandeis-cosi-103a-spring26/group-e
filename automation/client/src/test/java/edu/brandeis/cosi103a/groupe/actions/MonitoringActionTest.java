@@ -19,7 +19,9 @@ public class MonitoringActionTest extends ActionTestSupport {
 
     @Test
     public void testMonitoring_DrawsTwoCards() throws Exception {
-        Setup s = new Setup(2, ImmutableSet.of(Card.Type.MONITORING), List.of(new MonitoringEffect()));
+        Setup s =
+                new Setup(
+                        2, ImmutableSet.of(Card.Type.MONITORING), List.of(new MonitoringEffect()));
         s.active.turnReset();
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");

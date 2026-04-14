@@ -106,7 +106,8 @@ public class DecisionBuilder {
      * Builds decision options for discarding cards from the given player's current hand. Returns
      * DiscardCardDecisions for each card, and an EndPhaseDecision to end the discard phase.
      *
-     * @param playerInfo the current player's info, including the unplayed cards available to discard
+     * @param playerInfo the current player's info, including the unplayed cards available to
+     *     discard
      * @return List of discard decisions, and a single EndPhaseDecision
      */
     public static ImmutableList<Decision> buildDiscardDecisions(PlayerInfo playerInfo) {
