@@ -1,10 +1,12 @@
 package edu.brandeis.cosi103a.groupe.main;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.GameStartEvent;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -15,6 +17,8 @@ import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +34,7 @@ public class OurEngine implements Engine {
     private final int turnNumber = 0;
 
     private final GameRunner runner;
+    private final MegaObserver observer = new MegaObserver();
 
     private static final int MAX_PLAYERS = 4;
     private static final int MIN_PLAYERS = 2;
@@ -58,6 +63,7 @@ public class OurEngine implements Engine {
         this.players = new ArrayList<>();
         for (Player p : players) {
             this.players.add(new PlayerInfo(p, cardIdCounter));
+            // observer.addObserver(p.getObserver());
         }
         activePlayer = this.players.get(this.players.size() - 1);
 
@@ -78,6 +84,20 @@ public class OurEngine implements Engine {
     /** Delegates the full game loop to {@link GameRunner}. */
     @Override
     public GameResult play() throws PlayerViolationException {
+        List<String> playerNames = new ArrayList<>();
+        for (PlayerInfo player : players) {
+            playerNames.add(player.getName());
+        }
+        GameStartEvent startEvent = new GameStartEvent(ImmutableList.copyOf(playerNames), shop.toImmutableCardStacks());
+        GameState state = new GameState(
+            activePlayer.getDisplayName(),
+            activePlayer.getImmutableHand(),
+            phase,
+            activePlayer.numActions(),
+            activePlayer.numMoney(),
+            activePlayer.numBuys(),
+            shop.toImmutableCardStacks());
+        observer.notifyEvent(state, startEvent);
         return runner.play();
     }
 
