@@ -29,6 +29,7 @@ public class MutableCardStacksTest {
                         Card.Type.REFACTOR,
                         Card.Type.EVERGREEN_TEST,
                         Card.Type.IPO,
+                    Card.Type.HACK,
                         Card.Type.DAILY_SCRUM);
 
         singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
@@ -63,6 +64,7 @@ public class MutableCardStacksTest {
                 10,
                 stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
         assertEquals("IPO should be 10", 10, stacks.getNumAvailable(Card.Type.IPO));
+        assertEquals("HACK should be 10", 10, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals(
             "DAILY_SCRUM should be 10", 10, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
     }
@@ -103,6 +105,7 @@ public class MutableCardStacksTest {
                 0,
                 stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
         assertEquals("IPO should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.IPO));
+        assertEquals("HACK should be 0 (not included)", 0, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals(
             "DAILY_SCRUM should be 0 (not included)",
             0,
@@ -122,6 +125,7 @@ public class MutableCardStacksTest {
         assertEquals(
                 "EVERGREEN_TEST should be 0", 0, stacks.getNumAvailable(Card.Type.EVERGREEN_TEST));
         assertEquals("IPO should be 0", 0, stacks.getNumAvailable(Card.Type.IPO));
+        assertEquals("HACK should be 0", 0, stacks.getNumAvailable(Card.Type.HACK));
         assertEquals("DAILY_SCRUM should be 0", 0, stacks.getNumAvailable(Card.Type.DAILY_SCRUM));
     }
 
@@ -335,7 +339,7 @@ public class MutableCardStacksTest {
         ImmutableSet<Card.Type> available = stacks.availableCardsForCost(999);
 
         // Should include all cards with count > 0
-        assertEquals("Should include all 12 card types", 12, available.size());
+        assertEquals("Should include all 13 card types", 13, available.size());
     }
 
     @Test

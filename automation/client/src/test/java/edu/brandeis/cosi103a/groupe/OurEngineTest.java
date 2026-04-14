@@ -302,6 +302,7 @@ public class OurEngineTest {
                 10,
                 shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
         assertEquals("MONITORING should have 10", 10, shop.getNumAvailable(Card.Type.MONITORING));
+        assertEquals("HACK should have 10", 10, shop.getNumAvailable(Card.Type.HACK));
         assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
         assertEquals(
             "DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));

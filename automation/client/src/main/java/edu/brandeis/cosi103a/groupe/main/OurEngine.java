@@ -16,6 +16,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.DailyScrumEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.HackEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
@@ -73,6 +74,7 @@ public class OurEngine implements Engine {
                         Type.EVERGREEN_TEST,
                         Type.IPO,
                         Type.MONITORING,
+                        Type.HACK,
                         Type.PARALLELIZATION,
                         Type.BACKLOG,
                         Type.DAILY_SCRUM);
@@ -91,6 +93,7 @@ public class OurEngine implements Engine {
                                 new EvergreenTestEffect(),
                                 new IPOEffect(),
                                 new MonitoringEffect(),
+                                new HackEffect(),
                                 new BacklogEffect(),
                                 new DailyScrumEffect(),
                                 parallelization));

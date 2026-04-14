@@ -83,8 +83,13 @@ public class ActionContext {
     }
 
     public Decision makeDecision(ImmutableList<Decision> opts) throws PlayerViolationException {
-        GameState gs = buildGameState();
-        Decision d = active.makeDecision(gs, opts);
+        return makeDecisionForPlayer(active, opts);
+    }
+
+    public Decision makeDecisionForPlayer(PlayerInfo player, ImmutableList<Decision> opts)
+            throws PlayerViolationException {
+        GameState gs = buildGameState(player);
+        Decision d = player.makeDecision(gs, opts);
         if (d == null || !opts.contains(d)) {
             throw new PlayerViolationException(
                     "Player made an invalid decision: " + (d == null ? "null" : d.toString()));
@@ -106,6 +111,14 @@ public class ActionContext {
         if (!discarded) {
             throw new IllegalStateException(
                     "Attempted to discard a card that is not in the active player's unplayed hand.");
+        }
+    }
+
+    public void discardCardForPlayer(PlayerInfo player, Card card) {
+        boolean discarded = player.discardCard(card);
+        if (!discarded) {
+            throw new IllegalStateException(
+                    "Attempted to discard a card that is not in the target player's unplayed hand.");
         }
     }
 
@@ -146,13 +159,17 @@ public class ActionContext {
 
     /** Builds an immutable GameState snapshot using the current context state. */
     public GameState buildGameState() {
+        return buildGameState(active);
+    }
+
+    public GameState buildGameState(PlayerInfo perspectivePlayer) {
         return new GameState(
-                active.getDisplayName(),
-                active.getImmutableHand(),
+                perspectivePlayer.getDisplayName(),
+                perspectivePlayer.getImmutableHand(),
                 phase,
-                active.numActions(),
-                active.numMoney(),
-                active.numBuys(),
+                perspectivePlayer.numActions(),
+                perspectivePlayer.numMoney(),
+                perspectivePlayer.numBuys(),
                 shop.toImmutableCardStacks());
     }
 }

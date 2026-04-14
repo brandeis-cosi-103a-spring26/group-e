@@ -90,6 +90,16 @@ public class CardDescriptions {
                                     + " a player's hand, it automatically protects that player from"
                                     + " attack effects.")
                     .put(
+                            Card.Type.HACK,
+                            "(Attack card) +2 Money; Each other player discards down to 3 cards"
+                                    + " in hand.\n\n"
+                                    + "After the active player gains 2 money, each other player is"
+                                    + " prompted with DiscardCardDecisions until they have exactly"
+                                    + " 3 cards remaining in hand. This discard is not optional, so"
+                                    + " EndPhaseDecision is not offered. Players with an unplayed"
+                                    + " Monitoring in hand reveal it and are unaffected by this"
+                                    + " attack.")
+                    .put(
                             Card.Type.PARALLELIZATION,
                             "You may play an Action card from your hand twice.\n\n"
                                     + "When this card is played, the player is immediately prompted"

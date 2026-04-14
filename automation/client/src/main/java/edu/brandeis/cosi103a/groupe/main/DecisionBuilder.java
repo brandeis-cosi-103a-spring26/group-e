@@ -122,4 +122,24 @@ public class DecisionBuilder {
 
         return decisionBuilder.build();
     }
+
+    /**
+     * Builds non-optional discard options for the given player.
+     *
+     * <p>Unlike {@link #buildDiscardDecisions(PlayerInfo)}, this list intentionally excludes
+     * EndPhaseDecision so the caller can enforce mandatory discards.
+     *
+     * @param playerInfo the player whose unplayed cards can be discarded
+     * @return List containing one DiscardCardDecision per unplayed card
+     */
+    public static ImmutableList<Decision> buildForcedDiscardDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        ImmutableList<Card> unplayedCards = playerInfo.getUnplayedCards();
+        for (Card card : unplayedCards) {
+            decisionBuilder.add(new DiscardCardDecision(card));
+        }
+
+        return decisionBuilder.build();
+    }
 }
