@@ -767,6 +767,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
@@ -792,6 +793,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
@@ -814,7 +816,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
-
+        runner.setPhase(GameState.TurnPhase.BUY);
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
 
@@ -894,6 +896,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card cardToTrash = unplayedCards.get(0);
@@ -933,6 +936,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         Card methodCard = new Card(Card.Type.METHOD, cardIdCounter.getAndIncrement());
         List<Card> deck = getPrivateField(activePlayer, "deck");
@@ -958,6 +962,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card bitcoinCard = null;
@@ -1879,6 +1884,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.turnReset();
         activePlayer.adjustMoney(10);

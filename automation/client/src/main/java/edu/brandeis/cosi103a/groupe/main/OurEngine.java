@@ -85,18 +85,19 @@ public class OurEngine implements Engine {
     public GameResult play() throws PlayerViolationException {
         List<String> playerNames = new ArrayList<>();
         for (PlayerInfo player : players) {
-            playerNames.add(player.getName());
+            playerNames.add(player.getDisplayName());
         }
+        PlayerInfo startingPlayer = players.get(0);
         GameStartEvent startEvent =
                 new GameStartEvent(ImmutableList.copyOf(playerNames), shop.toImmutableCardStacks());
         GameState state =
                 new GameState(
-                        activePlayer.getDisplayName(),
-                        activePlayer.getImmutableHand(),
+                        startingPlayer.getDisplayName(),
+                        startingPlayer.getImmutableHand(),
                         phase,
-                        activePlayer.numActions(),
-                        activePlayer.numMoney(),
-                        activePlayer.numBuys(),
+                        startingPlayer.numActions(),
+                        startingPlayer.numMoney(),
+                        startingPlayer.numBuys(),
                         shop.toImmutableCardStacks());
         observer.notifyEvent(state, startEvent);
         return runner.play();
