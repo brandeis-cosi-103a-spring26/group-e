@@ -95,7 +95,8 @@ public class OurEngineTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(activePlayer, players, shopManager, null, initialPhase);
+        return new ActionContext(
+                activePlayer, players, shopManager, null, initialPhase, new MegaObserver());
     }
 
     // ========== Constructor Validation Tests ==========

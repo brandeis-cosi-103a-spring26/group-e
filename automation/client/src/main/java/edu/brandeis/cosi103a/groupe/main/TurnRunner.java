@@ -6,6 +6,8 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.EndTurnEvent;
+import edu.brandeis.cosi.atg.event.GainCardEvent;
+import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -110,6 +112,17 @@ public class TurnRunner {
     public void processPlayCardDecision(PlayCardDecision decision) throws PlayerViolationException {
         Card card = decision.card();
         activePlayer.playCard(card);
+        PlayCardEvent playEvent = new PlayCardEvent(card, activePlayer.getDisplayName());
+        GameState state =
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        phase,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
+        observer.notifyEvent(state, playEvent);
         switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
             case MONEY -> processPlayMoneyCard(card.type());
@@ -170,7 +183,8 @@ public class TurnRunner {
             currentTurnLog.addEntry("Played " + Renderer.displayName(type));
         }
 
-        ActionContext ctx = new ActionContext(activePlayer, players, shop, currentTurnLog, phase);
+        ActionContext ctx =
+                new ActionContext(activePlayer, players, shop, currentTurnLog, phase, observer);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
@@ -213,7 +227,20 @@ public class TurnRunner {
         }
         activePlayer.adjustMoney(-type.cost());
         activePlayer.adjustBuys(-1);
-        shop.gain(type, activePlayer);
+        boolean successfullyBought = shop.gain(type, activePlayer);
+        if (successfullyBought) {
+            GainCardEvent gainEvent = new GainCardEvent(type, activePlayer.getDisplayName());
+            GameState state =
+                    new GameState(
+                            activePlayer.getDisplayName(),
+                            activePlayer.getImmutableHand(),
+                            phase,
+                            activePlayer.numActions(),
+                            activePlayer.numMoney(),
+                            activePlayer.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, gainEvent);
+        }
         if (currentTurnLog != null) {
             currentTurnLog.addEntry("Bought " + Renderer.displayName(type));
         }
