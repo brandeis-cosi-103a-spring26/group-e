@@ -6,6 +6,7 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
+import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -102,6 +103,18 @@ public class ActionContext {
         if (!trashed) {
             throw new IllegalStateException(
                     "Attempted to trash a card that is not in the active player's unplayed hand.");
+        } else {
+            TrashCardEvent trashEvent = new TrashCardEvent(card.type(), active.getDisplayName());
+            GameState state =
+                    new GameState(
+                            active.getDisplayName(),
+                            active.getImmutableHand(),
+                            phase,
+                            active.numActions(),
+                            active.numMoney(),
+                            active.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, trashEvent);
         }
     }
 

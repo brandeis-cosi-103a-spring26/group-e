@@ -8,6 +8,7 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
+import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -151,6 +152,19 @@ public class TurnRunner {
         if (!wasRemoved) {
             throw new IllegalStateException(
                     "Card to trash was not found in active player's hand's unplayed cards");
+        } else {
+            TrashCardEvent trashEvent =
+                    new TrashCardEvent(cardToTrash.type(), activePlayer.getDisplayName());
+            GameState state =
+                    new GameState(
+                            activePlayer.getDisplayName(),
+                            activePlayer.getImmutableHand(),
+                            phase,
+                            activePlayer.numActions(),
+                            activePlayer.numMoney(),
+                            activePlayer.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, trashEvent);
         }
     }
 
