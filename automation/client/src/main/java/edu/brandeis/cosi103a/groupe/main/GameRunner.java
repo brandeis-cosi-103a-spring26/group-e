@@ -4,11 +4,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.GameEndEvent;
 import edu.brandeis.cosi.atg.state.GameResult;
+import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,12 +29,18 @@ public class GameRunner {
     private int turnNumber = 0;
     private final List<TurnLog> allTurnLogs = new ArrayList<>();
     private PlayerInfo activePlayer;
+    private final MegaObserver observer;
 
-    public GameRunner(List<PlayerInfo> players, ShopManager shop, ActionEffectRegistry registry) {
+    public GameRunner(
+            List<PlayerInfo> players,
+            ShopManager shop,
+            ActionEffectRegistry registry,
+            MegaObserver observer) {
         this.players = players;
         this.shop = shop;
         this.registry = registry;
         this.activePlayer = players.get(players.size() - 1);
+        this.observer = observer;
     }
 
     /**
@@ -46,10 +56,21 @@ public class GameRunner {
             if (allTurnLogs.size() > 10) {
                 allTurnLogs.remove(0);
             }
-            TurnRunner runner = new TurnRunner(players, shop, registry);
+            TurnRunner runner = new TurnRunner(players, shop, registry, observer);
             runner.runTurn(activePlayer, log);
         }
         GameResult finalResult = endGame();
+        GameEndEvent endEvent = new GameEndEvent(shop.toImmutableCardStacks(), finalResult);
+        GameState state =
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        TurnPhase.CLEANUP,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
+        observer.notifyEvent(state, endEvent);
         Renderer.printGameResult(finalResult);
         return finalResult;
     }

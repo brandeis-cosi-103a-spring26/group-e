@@ -77,7 +77,7 @@ public class OurEngine implements Engine {
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
                                 new EvergreenTestEffect()));
-        runner = new GameRunner(this.players, shopManager, registry);
+        runner = new GameRunner(this.players, shopManager, registry, observer);
     }
 
     /** Delegates the full game loop to {@link GameRunner}. */

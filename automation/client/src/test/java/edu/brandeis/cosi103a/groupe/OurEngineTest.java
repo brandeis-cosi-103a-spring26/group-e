@@ -12,6 +12,7 @@ import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
 import edu.brandeis.cosi103a.groupe.main.actions.*;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class OurEngineTest {
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
                                 new EvergreenTestEffect()));
-        return new TurnRunner(players, shopManager, registry);
+        return new TurnRunner(players, shopManager, registry, new MegaObserver());
     }
 
     /** Creates a ShopManager backed by the same MutableCardStacks as the given engine. */
