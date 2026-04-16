@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,7 +49,9 @@ public class PlayerControllerMvcTest {
         playerMap.put("uuid-1", player);
         playerMap.put("uuid-2", player);
         playerMap.put("uuid-3", player);
-        PlayerController controller = new PlayerController(playerMap);
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
 
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
