@@ -329,13 +329,26 @@ public class AutoPlayer extends AbstractPlayer {
         }
 
         // If above loop doesn't return, then we must be in Unit Test
+        // Unit Test logic: if we have other unplayed action cards and no available actions,
+        // choose +2 actions, otherwise choose +2 money
 
-        // TODO: Update logic
-        // For Unit Test, always choose to gain +2 money
+        // TODO: figure out if there is a need to exclude Unit Test
+        // Check if there are any other unplayed action cards in hand (excluding Unit Test itself)
+        boolean hasOtherUnplayedActions = state.currentPlayerHand().unplayedCards().stream()
+        .anyMatch(card ->
+                card.type() != Card.Type.UNIT_TEST
+                        && card.category() == Card.Type.Category.ACTION);
+
+        // Determine which Unit Test effect to choose
+        ChooseEffectDecision.Effect unitTestEffect =
+            hasOtherUnplayedActions && state.availableActions() < 2
+            ? ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_ACTIONS
+            : ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY;
+
+        // Find and return the ChooseEffectDecision with the determined effect
         for (Decision option : options) {
             if (option instanceof ChooseEffectDecision chooseEffectDecision) {
-                if (chooseEffectDecision.effect() ==
-                    ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY) {
+                if (chooseEffectDecision.effect() == unitTestEffect) {
                     return chooseEffectDecision;
                 }
             }
