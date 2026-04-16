@@ -10,29 +10,32 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
+import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.player.*;
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
+import java.util.Scanner;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for the ConsolePlayer class.
  *
- * <p>Since Renderer.renderGame() and Harness.getDecisionFromConsole() are tested separately in
+ * <p>Since Renderer.renderGame() and ConsoleInput.getDecisionFromConsole() are tested separately in
  * their own unit test files, these tests focus on verifying that ConsolePlayer correctly implements
- * the Player interface and that properly extends AbstractPlayer.
- *
- * <p>Note: Full end-to-end integration tests requiring live console input are better suited for
- * manual testing or system-level tests since ConsolePlayer relies on Harness's static Scanner which
- * cannot be easily mocked in unit tests.
+ * the Player interface and properly extends AbstractPlayer.
  */
 public class ConsolePlayerTest {
 
     private ConsolePlayer player;
 
+    private static ConsoleInput dummyConsoleInput() {
+        return new ConsoleInput(new Scanner(new ByteArrayInputStream("".getBytes())));
+    }
+
     @Before
     public void setUp() {
-        player = new ConsolePlayer();
+        player = new ConsolePlayer(dummyConsoleInput());
     }
 
     // ========== Player Interface Implementation Tests ==========
@@ -99,21 +102,21 @@ public class ConsolePlayerTest {
     @Test
     public void testConstructor_CreatesValidInstance() {
         // Verify: Constructor creates a valid ConsolePlayer instance
-        ConsolePlayer newPlayer = new ConsolePlayer();
+        ConsolePlayer newPlayer = new ConsolePlayer(dummyConsoleInput());
         assertNotNull("Constructor should create non-null instance", newPlayer);
         assertNotNull("New player should have a name", newPlayer.getName());
     }
 
     @Test
     public void testConstructor_WithCustomDisplayName_UsesCustomName() {
-        ConsolePlayer namedPlayer = new ConsolePlayer("Alice");
+        ConsolePlayer namedPlayer = new ConsolePlayer(dummyConsoleInput(), "Alice");
 
         assertEquals("Custom display name should be used", "Alice", namedPlayer.getDisplayName());
     }
 
     @Test
     public void testConstructor_WithBlankDisplayName_FallsBackToDefaultPattern() {
-        ConsolePlayer namedPlayer = new ConsolePlayer("   ");
+        ConsolePlayer namedPlayer = new ConsolePlayer(dummyConsoleInput(), "   ");
 
         assertTrue(
                 "Blank custom display name should fall back to default display name",
@@ -123,9 +126,9 @@ public class ConsolePlayerTest {
     @Test
     public void testConstructor_MultipleInstances() {
         // Verify: Can create multiple independent instances
-        ConsolePlayer p1 = new ConsolePlayer();
-        ConsolePlayer p2 = new ConsolePlayer();
-        ConsolePlayer p3 = new ConsolePlayer();
+        ConsolePlayer p1 = new ConsolePlayer(dummyConsoleInput());
+        ConsolePlayer p2 = new ConsolePlayer(dummyConsoleInput());
+        ConsolePlayer p3 = new ConsolePlayer(dummyConsoleInput());
 
         assertNotNull("First instance should not be null", p1);
         assertNotNull("Second instance should not be null", p2);
