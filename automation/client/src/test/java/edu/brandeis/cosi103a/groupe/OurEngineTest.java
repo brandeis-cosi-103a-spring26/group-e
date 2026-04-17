@@ -1516,9 +1516,9 @@ public class OurEngineTest {
         new RefactorEffect().execute(ctx);
 
         List<Card> discard = getPrivateField(activePlayer, "discard");
-        boolean frameworkInDiscard =
-                discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
-        assertFalse("Trashed FRAMEWORK should not be in discard", frameworkInDiscard);
+        boolean trashedInDiscard =
+                discard.stream().anyMatch(c -> c.id() == framework.id());
+        assertFalse("Trashed FRAMEWORK should not be in discard", trashedInDiscard);
         assertTrue("Should have gained a card", discard.size() > 0);
     }
 
