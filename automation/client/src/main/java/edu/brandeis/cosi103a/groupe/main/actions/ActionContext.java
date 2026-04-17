@@ -81,8 +81,7 @@ public class ActionContext {
                             active.numActions(),
                             active.numMoney(),
                             active.numBuys(),
-                            shop.toImmutableCardStacks()); // should current player here be
-            // active or p?
+                            shop.toImmutableCardStacks());
             observer.notifyEvent(state, gainEvent);
         }
     }
