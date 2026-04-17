@@ -97,7 +97,16 @@ public class AutoPlayer extends AbstractPlayer {
      * @return The chosen decision.
      */
     protected Decision makeActionDecision(GameState state, ImmutableList<Decision> options) {
-        // Try to play a card that gives +action(s) first
+        // Play Parallelization first if available
+        for (Decision option : options) {
+            if (option instanceof PlayCardDecision playCardDecision) {
+                if (playCardDecision.card().type() == Card.Type.PARALLELIZATION) {
+                    return playCardDecision;
+                }
+            }
+        }
+
+        // Try to play a card that gives +action(s)
         for (Card.Type plusActionType : PLUS_ACTION_CARDS) {
             for (Decision option : options) {
                 if (option instanceof PlayCardDecision playCardDecision) {
@@ -332,12 +341,9 @@ public class AutoPlayer extends AbstractPlayer {
         // Unit Test logic: if we have other unplayed action cards and no available actions,
         // choose +2 actions, otherwise choose +2 money
 
-        // TODO: figure out if there is a need to exclude Unit Test
-        // Check if there are any other unplayed action cards in hand (excluding Unit Test itself)
+        // Find out if we have other unplayed action cards
         boolean hasOtherUnplayedActions = state.currentPlayerHand().unplayedCards().stream()
-        .anyMatch(card ->
-                card.type() != Card.Type.UNIT_TEST
-                        && card.category() == Card.Type.Category.ACTION);
+        .anyMatch(card -> card.category() == Card.Type.Category.ACTION);
 
         // Determine which Unit Test effect to choose
         ChooseEffectDecision.Effect unitTestEffect =
