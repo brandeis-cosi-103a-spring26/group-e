@@ -296,6 +296,22 @@ public class AutoPlayerTest {
                 player.makeDecision(state, options, java.util.Optional.empty()));
     }
 
+    @Test
+    public void testMakeActionDecision_PrefersParallelizationOverOtherActions() {
+        GameState state = createMockGameState(GameState.TurnPhase.ACTION);
+        Card parallelizationCard = new Card(Card.Type.PARALLELIZATION, 13);
+        PlayCardDecision playParallelization = new PlayCardDecision(parallelizationCard);
+        PlayCardDecision playIpo = new PlayCardDecision(ipoCard);
+        PlayCardDecision playModule = new PlayCardDecision(moduleCard);
+        ImmutableList<Decision> options =
+                ImmutableList.of(playModule, playIpo, playParallelization);
+
+        assertSame(
+                "Should prefer PARALLELIZATION over all other action cards",
+                playParallelization,
+                player.makeDecision(state, options, java.util.Optional.empty()));
+    }
+
     // ========== makeBuyDecision ==========
 
     @Test
