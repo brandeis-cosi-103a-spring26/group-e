@@ -71,6 +71,20 @@ public class AutoPlayerTest {
         return new GameState("Player-1", mockHand, phase, 1, 0, 1, mockShop);
     }
 
+    private GameState createMockGameStateWithHand(
+            GameState.TurnPhase phase,
+            ImmutableList<Card> unplayedCards,
+            ImmutableList<Card> playedCards,
+            int availableActions) {
+        Hand mockHand = new Hand(playedCards, unplayedCards);
+        CardStacks mockShop =
+                new CardStacks(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 50,
+                                Card.Type.FRAMEWORK, 8));
+        return new GameState("Player-1", mockHand, phase, availableActions, 0, 1, mockShop);
+    }
+
     // ========== Constructor and Name Tests ==========
 
     @Test
@@ -547,6 +561,91 @@ public class AutoPlayerTest {
                 "Should return first PlayCardDecision during reaction",
                 playMethod,
                 player.makeDecision(state, options, java.util.Optional.empty()));
+    }
+
+    // ========== handleTrashing = ==========
+
+    @Test
+    public void testMakeDecision_Trashing_PrefersBugThenMethodThenBitcoin() {
+        GameState state = createMockGameState(GameState.TurnPhase.ACTION);
+        TrashCardDecision trashMethod = new TrashCardDecision(methodCard);
+        TrashCardDecision trashBitcoin = new TrashCardDecision(bitcoinCard);
+        TrashCardDecision trashBug = new TrashCardDecision(bugCard);
+        ImmutableList<Decision> options = ImmutableList.of(trashMethod, trashBitcoin, trashBug);
+
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
+        assertSame("Should prioritize trashing BUG first", trashBug, result);
+    }
+
+    @Test
+    public void testMakeDecision_Trashing_FallsBackToLowestCostWhenNoPreferredTrashTypes() {
+        GameState state = createMockGameState(GameState.TurnPhase.ACTION);
+        TrashCardDecision trashDogecoin = new TrashCardDecision(dogecoinCard);
+        TrashCardDecision trashEthereum = new TrashCardDecision(ethereumCard);
+        ImmutableList<Decision> options = ImmutableList.of(trashDogecoin, trashEthereum);
+
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
+        assertSame(
+                "Should trash lowest-cost card when no preferred trash type exists",
+                trashEthereum,
+                result);
+    }
+
+    // ========== handleChooseEffect = ==========
+
+    @Test
+    public void testMakeDecision_ChooseEffect_RansomwareAlwaysPrefersDiscardTwo() {
+        GameState state = createMockGameState(GameState.TurnPhase.ACTION);
+        ChooseEffectDecision gainBug =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+        ChooseEffectDecision discardTwo =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
+        ImmutableList<Decision> options = ImmutableList.of(gainBug, discardTwo);
+
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
+        assertSame("Ransomware should choose discard-two effect", discardTwo, result);
+    }
+
+    @Test
+    public void testMakeDecision_ChooseEffect_UnitTestChoosesPlusTwoActionsWhenNeeded() {
+        GameState state =
+                createMockGameStateWithHand(
+                        GameState.TurnPhase.ACTION,
+                        ImmutableList.of(ipoCard),
+                        ImmutableList.of(),
+                        1);
+        ChooseEffectDecision plusTwoActions =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_ACTIONS);
+        ChooseEffectDecision plusTwoMoney =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY);
+        ImmutableList<Decision> options = ImmutableList.of(plusTwoMoney, plusTwoActions);
+
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
+        assertSame(
+                "Should choose +2 actions with unplayed actions and low available actions",
+                plusTwoActions,
+                result);
+    }
+
+    @Test
+    public void testMakeDecision_ChooseEffect_UnitTestChoosesPlusTwoMoneyOtherwise() {
+        GameState state =
+                createMockGameStateWithHand(
+                        GameState.TurnPhase.ACTION,
+                        ImmutableList.of(bitcoinCard),
+                        ImmutableList.of(),
+                        1);
+        ChooseEffectDecision plusTwoActions =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_ACTIONS);
+        ChooseEffectDecision plusTwoMoney =
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY);
+        ImmutableList<Decision> options = ImmutableList.of(plusTwoActions, plusTwoMoney);
+
+        Decision result = player.makeDecision(state, options, java.util.Optional.empty());
+        assertSame(
+                "Should choose +2 money when no other unplayed action cards exist",
+                plusTwoMoney,
+                result);
     }
 
     // ========== Consistency / determinism ==========

@@ -288,7 +288,7 @@ public class AutoPlayer extends AbstractPlayer {
 
     /**
      * Handle decision-making for trashing cards.
-     * 
+     *
      * @param state The current game state.
      * @param options The list of available decisions.
      * @return The chosen decision.
@@ -304,7 +304,7 @@ public class AutoPlayer extends AbstractPlayer {
                 }
             }
         }
-        
+
         // Always try to trash the least expensive card first
         for (int cost = 2; cost <= 8; cost++) {
             for (Decision option : options) {
@@ -321,7 +321,7 @@ public class AutoPlayer extends AbstractPlayer {
 
     /**
      * Handle decision-making for choosing between multiple effects.
-     * 
+     *
      * @param state The current game state.
      * @param options The list of available decisions.
      * @return The chosen decision.
@@ -330,8 +330,8 @@ public class AutoPlayer extends AbstractPlayer {
         // For Ransomware, always choose to discard 2 cards over gaining a Bug
         for (Decision option : options) {
             if (option instanceof ChooseEffectDecision chooseEffectDecision) {
-                if (chooseEffectDecision.effect() ==
-                    ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO) {
+                if (chooseEffectDecision.effect()
+                        == ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO) {
                     return chooseEffectDecision;
                 }
             }
@@ -342,14 +342,15 @@ public class AutoPlayer extends AbstractPlayer {
         // choose +2 actions, otherwise choose +2 money
 
         // Find out if we have other unplayed action cards
-        boolean hasOtherUnplayedActions = state.currentPlayerHand().unplayedCards().stream()
-        .anyMatch(card -> card.category() == Card.Type.Category.ACTION);
+        boolean hasOtherUnplayedActions =
+                state.currentPlayerHand().unplayedCards().stream()
+                        .anyMatch(card -> card.category() == Card.Type.Category.ACTION);
 
         // Determine which Unit Test effect to choose
         ChooseEffectDecision.Effect unitTestEffect =
-            hasOtherUnplayedActions && state.availableActions() < 2
-            ? ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_ACTIONS
-            : ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY;
+                hasOtherUnplayedActions && state.availableActions() < 2
+                        ? ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_ACTIONS
+                        : ChooseEffectDecision.Effect.UNIT_TEST_PLUS_TWO_MONEY;
 
         // Find and return the ChooseEffectDecision with the determined effect
         for (Decision option : options) {
