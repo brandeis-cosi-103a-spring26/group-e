@@ -5,8 +5,11 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class AppConfig {
@@ -16,6 +19,7 @@ public class AppConfig {
     }
 
     @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public Player player() {
         return new AutoPlayer();
     }
@@ -23,5 +27,10 @@ public class AppConfig {
     @Bean
     public Module jdk8Module() {
         return new Jdk8Module();
+    }
+
+    @Bean
+    public ConcurrentHashMap<String, Player> playerMap() {
+        return new ConcurrentHashMap<>();
     }
 }

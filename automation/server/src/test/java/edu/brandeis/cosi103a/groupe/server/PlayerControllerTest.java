@@ -1,7 +1,11 @@
 package edu.brandeis.cosi103a.groupe.server;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -21,8 +25,18 @@ import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi103a.groupe.api.DecisionRequest;
 import edu.brandeis.cosi103a.groupe.api.DecisionResponse;
 import edu.brandeis.cosi103a.groupe.api.LogEventRequest;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
+import org.springframework.beans.factory.ObjectProvider;
 
 public class PlayerControllerTest {
 
@@ -37,8 +51,13 @@ public class PlayerControllerTest {
 
     @Test
     public void choose_DelegatesToPlayerAndReturnsDecision() {
+        String playerUuid = "uuid-1";
         Player player = mock(Player.class);
-        PlayerController controller = new PlayerController(player);
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        playerMap.put(playerUuid, player);
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
 
         GameState state = createState(GameState.TurnPhase.ACTION);
         EndPhaseDecision expected = new EndPhaseDecision(GameState.TurnPhase.ACTION);
@@ -47,7 +66,7 @@ public class PlayerControllerTest {
 
         when(player.makeDecision(state, options, reason)).thenReturn(expected);
 
-        DecisionRequest request = new DecisionRequest(state, options, reason, "uuid-1");
+        DecisionRequest request = new DecisionRequest(state, options, reason, playerUuid);
         DecisionResponse actual = controller.choose(request);
 
         assertSame(expected, actual.decision());
@@ -56,16 +75,21 @@ public class PlayerControllerTest {
 
     @Test
     public void logEvent_NotifiesObserverWhenPresent() {
+        String playerUuid = "uuid-2";
         Player player = mock(Player.class);
         GameObserver observer = mock(GameObserver.class);
-        PlayerController controller = new PlayerController(player);
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        playerMap.put(playerUuid, player);
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
 
         GameState state = createState(GameState.TurnPhase.BUY);
         Event event = new PlayCardEvent(new Card(Card.Type.BITCOIN, 3), "Player-1");
 
         when(player.getObserver()).thenReturn(Optional.of(observer));
 
-        LogEventRequest request = new LogEventRequest(state, event, "uuid-2");
+        LogEventRequest request = new LogEventRequest(state, event, playerUuid);
         controller.logEvent(request);
 
         verify(observer).notifyEvent(state, event);
@@ -73,18 +97,123 @@ public class PlayerControllerTest {
 
     @Test
     public void logEvent_DoesNothingWhenObserverMissing() {
+        String playerUuid = "uuid-3";
         Player player = mock(Player.class);
-        PlayerController controller = new PlayerController(player);
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        playerMap.put(playerUuid, player);
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
 
         GameState state = createState(GameState.TurnPhase.BUY);
         Event event = new PlayCardEvent(new Card(Card.Type.ETHEREUM, 4), "Player-2");
 
         when(player.getObserver()).thenReturn(Optional.empty());
 
-        LogEventRequest request = new LogEventRequest(state, event, "uuid-3");
+        LogEventRequest request = new LogEventRequest(state, event, playerUuid);
         controller.logEvent(request);
 
         verify(player).getObserver();
         verifyNoMoreInteractions(player);
+    }
+
+    @Test
+    public void choose_SameUuidParallelRequests_CreatesOnePlayer() throws Exception {
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        String playerUuid = "shared-uuid";
+        GameState state = createState(GameState.TurnPhase.ACTION);
+        EndPhaseDecision onlyOption = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        ImmutableList<Decision> options = ImmutableList.of(onlyOption);
+        Player createdPlayer = mock(Player.class);
+        when(createdPlayer.makeDecision(any(), any(), any())).thenReturn(onlyOption);
+        when(playerProvider.getObject()).thenReturn(createdPlayer);
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
+
+        int requestCount = 24;
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        try {
+            CountDownLatch startLatch = new CountDownLatch(1);
+            List<Future<DecisionResponse>> futures = new ArrayList<>();
+
+            for (int i = 0; i < requestCount; i++) {
+                futures.add(
+                        executor.submit(
+                                () -> {
+                                    startLatch.await();
+                                    DecisionRequest request =
+                                            new DecisionRequest(
+                                                    state, options, Optional.empty(), playerUuid);
+                                    return controller.choose(request);
+                                }));
+            }
+
+            startLatch.countDown();
+
+            for (Future<DecisionResponse> future : futures) {
+                DecisionResponse response = future.get(5, TimeUnit.SECONDS);
+                assertNotNull(response.decision());
+            }
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+
+        assertEquals(1, playerMap.size());
+        assertNotNull(playerMap.get(playerUuid));
+        verify(playerProvider, times(1)).getObject();
+    }
+
+    @Test
+    public void choose_DifferentUuidsParallelRequests_CreatesOnePerUuid() throws Exception {
+        ConcurrentMap<String, Player> playerMap = new ConcurrentHashMap<>();
+        @SuppressWarnings("unchecked")
+        ObjectProvider<Player> playerProvider = mock(ObjectProvider.class);
+        GameState state = createState(GameState.TurnPhase.ACTION);
+        EndPhaseDecision onlyOption = new EndPhaseDecision(GameState.TurnPhase.ACTION);
+        ImmutableList<Decision> options = ImmutableList.of(onlyOption);
+        when(playerProvider.getObject())
+                .thenAnswer(
+                        ignored -> {
+                            Player createdPlayer = mock(Player.class);
+                            when(createdPlayer.makeDecision(any(), any(), any()))
+                                    .thenReturn(onlyOption);
+                            return createdPlayer;
+                        });
+        PlayerController controller = new PlayerController(playerMap, playerProvider);
+
+        int requestCount = 30;
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        try {
+            CountDownLatch startLatch = new CountDownLatch(1);
+            List<Future<DecisionResponse>> futures = new ArrayList<>();
+
+            for (int i = 0; i < requestCount; i++) {
+                final String playerUuid = "uuid-" + i;
+                futures.add(
+                        executor.submit(
+                                () -> {
+                                    startLatch.await();
+                                    DecisionRequest request =
+                                            new DecisionRequest(
+                                                    state, options, Optional.empty(), playerUuid);
+                                    return controller.choose(request);
+                                }));
+            }
+
+            startLatch.countDown();
+
+            for (Future<DecisionResponse> future : futures) {
+                DecisionResponse response = future.get(5, TimeUnit.SECONDS);
+                assertNotNull(response.decision());
+            }
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+
+        assertEquals(requestCount, playerMap.size());
+        verify(playerProvider, times(requestCount)).getObject();
     }
 }
