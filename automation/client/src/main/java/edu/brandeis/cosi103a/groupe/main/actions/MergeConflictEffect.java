@@ -1,14 +1,11 @@
 package edu.brandeis.cosi103a.groupe.main.actions;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
-import edu.brandeis.cosi.atg.decisions.GainCardDecision;
 import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
-import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 
@@ -38,5 +35,4 @@ public class MergeConflictEffect implements ActionCardEffect {
             ctx.drawCard();
         }
     }
-
 }

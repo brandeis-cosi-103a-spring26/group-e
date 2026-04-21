@@ -74,17 +74,16 @@ public class CardDescriptions {
                             "(Attack card) +2 Cards; Each other player gains a Bug.\n\n"
                                     + "When this card is played, the engine immediately adds a BUG"
                                     + " to the discard pile of each other player.")
-                        .put(
-                                Card.Type.MERGE_CONFLICT,
-                                "Trash a card from your hand. +1 Card per $1 it costs.\n\n"
-                                        + "Trashing a card removes it from the player's deck entirely. When"
-                                        + " this card is played, the player will be prompted with"
-                                        + " TrashCardDecisions for each card in their hand. Trashing is not"
-                                        + " optional, so the list of decisions will not include an"
-                                        + " EndPhaseDecision. After the player makes a trash decision, the"
-                                        + " engine will draw a number of cards equal to the cost of"
-                                        + " the trashed card into the player's hand."
-                        )
+                    .put(
+                            Card.Type.MERGE_CONFLICT,
+                            "Trash a card from your hand. +1 Card per $1 it costs.\n\n"
+                                    + "Trashing a card removes it from the player's deck entirely. When"
+                                    + " this card is played, the player will be prompted with"
+                                    + " TrashCardDecisions for each card in their hand. Trashing is not"
+                                    + " optional, so the list of decisions will not include an"
+                                    + " EndPhaseDecision. After the player makes a trash decision, the"
+                                    + " engine will draw a number of cards equal to the cost of"
+                                    + " the trashed card into the player's hand.")
                     .build();
 
     public static String get(Card.Type cardType) {
