@@ -129,7 +129,7 @@ public class ClientPlayerTest {
     @Test
     public void makeDecision_WithRealObjectMapper_MapsDecisionJsonToMatchingOption()
             throws Exception {
-        ObjectMapper realMapper = new ObjectMapper();
+        ObjectMapper realMapper = new ObjectMapper().findAndRegisterModules();
         FakeHttpClient httpClient = new FakeHttpClient();
 
         Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
@@ -137,6 +137,7 @@ public class ClientPlayerTest {
         ImmutableList<Decision> options = ImmutableList.of(fallback, expected);
 
         httpClient.responseBody = "{\"decision\":" + realMapper.writeValueAsString(expected) + "}";
+        System.out.println(realMapper.writeValueAsString(expected));
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
 
         Decision actual = player.makeDecision(null, options, Optional.<Event>empty());
