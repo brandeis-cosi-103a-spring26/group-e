@@ -7,6 +7,7 @@ import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class EnginePlayCardTest {
                                     new edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect(),
                                     new edu.brandeis.cosi103a.groupe.main.actions
                                             .EvergreenTestEffect()));
-            runner = new TurnRunner(players, shop, registry);
+            runner = new TurnRunner(players, shop, registry, new MegaObserver());
             runner.setActivePlayer(active);
             runner.setPhase(GameState.TurnPhase.ACTION);
         }

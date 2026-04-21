@@ -5,12 +5,17 @@ import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.EndTurnEvent;
+import edu.brandeis.cosi.atg.event.GainCardEvent;
+import edu.brandeis.cosi.atg.event.PlayCardEvent;
+import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionContext;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,11 +35,17 @@ public class TurnRunner {
     private TurnLog currentTurnLog;
     private Map<Card.Type, Integer> treasuresPlayedThisTurn = new LinkedHashMap<>();
     private int moneyFromTreasuresThisTurn = 0;
+    private final MegaObserver observer;
 
-    public TurnRunner(List<PlayerInfo> players, ShopManager shop, ActionEffectRegistry registry) {
+    public TurnRunner(
+            List<PlayerInfo> players,
+            ShopManager shop,
+            ActionEffectRegistry registry,
+            MegaObserver observer) {
         this.players = players;
         this.shop = shop;
         this.registry = registry;
+        this.observer = observer;
     }
 
     /**
@@ -60,6 +71,17 @@ public class TurnRunner {
             }
         }
         activePlayer.cleanup();
+        EndTurnEvent endTurnEvent = new EndTurnEvent();
+        GameState state =
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        phase,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
+        observer.notifyEvent(state, endTurnEvent);
     }
 
     // VisibleForTesting — allow tests to configure state without going through a full turn
@@ -91,6 +113,17 @@ public class TurnRunner {
     public void processPlayCardDecision(PlayCardDecision decision) throws PlayerViolationException {
         Card card = decision.card();
         activePlayer.playCard(card);
+        PlayCardEvent playEvent = new PlayCardEvent(card, activePlayer.getDisplayName());
+        GameState state =
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        phase,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
+        observer.notifyEvent(state, playEvent);
         switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
             case MONEY -> processPlayMoneyCard(card.type());
@@ -119,6 +152,19 @@ public class TurnRunner {
         if (!wasRemoved) {
             throw new IllegalStateException(
                     "Card to trash was not found in active player's hand's unplayed cards");
+        } else {
+            TrashCardEvent trashEvent =
+                    new TrashCardEvent(cardToTrash.type(), activePlayer.getDisplayName());
+            GameState state =
+                    new GameState(
+                            activePlayer.getDisplayName(),
+                            activePlayer.getImmutableHand(),
+                            phase,
+                            activePlayer.numActions(),
+                            activePlayer.numMoney(),
+                            activePlayer.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, trashEvent);
         }
     }
 
@@ -151,7 +197,8 @@ public class TurnRunner {
             currentTurnLog.addEntry("Played " + Renderer.displayName(type));
         }
 
-        ActionContext ctx = new ActionContext(activePlayer, players, shop, currentTurnLog, phase);
+        ActionContext ctx =
+                new ActionContext(activePlayer, players, shop, currentTurnLog, phase, observer);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
@@ -194,7 +241,20 @@ public class TurnRunner {
         }
         activePlayer.adjustMoney(-type.cost());
         activePlayer.adjustBuys(-1);
-        shop.gain(type, activePlayer);
+        boolean successfullyBought = shop.gain(type, activePlayer);
+        if (successfullyBought) {
+            GainCardEvent gainEvent = new GainCardEvent(type, activePlayer.getDisplayName());
+            GameState state =
+                    new GameState(
+                            activePlayer.getDisplayName(),
+                            activePlayer.getImmutableHand(),
+                            phase,
+                            activePlayer.numActions(),
+                            activePlayer.numMoney(),
+                            activePlayer.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, gainEvent);
+        }
         if (currentTurnLog != null) {
             currentTurnLog.addEntry("Bought " + Renderer.displayName(type));
         }
