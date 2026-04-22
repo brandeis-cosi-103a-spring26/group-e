@@ -255,7 +255,8 @@ public class ConsoleInput {
                 continue;
             }
 
-            String normalizedDescription = normalizeCardName(effectDecision.effect().getDescription());
+            String normalizedDescription =
+                    normalizeCardName(effectDecision.effect().getDescription());
             String normalizedEnumName = normalizeCardName(effectDecision.effect().name());
 
             if (normalizedDescription.equals(normalizedInput)

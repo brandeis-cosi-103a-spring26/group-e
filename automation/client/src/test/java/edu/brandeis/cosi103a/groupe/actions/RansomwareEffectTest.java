@@ -110,9 +110,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
     public void testRansomware_DiscardBranch_ForcesUpToTwoDiscards() throws Exception {
         Setup s =
                 new Setup(
-                        2,
-                        ImmutableSet.of(Card.Type.RANSOMWARE),
-                        List.of(new RansomwareEffect()));
+                        2, ImmutableSet.of(Card.Type.RANSOMWARE), List.of(new RansomwareEffect()));
         s.active.turnReset();
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
@@ -151,9 +149,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
     public void testRansomware_GainBugBranch_GainsBug() throws Exception {
         Setup s =
                 new Setup(
-                        2,
-                        ImmutableSet.of(Card.Type.RANSOMWARE),
-                        List.of(new RansomwareEffect()));
+                        2, ImmutableSet.of(Card.Type.RANSOMWARE), List.of(new RansomwareEffect()));
         s.active.turnReset();
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
@@ -168,7 +164,8 @@ public class RansomwareEffectTest extends ActionTestSupport {
 
         PlayerInfo opponent = s.players.get(1);
         RansomwareChoicePlayer chooser =
-                new RansomwareChoicePlayer("GainChooser", ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+                new RansomwareChoicePlayer(
+                        "GainChooser", ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
         setField(opponent, "player", chooser);
 
         List<Card> opponentDiscard = getField(opponent, "discard");
@@ -267,9 +264,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
     public void testRansomware_DiscardBranch_AllowsOneOrZeroCardsInHand() throws Exception {
         Setup s =
                 new Setup(
-                        3,
-                        ImmutableSet.of(Card.Type.RANSOMWARE),
-                        List.of(new RansomwareEffect()));
+                        3, ImmutableSet.of(Card.Type.RANSOMWARE), List.of(new RansomwareEffect()));
         s.active.turnReset();
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
@@ -314,9 +309,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
     public void testRansomware_GainBugBranch_EmptyBugSupply_NoCrashNoGain() throws Exception {
         Setup s =
                 new Setup(
-                        2,
-                        ImmutableSet.of(Card.Type.RANSOMWARE),
-                        List.of(new RansomwareEffect()));
+                        2, ImmutableSet.of(Card.Type.RANSOMWARE), List.of(new RansomwareEffect()));
         s.active.turnReset();
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
@@ -336,7 +329,8 @@ public class RansomwareEffectTest extends ActionTestSupport {
 
         PlayerInfo opponent = s.players.get(1);
         RansomwareChoicePlayer chooser =
-                new RansomwareChoicePlayer("NoBugSupplyChooser", ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+                new RansomwareChoicePlayer(
+                        "NoBugSupplyChooser", ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
         setField(opponent, "player", chooser);
         List<Card> opponentDiscard = getField(opponent, "discard");
         int discardBefore = opponentDiscard.size();

@@ -432,10 +432,7 @@ public class DecisionBuilderTest {
     public void testBuildReactionDecisions_OneMonitoring_IncludesPlayAndEnd() throws Exception {
         PlayerInfo playerInfo = createPlayer();
         Card monitoring = new Card(Card.Type.MONITORING, cardId.getAndIncrement());
-        setHand(
-                playerInfo,
-                monitoring,
-                new Card(Card.Type.BITCOIN, cardId.getAndIncrement()));
+        setHand(playerInfo, monitoring, new Card(Card.Type.BITCOIN, cardId.getAndIncrement()));
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildReactionDecisions(playerInfo);
 
@@ -466,15 +463,15 @@ public class DecisionBuilderTest {
         ImmutableList<Decision> decisions = DecisionBuilder.buildReactionDecisions(playerInfo);
 
         long monitoringPlays =
-            decisions.stream()
-                .filter(
-                    d ->
-                        d instanceof PlayCardDecision p
-                            && p.card().type() == Card.Type.MONITORING)
-                .count();
+                decisions.stream()
+                        .filter(
+                                d ->
+                                        d instanceof PlayCardDecision p
+                                                && p.card().type() == Card.Type.MONITORING)
+                        .count();
         assertEquals("Should include one play decision per Monitoring", 2, monitoringPlays);
         assertTrue(
-            "Should include EndPhaseDecision",
-            decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
-        }
+                "Should include EndPhaseDecision",
+                decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
+    }
 }

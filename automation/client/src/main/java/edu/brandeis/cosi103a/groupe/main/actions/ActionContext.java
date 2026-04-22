@@ -10,8 +10,8 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
 import java.util.ArrayList;
@@ -71,8 +71,8 @@ public class ActionContext {
     }
 
     /**
-     * Returns true when the player chooses to reveal Monitoring in REACTION phase and is
-     * unaffected by the given attack card.
+     * Returns true when the player chooses to reveal Monitoring in REACTION phase and is unaffected
+     * by the given attack card.
      */
     public boolean isUnaffectedByAttack(PlayerInfo target, Card.Type attackType)
             throws PlayerViolationException {

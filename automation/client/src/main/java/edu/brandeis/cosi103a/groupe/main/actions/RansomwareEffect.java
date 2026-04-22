@@ -34,7 +34,8 @@ public class RansomwareEffect implements ActionCardEffect {
                     ImmutableList.of(
                             new ChooseEffectDecision(
                                     ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO),
-                            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG));
+                            new ChooseEffectDecision(
+                                    ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG));
             Decision choice = ctx.makeDecisionForPlayer(player, options);
 
             if (!(choice instanceof ChooseEffectDecision effectChoice)) {

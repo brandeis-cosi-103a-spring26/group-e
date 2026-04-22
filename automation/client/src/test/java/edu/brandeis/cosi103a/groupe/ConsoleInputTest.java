@@ -60,43 +60,43 @@ public class ConsoleInputTest {
         assertFalse("End phase should not trigger auto-play", result.isAutoPlayRequested());
     }
 
-        @Test
-        public void testGetDecisionFromConsole_ChooseEffectDecision_ByDescription() {
+    @Test
+    public void testGetDecisionFromConsole_ChooseEffectDecision_ByDescription() {
         ConsoleInput input = scannerInput("discard\n");
 
         Decision discardEffect =
-            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
         Decision gainBugEffect =
-            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
 
         DecisionResult result =
-            input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
+                input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
 
         assertSame(
-            "Typing effect description text should choose matching ChooseEffectDecision",
-            discardEffect,
-            result.getDecision());
+                "Typing effect description text should choose matching ChooseEffectDecision",
+                discardEffect,
+                result.getDecision());
         assertFalse("Effect selection should not trigger auto-play", result.isAutoPlayRequested());
-        }
+    }
 
-        @Test
-        public void testGetDecisionFromConsole_ChooseEffectDecision_ByEnumName() {
+    @Test
+    public void testGetDecisionFromConsole_ChooseEffectDecision_ByEnumName() {
         ConsoleInput input = scannerInput("ransomware gain bug\n");
 
         Decision discardEffect =
-            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
         Decision gainBugEffect =
-            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+                new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
 
         DecisionResult result =
-            input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
+                input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
 
         assertSame(
-            "Typing enum-like effect text should choose matching ChooseEffectDecision",
-            gainBugEffect,
-            result.getDecision());
+                "Typing enum-like effect text should choose matching ChooseEffectDecision",
+                gainBugEffect,
+                result.getDecision());
         assertFalse("Effect selection should not trigger auto-play", result.isAutoPlayRequested());
-        }
+    }
 
     private static ConsoleInput scannerInput(String scriptedInput) {
         return new ConsoleInput(

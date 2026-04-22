@@ -40,7 +40,7 @@ public class ParallelizationEffectTest extends ActionTestSupport {
 
         @Override
         public Decision makeDecision(
-            GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
+                GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
             promptCount++;
             for (Decision option : options) {
                 if (option instanceof EndPhaseDecision) {
