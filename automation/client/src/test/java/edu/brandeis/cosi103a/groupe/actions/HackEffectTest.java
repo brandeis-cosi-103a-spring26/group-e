@@ -31,16 +31,33 @@ public class HackEffectTest extends ActionTestSupport {
     private static class TrackingDiscardPlayer implements Player {
         private final String name;
         int promptCount = 0;
+        int reactionPromptCount = 0;
         boolean sawEndPhaseDecision = false;
+        private final boolean declineReaction;
 
         TrackingDiscardPlayer(String name) {
+            this(name, false);
+        }
+
+        TrackingDiscardPlayer(String name, boolean declineReaction) {
             this.name = name;
+            this.declineReaction = declineReaction;
         }
 
         @Override
         public Decision makeDecision(
                 GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
             promptCount++;
+            if (state.phase() == GameState.TurnPhase.REACTION) {
+                reactionPromptCount++;
+                if (declineReaction) {
+                    for (Decision option : options) {
+                        if (option instanceof EndPhaseDecision) {
+                            return option;
+                        }
+                    }
+                }
+            }
             sawEndPhaseDecision =
                     options.stream().anyMatch(option -> option instanceof EndPhaseDecision);
             for (Decision option : options) {
@@ -129,10 +146,44 @@ public class HackEffectTest extends ActionTestSupport {
         s.runner.processPlayCardDecision(new PlayCardDecision(hack));
 
         assertEquals(5, opponent.getUnplayedCards().size());
-        assertEquals(0, tracker.promptCount);
+        assertEquals(1, tracker.promptCount);
+        assertEquals(1, tracker.reactionPromptCount);
 
         TurnLog log = getField(s.runner, "currentTurnLog");
         assertTrue(log.getEntries().stream().anyMatch(e -> e.contains("revealed Monitoring")));
+    }
+
+    @Test
+    public void testHack_MonitoringCanDeclineReveal_ThenForcedDiscard() throws Exception {
+        Setup s =
+                new Setup(
+                        2,
+                        ImmutableSet.of(Card.Type.HACK, Card.Type.MONITORING),
+                        List.of(new HackEffect(), new MonitoringEffect()));
+        s.active.turnReset();
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+        Card hack = new Card(Card.Type.HACK, counter.getAndIncrement());
+
+        MutableHand activeHand = getField(s.active, "hand");
+        activeHand.addToUnplayed(hack);
+
+        PlayerInfo opponent = s.players.get(1);
+        TrackingDiscardPlayer tracker = new TrackingDiscardPlayer("DeclineMonitoring", true);
+        setField(opponent, "player", tracker);
+
+        MutableHand opponentHand = getField(opponent, "hand");
+        opponentHand.clear();
+        opponentHand.addToUnplayed(new Card(Card.Type.MONITORING, counter.getAndIncrement()));
+        for (int i = 0; i < 4; i++) {
+            opponentHand.addToUnplayed(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(hack));
+
+        assertEquals(3, opponent.getUnplayedCards().size());
+        assertEquals(3, tracker.promptCount);
+        assertEquals(1, tracker.reactionPromptCount);
     }
 
     @Test
@@ -176,6 +227,7 @@ public class HackEffectTest extends ActionTestSupport {
         assertFalse(nonImmuneTracker.sawEndPhaseDecision);
 
         assertEquals(5, immune.getUnplayedCards().size());
-        assertEquals(0, immuneTracker.promptCount);
+        assertEquals(1, immuneTracker.promptCount);
+        assertEquals(1, immuneTracker.reactionPromptCount);
     }
 }

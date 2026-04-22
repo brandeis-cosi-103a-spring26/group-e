@@ -409,4 +409,72 @@ public class DecisionBuilderTest {
         assertEquals("Should only have EndPhaseDecision", 1, decisions.size());
         assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
     }
+
+    @Test
+    public void testBuildReactionDecisions_NoMonitoring_OnlyEndPhaseDecision() throws Exception {
+        PlayerInfo playerInfo = createPlayer();
+        setHand(
+                playerInfo,
+                new Card(Card.Type.BITCOIN, cardId.getAndIncrement()),
+                new Card(Card.Type.CODE_REVIEW, cardId.getAndIncrement()));
+
+        ImmutableList<Decision> decisions = DecisionBuilder.buildReactionDecisions(playerInfo);
+
+        assertEquals("Should have only one decision", 1, decisions.size());
+        assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
+        assertEquals(
+                "Should be REACTION phase",
+                GameState.TurnPhase.REACTION,
+                ((EndPhaseDecision) decisions.get(0)).phase());
+    }
+
+    @Test
+    public void testBuildReactionDecisions_OneMonitoring_IncludesPlayAndEnd() throws Exception {
+        PlayerInfo playerInfo = createPlayer();
+        Card monitoring = new Card(Card.Type.MONITORING, cardId.getAndIncrement());
+        setHand(
+                playerInfo,
+                monitoring,
+                new Card(Card.Type.BITCOIN, cardId.getAndIncrement()));
+
+        ImmutableList<Decision> decisions = DecisionBuilder.buildReactionDecisions(playerInfo);
+
+        assertEquals("Should include play plus end-phase", 2, decisions.size());
+        assertTrue(
+                "Should include PlayCardDecision for Monitoring",
+                decisions.stream()
+                        .anyMatch(
+                                d ->
+                                        d instanceof PlayCardDecision p
+                                                && p.card().type() == Card.Type.MONITORING));
+        assertTrue(
+                "Should include EndPhaseDecision",
+                decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
+    }
+
+    @Test
+    public void testBuildReactionDecisions_MultipleMonitoring_IncludesEachCard() throws Exception {
+        PlayerInfo playerInfo = createPlayer();
+        Card monitoring1 = new Card(Card.Type.MONITORING, cardId.getAndIncrement());
+        Card monitoring2 = new Card(Card.Type.MONITORING, cardId.getAndIncrement());
+        setHand(
+                playerInfo,
+                monitoring1,
+                monitoring2,
+                new Card(Card.Type.BITCOIN, cardId.getAndIncrement()));
+
+        ImmutableList<Decision> decisions = DecisionBuilder.buildReactionDecisions(playerInfo);
+
+        long monitoringPlays =
+            decisions.stream()
+                .filter(
+                    d ->
+                        d instanceof PlayCardDecision p
+                            && p.card().type() == Card.Type.MONITORING)
+                .count();
+        assertEquals("Should include one play decision per Monitoring", 2, monitoringPlays);
+        assertTrue(
+            "Should include EndPhaseDecision",
+            decisions.stream().anyMatch(d -> d instanceof EndPhaseDecision));
+        }
 }

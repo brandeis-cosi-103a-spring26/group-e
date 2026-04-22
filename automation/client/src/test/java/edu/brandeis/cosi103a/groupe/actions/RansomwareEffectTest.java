@@ -9,6 +9,7 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.ChooseEffectDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
+import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
@@ -31,18 +32,39 @@ public class RansomwareEffectTest extends ActionTestSupport {
     private static class RansomwareChoicePlayer implements Player {
         private final String name;
         private final ChooseEffectDecision.Effect preferred;
+        private final boolean declineReaction;
 
+        int totalPrompts = 0;
+        int reactionPrompts = 0;
         int choicePrompts = 0;
         int discardPrompts = 0;
 
         RansomwareChoicePlayer(String name, ChooseEffectDecision.Effect preferred) {
+            this(name, preferred, false);
+        }
+
+        RansomwareChoicePlayer(
+                String name, ChooseEffectDecision.Effect preferred, boolean declineReaction) {
             this.name = name;
             this.preferred = preferred;
+            this.declineReaction = declineReaction;
         }
 
         @Override
         public Decision makeDecision(
                 GameState state, ImmutableList<Decision> options, Optional<Event> reason) {
+            totalPrompts++;
+            if (state.phase() == GameState.TurnPhase.REACTION) {
+                reactionPrompts++;
+                if (declineReaction) {
+                    for (Decision option : options) {
+                        if (option instanceof EndPhaseDecision) {
+                            return option;
+                        }
+                    }
+                }
+            }
+
             boolean sawChoosePrompt =
                     options.stream().anyMatch(option -> option instanceof ChooseEffectDecision);
             if (sawChoosePrompt) {
@@ -194,8 +216,51 @@ public class RansomwareEffectTest extends ActionTestSupport {
         s.runner.processPlayCardDecision(new PlayCardDecision(ransomware));
 
         assertEquals(0, chooser.choicePrompts);
+        assertEquals(1, chooser.totalPrompts);
+        assertEquals(1, chooser.reactionPrompts);
         TurnLog log = getField(s.runner, "currentTurnLog");
         assertTrue(log.getEntries().stream().anyMatch(e -> e.contains("revealed Monitoring")));
+    }
+
+    @Test
+    public void testRansomware_MonitoringCanDeclineReveal_ThenGetsChoicePrompt() throws Exception {
+        Setup s =
+                new Setup(
+                        2,
+                        ImmutableSet.of(Card.Type.RANSOMWARE, Card.Type.MONITORING),
+                        List.of(new RansomwareEffect(), new MonitoringEffect()));
+        s.active.turnReset();
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+        Card ransomware = new Card(Card.Type.RANSOMWARE, counter.getAndIncrement());
+
+        MutableHand activeHand = getField(s.active, "hand");
+        List<Card> activeDeck = getField(s.active, "deck");
+        while (activeDeck.size() < 3) {
+            activeDeck.add(new Card(Card.Type.BITCOIN, counter.getAndIncrement()));
+        }
+        activeHand.addToUnplayed(ransomware);
+
+        PlayerInfo opponent = s.players.get(1);
+        RansomwareChoicePlayer chooser =
+                new RansomwareChoicePlayer(
+                        "DeclineReactionChooser",
+                        ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG,
+                        true);
+        setField(opponent, "player", chooser);
+
+        MutableHand opponentHand = getField(opponent, "hand");
+        opponentHand.clear();
+        opponentHand.addToUnplayed(new Card(Card.Type.MONITORING, counter.getAndIncrement()));
+        List<Card> opponentDiscard = getField(opponent, "discard");
+        int discardBefore = opponentDiscard.size();
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(ransomware));
+
+        assertEquals(1, chooser.reactionPrompts);
+        assertEquals(1, chooser.choicePrompts);
+        assertEquals(discardBefore + 1, opponentDiscard.size());
+        assertEquals(Card.Type.BUG, opponentDiscard.get(opponentDiscard.size() - 1).type());
     }
 
     @Test

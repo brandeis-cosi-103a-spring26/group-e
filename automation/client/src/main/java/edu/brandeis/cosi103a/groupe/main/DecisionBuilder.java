@@ -143,4 +143,25 @@ public class DecisionBuilder {
 
         return decisionBuilder.build();
     }
+
+    /**
+     * Builds decision options for the REACTION phase.
+     *
+     * <p>Only Monitoring can be revealed as a reaction in this flow.
+     *
+     * @param playerInfo the player who may react to an attack
+     * @return List containing one PlayCardDecision per Monitoring in hand and EndPhaseDecision
+     */
+    public static ImmutableList<Decision> buildReactionDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        for (Card card : playerInfo.getUnplayedCards()) {
+            if (card.type() == Card.Type.MONITORING) {
+                decisionBuilder.add(new PlayCardDecision(card));
+            }
+        }
+
+        decisionBuilder.add(new EndPhaseDecision(TurnPhase.REACTION));
+        return decisionBuilder.build();
+    }
 }

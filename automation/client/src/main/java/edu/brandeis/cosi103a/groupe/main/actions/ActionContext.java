@@ -4,10 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
+import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
@@ -67,10 +70,32 @@ public class ActionContext {
         shop.gain(t, p);
     }
 
-    /** Returns true when the player should be unaffected by the given attack card. */
-    public boolean isUnaffectedByAttack(PlayerInfo target, Card.Type attackType) {
-        for (Card card : target.getUnplayedCards()) {
-            if (card.type() == Card.Type.MONITORING) {
+    /**
+     * Returns true when the player chooses to reveal Monitoring in REACTION phase and is
+     * unaffected by the given attack card.
+     */
+    public boolean isUnaffectedByAttack(PlayerInfo target, Card.Type attackType)
+            throws PlayerViolationException {
+        boolean hasMonitoring =
+                target.getUnplayedCards().stream()
+                        .anyMatch(card -> card.type() == Card.Type.MONITORING);
+        if (!hasMonitoring) {
+            return false;
+        }
+
+        TurnPhase previousPhase = phase;
+        phase = TurnPhase.REACTION;
+        try {
+            ImmutableList<Decision> options = DecisionBuilder.buildReactionDecisions(target);
+            Decision decision = makeDecisionForPlayer(target, options);
+
+            if (decision instanceof PlayCardDecision playDecision) {
+                if (playDecision.card().type() != Card.Type.MONITORING
+                        || !target.getUnplayedCards().contains(playDecision.card())) {
+                    throw new PlayerViolationException(
+                            "Invalid reaction card played: " + playDecision.card().type());
+                }
+
                 log(
                         "  "
                                 + target.getDisplayName()
@@ -78,8 +103,16 @@ public class ActionContext {
                                 + Renderer.displayName(attackType));
                 return true;
             }
+
+            if (decision instanceof EndPhaseDecision endPhaseDecision
+                    && endPhaseDecision.phase() == TurnPhase.REACTION) {
+                return false;
+            }
+
+            throw new PlayerViolationException("Invalid reaction decision: " + decision);
+        } finally {
+            phase = previousPhase;
         }
-        return false;
     }
 
     public Decision makeDecision(ImmutableList<Decision> opts) throws PlayerViolationException {
