@@ -84,6 +84,13 @@ public class CardDescriptions {
                                     + " EndPhaseDecision. After the player makes a trash decision, the"
                                     + " engine will draw a number of cards equal to the cost of"
                                     + " the trashed card into the player's hand.")
+                    .put(
+                            Card.Type.UNIT_TEST,
+                            "Choose one: +2 Actions; +$2; +2 Cards.\n\n"
+                                    + "When this card is played, the engine prompts the player with three"
+                                    + " options: either gain two additional actions for this turn, gain $2"
+                                    + " to spend for this turn, or draw 2 cards. The player must choose one"
+                                    + " option.")
                     .build();
 
     public static String get(Card.Type cardType) {

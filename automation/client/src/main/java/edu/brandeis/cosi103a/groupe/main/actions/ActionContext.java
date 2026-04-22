@@ -52,6 +52,14 @@ public class ActionContext {
         active.adjustActions(delta);
     }
 
+    public void adjustBuys(int delta) {
+        active.adjustBuys(delta);
+    }
+
+    public void adjustMoney(int delta) {
+        active.adjustMoney(delta);
+    }
+
     public void gainCard(Card.Type type) {
         boolean successfullyBought = shop.gain(type, active);
         if (successfullyBought) {

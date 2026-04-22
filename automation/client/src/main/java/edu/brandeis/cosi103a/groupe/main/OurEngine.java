@@ -18,6 +18,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MergeConflictEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,11 @@ public class OurEngine implements Engine {
 
         ImmutableSet<Type> actionCards =
                 ImmutableSet.of(
-                        Type.CODE_REVIEW, Type.REFACTOR, Type.EVERGREEN_TEST, Type.MERGE_CONFLICT);
+                        Type.CODE_REVIEW,
+                        Type.REFACTOR,
+                        Type.EVERGREEN_TEST,
+                        Type.MERGE_CONFLICT,
+                        Type.UNIT_TEST);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -79,7 +84,8 @@ public class OurEngine implements Engine {
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
                                 new EvergreenTestEffect(),
-                                new MergeConflictEffect()));
+                                new MergeConflictEffect(),
+                                new UnitTestEffect()));
         runner = new GameRunner(this.players, shopManager, registry, observer);
     }
 
