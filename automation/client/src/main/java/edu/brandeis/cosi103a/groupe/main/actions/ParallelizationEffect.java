@@ -3,8 +3,10 @@ package edu.brandeis.cosi103a.groupe.main.actions;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.List;
 
@@ -12,9 +14,10 @@ import java.util.List;
  * You may play an Action card from your hand twice.
  *
  * <p>When played, the player is prompted with {@link PlayCardDecision}s for every other unplayed
- * action card in their hand. The chosen card is then executed twice via the {@link
- * ActionEffectRegistry}. Executing the chosen card does not consume additional actions beyond the
- * one action used to play Parallelization itself.
+ * action card in their hand, plus an {@link EndPhaseDecision} to skip parallelizing. If an action
+ * card is chosen, it is executed twice via the {@link ActionEffectRegistry}. Executing the chosen
+ * card does not consume additional actions beyond the one action used to play Parallelization
+ * itself.
  *
  * <p>The {@link ActionEffectRegistry} must be injected after construction via {@link
  * #setRegistry(ActionEffectRegistry)} before this effect is ever executed.
@@ -56,7 +59,14 @@ public class ParallelizationEffect implements ActionCardEffect {
         for (Card c : otherActions) {
             opts.add(new PlayCardDecision(c));
         }
+        opts.add(new EndPhaseDecision(GameState.TurnPhase.ACTION));
+
         Decision choice = ctx.makeDecision(opts.build());
+        if (choice instanceof EndPhaseDecision) {
+            ctx.log("  Parallelization skipped");
+            return;
+        }
+
         Card chosen = ((PlayCardDecision) choice).card();
 
         // Move chosen card to the played zone so nested effects that inspect the hand
