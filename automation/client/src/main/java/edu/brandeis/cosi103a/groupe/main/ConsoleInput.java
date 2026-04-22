@@ -127,6 +127,28 @@ public class ConsoleInput {
                 continue;
             }
 
+            List<ChooseEffectDecision> effectMatches = findMatchingEffects(input, options);
+            if (effectMatches.size() == 1) {
+                choice = effectMatches.get(0);
+                continue;
+            } else if (effectMatches.size() > 1) {
+                System.out.print(
+                        ansi().fg(RED)
+                                .a("✗ Invalid - multiple effects match '" + input + "': ")
+                                .reset());
+                for (int i = 0; i < effectMatches.size(); i++) {
+                    System.out.print(
+                            ansi().fg(YELLOW)
+                                    .a(getEffectDisplayName(effectMatches.get(i).effect()))
+                                    .reset());
+                    if (i < effectMatches.size() - 1) {
+                        System.out.print(", ");
+                    }
+                }
+                System.out.println(ansi().fg(RED).a(". Please be more specific.").reset());
+                continue;
+            }
+
             List<Card.Type> allMatches = findMatchingCardTypes(input);
 
             if (allMatches.isEmpty()) {
@@ -203,6 +225,10 @@ public class ConsoleInput {
         return Renderer.displayName(cardType);
     }
 
+    private static String getEffectDisplayName(ChooseEffectDecision.Effect effect) {
+        return effect.getDescription();
+    }
+
     private static String normalizeCardName(String input) {
         return input.trim().toLowerCase().replace('_', ' ').replaceAll("\\s+", " ");
     }
@@ -216,6 +242,30 @@ public class ConsoleInput {
                 matches.add(type);
             }
         }
+        return matches;
+    }
+
+    private static List<ChooseEffectDecision> findMatchingEffects(
+            String input, ImmutableList<Decision> options) {
+        String normalizedInput = normalizeCardName(input);
+        List<ChooseEffectDecision> matches = new ArrayList<>();
+
+        for (Decision option : options) {
+            if (!(option instanceof ChooseEffectDecision effectDecision)) {
+                continue;
+            }
+
+            String normalizedDescription = normalizeCardName(effectDecision.effect().getDescription());
+            String normalizedEnumName = normalizeCardName(effectDecision.effect().name());
+
+            if (normalizedDescription.equals(normalizedInput)
+                    || normalizedDescription.contains(normalizedInput)
+                    || normalizedEnumName.equals(normalizedInput)
+                    || normalizedEnumName.contains(normalizedInput)) {
+                matches.add(effectDecision);
+            }
+        }
+
         return matches;
     }
 

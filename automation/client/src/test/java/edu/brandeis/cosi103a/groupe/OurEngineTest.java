@@ -310,6 +310,7 @@ public class OurEngineTest {
                 "SPRINT_PLANNING should have 10",
                 10,
                 shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
+        assertEquals("RANSOMWARE should have 10", 10, shop.getNumAvailable(Card.Type.RANSOMWARE));
     }
 
     @Test

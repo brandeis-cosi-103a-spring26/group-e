@@ -20,6 +20,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.HackEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.RansomwareEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.SprintPlanningEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
@@ -81,7 +82,8 @@ public class OurEngine implements Engine {
                         Type.TECH_DEBT,
                         Type.BACKLOG,
                         Type.DAILY_SCRUM,
-                        Type.SPRINT_PLANNING);
+                        Type.SPRINT_PLANNING,
+                        Type.RANSOMWARE);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -102,6 +104,7 @@ public class OurEngine implements Engine {
                                 new DailyScrumEffect(),
                                 new TechDebtEffect(),
                                 new SprintPlanningEffect(),
+                                new RansomwareEffect(),
                                 parallelization));
         parallelization.setRegistry(registry);
 

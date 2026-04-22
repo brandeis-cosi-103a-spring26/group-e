@@ -6,6 +6,7 @@ import static org.junit.Assert.assertSame;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
+import edu.brandeis.cosi.atg.decisions.ChooseEffectDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
@@ -58,6 +59,44 @@ public class ConsoleInputTest {
         assertSame("Typing E should choose EndPhaseDecision", endDiscard, result.getDecision());
         assertFalse("End phase should not trigger auto-play", result.isAutoPlayRequested());
     }
+
+        @Test
+        public void testGetDecisionFromConsole_ChooseEffectDecision_ByDescription() {
+        ConsoleInput input = scannerInput("discard\n");
+
+        Decision discardEffect =
+            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
+        Decision gainBugEffect =
+            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+
+        DecisionResult result =
+            input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
+
+        assertSame(
+            "Typing effect description text should choose matching ChooseEffectDecision",
+            discardEffect,
+            result.getDecision());
+        assertFalse("Effect selection should not trigger auto-play", result.isAutoPlayRequested());
+        }
+
+        @Test
+        public void testGetDecisionFromConsole_ChooseEffectDecision_ByEnumName() {
+        ConsoleInput input = scannerInput("ransomware gain bug\n");
+
+        Decision discardEffect =
+            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO);
+        Decision gainBugEffect =
+            new ChooseEffectDecision(ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG);
+
+        DecisionResult result =
+            input.getDecisionFromConsole(null, ImmutableList.of(discardEffect, gainBugEffect));
+
+        assertSame(
+            "Typing enum-like effect text should choose matching ChooseEffectDecision",
+            gainBugEffect,
+            result.getDecision());
+        assertFalse("Effect selection should not trigger auto-play", result.isAutoPlayRequested());
+        }
 
     private static ConsoleInput scannerInput(String scriptedInput) {
         return new ConsoleInput(

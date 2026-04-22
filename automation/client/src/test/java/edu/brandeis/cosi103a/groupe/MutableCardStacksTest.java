@@ -31,7 +31,8 @@ public class MutableCardStacksTest {
                         Card.Type.IPO,
                         Card.Type.HACK,
                         Card.Type.DAILY_SCRUM,
-                        Card.Type.SPRINT_PLANNING);
+                        Card.Type.SPRINT_PLANNING,
+                        Card.Type.RANSOMWARE);
 
         singleActionCard = ImmutableSet.of(Card.Type.CODE_REVIEW);
         emptyActionCards = ImmutableSet.of();
@@ -71,6 +72,7 @@ public class MutableCardStacksTest {
                 "SPRINT_PLANNING should be 10",
                 10,
                 stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+        assertEquals("RANSOMWARE should be 10", 10, stacks.getNumAvailable(Card.Type.RANSOMWARE));
     }
 
     @Test
@@ -118,6 +120,10 @@ public class MutableCardStacksTest {
                 "SPRINT_PLANNING should be 0 (not included)",
                 0,
                 stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+        assertEquals(
+                "RANSOMWARE should be 0 (not included)",
+                0,
+                stacks.getNumAvailable(Card.Type.RANSOMWARE));
     }
 
     @Test
@@ -139,6 +145,7 @@ public class MutableCardStacksTest {
                 "SPRINT_PLANNING should be 0",
                 0,
                 stacks.getNumAvailable(Card.Type.SPRINT_PLANNING));
+        assertEquals("RANSOMWARE should be 0", 0, stacks.getNumAvailable(Card.Type.RANSOMWARE));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -351,7 +358,7 @@ public class MutableCardStacksTest {
         ImmutableSet<Card.Type> available = stacks.availableCardsForCost(999);
 
         // Should include all cards with count > 0
-        assertEquals("Should include all 14 card types", 14, available.size());
+        assertEquals("Should include all 15 card types", 15, available.size());
     }
 
     @Test

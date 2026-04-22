@@ -142,6 +142,17 @@ public class CardDescriptions {
                                     + "When this card is played, the player immediately draws one"
                                     + " card, gains one additional action for this turn, and gains"
                                     + " one additional buy for this turn.")
+                    .put(
+                            Card.Type.RANSOMWARE,
+                            "(Attack card) +3 Cards; Each other player chooses one: discard 2"
+                                    + " cards, or gain a Bug.\n\n"
+                                    + "When this card is played, each other player with an"
+                                    + " unplayed Monitoring in hand reveals it and is unaffected by"
+                                    + " this attack. Each non-immune player is then prompted to"
+                                    + " choose either the discard-two effect or gain-a-Bug effect."
+                                    + " A player who chooses discard may still choose it with fewer"
+                                    + " than 2 cards in hand and will discard as many as possible up"
+                                    + " to 2.")
                     .build();
 
     public static String get(Card.Type cardType) {
