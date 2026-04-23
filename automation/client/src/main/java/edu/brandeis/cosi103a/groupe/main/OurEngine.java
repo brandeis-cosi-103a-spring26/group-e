@@ -15,6 +15,7 @@ import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.DeploymentPipelineEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MergeConflictEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
@@ -74,7 +75,8 @@ public class OurEngine implements Engine {
                         Type.REFACTOR,
                         Type.EVERGREEN_TEST,
                         Type.MERGE_CONFLICT,
-                        Type.UNIT_TEST);
+                        Type.UNIT_TEST,
+                        Type.DEPLOYMENT_PIPELINE);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -85,7 +87,8 @@ public class OurEngine implements Engine {
                                 new RefactorEffect(),
                                 new EvergreenTestEffect(),
                                 new MergeConflictEffect(),
-                                new UnitTestEffect()));
+                                new UnitTestEffect(),
+                                new DeploymentPipelineEffect()));
         runner = new GameRunner(this.players, shopManager, registry, observer);
     }
 

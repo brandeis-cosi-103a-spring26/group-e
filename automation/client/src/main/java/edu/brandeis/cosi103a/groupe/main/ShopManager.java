@@ -48,4 +48,12 @@ public class ShopManager {
     public CardStacks toImmutableCardStacks() {
         return stacks.toImmutableCardStacks();
     }
+
+    public void setDiscount(boolean d) {
+        stacks.setDiscount(d);
+    }
+
+    public boolean discounted() {
+        return stacks.discounted();
+    }
 }

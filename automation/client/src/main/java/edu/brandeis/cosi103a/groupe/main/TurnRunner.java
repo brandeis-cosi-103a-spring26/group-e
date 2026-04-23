@@ -71,6 +71,7 @@ public class TurnRunner {
             }
         }
         activePlayer.cleanup();
+        shop.setDiscount(false);
         EndTurnEvent endTurnEvent = new EndTurnEvent();
         GameState state =
                 new GameState(
@@ -230,16 +231,22 @@ public class TurnRunner {
     @VisibleForTesting
     public void processBuyDecision(BuyDecision decision) {
         Card.Type type = decision.cardType();
+        int discount = 0;
+        if (shop.discounted()) {
+            discount = 1;
+        }
         if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
         }
-        if (activePlayer.numMoney() < type.cost()) {
+        if (activePlayer.numMoney() < type.cost() - discount) {
             throw new IllegalStateException("Not enough money to buy this card");
         }
         if (activePlayer.numBuys() <= 0) {
             throw new IllegalStateException("No buys remaining to buy a card");
         }
-        activePlayer.adjustMoney(-type.cost());
+        if (type.cost() - discount > 0) {
+            activePlayer.adjustMoney(-type.cost() + discount);
+        }
         activePlayer.adjustBuys(-1);
         boolean successfullyBought = shop.gain(type, activePlayer);
         if (successfullyBought) {

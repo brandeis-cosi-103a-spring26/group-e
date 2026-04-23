@@ -154,6 +154,10 @@ public class ActionContext {
         return shop.availableForCost(max);
     }
 
+    public void discountShop() {
+        shop.setDiscount(true);
+    }
+
     public void log(String entry) {
         if (turnLog != null) {
             turnLog.addEntry(entry);

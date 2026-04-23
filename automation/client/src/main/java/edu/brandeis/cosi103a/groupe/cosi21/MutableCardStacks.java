@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 public class MutableCardStacks {
 
     private Map<Type, Integer> shop;
+    private boolean isDiscounted = false;
 
     // Starting shop quantities
     private static final int BITCOIN_COUNT = 60;
@@ -119,15 +120,36 @@ public class MutableCardStacks {
      * @return An immutable set of card types that are available for gain at or below the given cost
      */
     public ImmutableSet<Type> availableCardsForCost(int cost) {
-
+        int discount = 0;
+        if (isDiscounted) {
+            discount = 1;
+        }
         ImmutableSet.Builder<Type> availableCards = ImmutableSet.builder();
         for (Map.Entry<Type, Integer> entry : shop.entrySet()) {
             Type type = entry.getKey();
             int count = entry.getValue();
-            if (count > 0 && type.cost() <= cost) {
+            if (count > 0 && type.cost() - discount <= cost) {
                 availableCards.add(type);
             }
         }
         return availableCards.build();
+    }
+
+    /**
+     * Enables or disables a 1-cost discount used when checking which cards are affordable.
+     *
+     * @param d true to enable discount mode, false to disable it
+     */
+    public void setDiscount(boolean d) {
+        isDiscounted = d;
+    }
+
+    /**
+     * Returns whether discount mode is currently enabled.
+     *
+     * @return true if discount mode is enabled, false otherwise
+     */
+    public boolean discounted() {
+        return isDiscounted;
     }
 }
