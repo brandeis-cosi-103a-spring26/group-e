@@ -32,6 +32,7 @@ public class HackEffectTest extends ActionTestSupport {
         private final String name;
         int promptCount = 0;
         int reactionPromptCount = 0;
+        int discardPhasePromptCount = 0;
         boolean sawEndPhaseDecision = false;
         private final boolean declineReaction;
 
@@ -62,6 +63,9 @@ public class HackEffectTest extends ActionTestSupport {
                     options.stream().anyMatch(option -> option instanceof EndPhaseDecision);
             for (Decision option : options) {
                 if (option instanceof DiscardCardDecision) {
+                    if (state.phase() == GameState.TurnPhase.DISCARD) {
+                        discardPhasePromptCount++;
+                    }
                     return option;
                 }
             }
@@ -113,6 +117,7 @@ public class HackEffectTest extends ActionTestSupport {
         assertEquals(moneyBefore + 2, s.active.numMoney());
         assertEquals(3, opponent.getUnplayedCards().size());
         assertEquals(2, tracker.promptCount);
+        assertEquals(2, tracker.discardPhasePromptCount);
         assertFalse(tracker.sawEndPhaseDecision);
     }
 
@@ -184,6 +189,7 @@ public class HackEffectTest extends ActionTestSupport {
         assertEquals(3, opponent.getUnplayedCards().size());
         assertEquals(3, tracker.promptCount);
         assertEquals(1, tracker.reactionPromptCount);
+        assertEquals(2, tracker.discardPhasePromptCount);
     }
 
     @Test
@@ -224,6 +230,7 @@ public class HackEffectTest extends ActionTestSupport {
 
         assertEquals(3, nonImmune.getUnplayedCards().size());
         assertEquals(2, nonImmuneTracker.promptCount);
+        assertEquals(2, nonImmuneTracker.discardPhasePromptCount);
         assertFalse(nonImmuneTracker.sawEndPhaseDecision);
 
         assertEquals(5, immune.getUnplayedCards().size());

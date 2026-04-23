@@ -6,6 +6,7 @@ import edu.brandeis.cosi.atg.decisions.ChooseEffectDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
@@ -44,26 +45,32 @@ public class RansomwareEffect implements ActionCardEffect {
             }
 
             if (effectChoice.effect() == ChooseEffectDecision.Effect.RANSOMWARE_DISCARD_TWO) {
-                for (int i = 0; i < 2; i++) {
-                    ImmutableList<Decision> discardOptions =
-                            DecisionBuilder.buildForcedDiscardDecisions(player);
-                    if (discardOptions.isEmpty()) {
-                        break;
-                    }
+                TurnPhase previousPhase = ctx.getPhase();
+                ctx.setPhase(TurnPhase.DISCARD);
+                try {
+                    for (int i = 0; i < 2; i++) {
+                        ImmutableList<Decision> discardOptions =
+                                DecisionBuilder.buildForcedDiscardDecisions(player);
+                        if (discardOptions.isEmpty()) {
+                            break;
+                        }
 
-                    Decision discardChoice = ctx.makeDecisionForPlayer(player, discardOptions);
-                    if (!(discardChoice instanceof DiscardCardDecision discardDecision)) {
-                        throw new PlayerViolationException(
-                                "Expected DiscardCardDecision for RANSOMWARE discard branch, got: "
-                                        + discardChoice);
-                    }
+                        Decision discardChoice = ctx.makeDecisionForPlayer(player, discardOptions);
+                        if (!(discardChoice instanceof DiscardCardDecision discardDecision)) {
+                            throw new PlayerViolationException(
+                                    "Expected DiscardCardDecision for RANSOMWARE discard branch, got: "
+                                            + discardChoice);
+                        }
 
-                    ctx.discardCardForPlayer(player, discardDecision.card());
-                    ctx.log(
-                            "  "
-                                    + player.getDisplayName()
-                                    + " discarded "
-                                    + Renderer.displayName(discardDecision.card().type()));
+                        ctx.discardCardForPlayer(player, discardDecision.card());
+                        ctx.log(
+                                "  "
+                                        + player.getDisplayName()
+                                        + " discarded "
+                                        + Renderer.displayName(discardDecision.card().type()));
+                    }
+                } finally {
+                    ctx.setPhase(previousPhase);
                 }
                 continue;
             }

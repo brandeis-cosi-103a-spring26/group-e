@@ -24,28 +24,29 @@ public class BacklogEffect implements ActionCardEffect {
         ctx.adjustActions(1);
         ctx.log("  +1 Action");
 
-        // Change phase to DISCARD
+        TurnPhase previousPhase = ctx.getPhase();
         ctx.setPhase(TurnPhase.DISCARD);
         int discardedCount = 0;
 
         // Loop until hand is empty or EndPhaseDecision is chosen
-        while (true) {
-            ImmutableList<Decision> discardOptions =
-                    DecisionBuilder.buildDiscardDecisions(ctx.activePlayer());
-            Decision playerChoice = ctx.makeDecision(discardOptions);
+        try {
+            while (true) {
+                ImmutableList<Decision> discardOptions =
+                        DecisionBuilder.buildDiscardDecisions(ctx.activePlayer());
+                Decision playerChoice = ctx.makeDecision(discardOptions);
 
-            if (playerChoice instanceof EndPhaseDecision) {
-                break;
+                if (playerChoice instanceof EndPhaseDecision) {
+                    break;
+                }
+
+                DiscardCardDecision discardDecision = (DiscardCardDecision) playerChoice;
+                ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+                ctx.discardCard(discardDecision.card());
+                discardedCount++;
             }
-
-            DiscardCardDecision discardDecision = (DiscardCardDecision) playerChoice;
-            ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
-            ctx.discardCard(discardDecision.card());
-            discardedCount++;
+        } finally {
+            ctx.setPhase(previousPhase);
         }
-
-        // Change phase back to ACTION
-        ctx.setPhase(TurnPhase.ACTION);
 
         // Draw cards equal to the number discarded
         if (discardedCount > 0) {

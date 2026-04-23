@@ -38,6 +38,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
         int reactionPrompts = 0;
         int choicePrompts = 0;
         int discardPrompts = 0;
+        int discardPhasePrompts = 0;
 
         RansomwareChoicePlayer(String name, ChooseEffectDecision.Effect preferred) {
             this(name, preferred, false);
@@ -82,6 +83,9 @@ public class RansomwareEffectTest extends ActionTestSupport {
             for (Decision option : options) {
                 if (option instanceof DiscardCardDecision) {
                     discardPrompts++;
+                    if (state.phase() == GameState.TurnPhase.DISCARD) {
+                        discardPhasePrompts++;
+                    }
                     return option;
                 }
             }
@@ -142,6 +146,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
         assertEquals(initialActiveHand + 2, s.active.getUnplayedCards().size());
         assertEquals(1, chooser.choicePrompts);
         assertEquals(2, chooser.discardPrompts);
+        assertEquals(2, chooser.discardPhasePrompts);
         assertEquals(1, opponent.getUnplayedCards().size());
     }
 
@@ -298,6 +303,7 @@ public class RansomwareEffectTest extends ActionTestSupport {
 
         assertEquals(1, oneCardChooser.choicePrompts);
         assertEquals(1, oneCardChooser.discardPrompts);
+        assertEquals(1, oneCardChooser.discardPhasePrompts);
         assertEquals(0, oneCardPlayer.getUnplayedCards().size());
 
         assertEquals(1, zeroCardChooser.choicePrompts);
