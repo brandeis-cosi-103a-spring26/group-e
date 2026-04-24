@@ -6,6 +6,7 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.DiscardCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 
@@ -32,21 +33,27 @@ public class TechDebtEffect implements ActionCardEffect {
             }
         }
 
-        for (int i = 0; i < emptyPiles; i++) {
-            ImmutableList<Decision> options =
-                    DecisionBuilder.buildForcedDiscardDecisions(ctx.activePlayer());
-            if (options.isEmpty()) {
-                break;
-            }
+        TurnPhase previousPhase = ctx.getPhase();
+        ctx.setPhase(TurnPhase.DISCARD);
+        try {
+            for (int i = 0; i < emptyPiles; i++) {
+                ImmutableList<Decision> options =
+                        DecisionBuilder.buildForcedDiscardDecisions(ctx.activePlayer());
+                if (options.isEmpty()) {
+                    break;
+                }
 
-            Decision choice = ctx.makeDecision(options);
-            if (!(choice instanceof DiscardCardDecision discardDecision)) {
-                throw new PlayerViolationException(
-                        "Expected DiscardCardDecision for TECH_DEBT effect, got: " + choice);
-            }
+                Decision choice = ctx.makeDecision(options);
+                if (!(choice instanceof DiscardCardDecision discardDecision)) {
+                    throw new PlayerViolationException(
+                            "Expected DiscardCardDecision for TECH_DEBT effect, got: " + choice);
+                }
 
-            ctx.discardCard(discardDecision.card());
-            ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+                ctx.discardCard(discardDecision.card());
+                ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+            }
+        } finally {
+            ctx.setPhase(previousPhase);
         }
     }
 }

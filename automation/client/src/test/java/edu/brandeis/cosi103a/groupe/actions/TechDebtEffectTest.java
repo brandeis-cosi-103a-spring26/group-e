@@ -13,6 +13,7 @@ import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableHand;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
@@ -27,6 +28,7 @@ public class TechDebtEffectTest extends ActionTestSupport {
     private static class TrackingDiscardPlayer implements Player {
         private final String name;
         int promptCount = 0;
+        int discardPhasePromptCount = 0;
         boolean sawEndPhaseDecision = false;
 
         TrackingDiscardPlayer(String name) {
@@ -43,6 +45,9 @@ public class TechDebtEffectTest extends ActionTestSupport {
                     options.stream().anyMatch(option -> option instanceof EndPhaseDecision);
             for (Decision option : options) {
                 if (option instanceof DiscardCardDecision) {
+                    if (state.phase() == GameState.TurnPhase.DISCARD) {
+                        discardPhasePromptCount++;
+                    }
                     return option;
                 }
             }
@@ -133,6 +138,7 @@ public class TechDebtEffectTest extends ActionTestSupport {
 
         assertEquals(initialHandSize - 2, s.active.getUnplayedCards().size());
         assertEquals(2, tracker.promptCount);
+        assertEquals(2, tracker.discardPhasePromptCount);
         assertFalse(tracker.sawEndPhaseDecision);
     }
 
