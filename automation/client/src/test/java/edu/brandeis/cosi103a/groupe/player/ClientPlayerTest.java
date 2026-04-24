@@ -6,10 +6,16 @@ import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
+import edu.brandeis.cosi.atg.event.PlayCardEvent;
+import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi103a.groupe.api.DecisionRequest;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -156,6 +162,66 @@ public class ClientPlayerTest {
         Decision actual = player.makeDecision(null, options, Optional.empty());
 
         assertSame(fallback, actual);
+    }
+
+    @Test
+    public void makeDecision_WithReason_SerializesExpectedRequestJsonShape() throws Exception {
+        ObjectMapper realMapper = new ObjectMapper().findAndRegisterModules();
+        FakeHttpClient httpClient = new FakeHttpClient();
+
+        Decision expected = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> options = ImmutableList.of(expected);
+        Event reason = new PlayCardEvent(new Card(Card.Type.BITCOIN, 2), "Player-2");
+        httpClient.responseBody = "{\"decision\":" + realMapper.writeValueAsString(expected) + "}";
+
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
+
+        player.makeDecision(createState(GameState.TurnPhase.BUY), options, Optional.of(reason));
+
+        String requestBody = readRequestBody(httpClient.lastRequest);
+        com.fasterxml.jackson.databind.JsonNode body = realMapper.readTree(requestBody);
+
+        assertEquals("http://localhost:9000/api/decide", httpClient.lastRequest.uri().toString());
+        assertEquals(player.getName(), body.get("player_uuid").asText());
+        assertTrue(body.has("state"));
+        assertTrue(body.has("options"));
+        assertEquals(1, body.get("options").size());
+        assertTrue(body.has("reason"));
+        assertEquals("play_card", body.get("reason").get("type").asText());
+    }
+
+    @Test
+    public void observerNotifyEvent_SerializesExpectedRequestJsonShape() throws Exception {
+        ObjectMapper realMapper = new ObjectMapper().findAndRegisterModules();
+        FakeHttpClient httpClient = new FakeHttpClient();
+        ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
+
+        GameState state = createState(GameState.TurnPhase.MONEY);
+        Event event = new PlayCardEvent(new Card(Card.Type.ETHEREUM, 4), "Player-2");
+        GameObserver observer = player.getObserver().orElseThrow();
+
+        observer.notifyEvent(state, event);
+
+        String requestBody = readRequestBody(httpClient.lastRequest);
+        com.fasterxml.jackson.databind.JsonNode body = realMapper.readTree(requestBody);
+
+        assertEquals(
+                "http://localhost:9000/api/log-event", httpClient.lastRequest.uri().toString());
+        assertEquals(player.getName(), body.get("player_uuid").asText());
+        assertTrue(body.has("state"));
+        assertTrue(body.get("state").isObject());
+        assertTrue(body.get("state").size() > 0);
+        assertTrue(body.has("event"));
+        assertEquals("play_card", body.get("event").get("type").asText());
+    }
+
+    private static GameState createState(GameState.TurnPhase phase) {
+        Hand hand =
+                new Hand(
+                        ImmutableList.of(new Card(Card.Type.BITCOIN, 1)),
+                        ImmutableList.of(new Card(Card.Type.METHOD, 2)));
+        CardStacks shop = new CardStacks(ImmutableMap.of(Card.Type.BITCOIN, 10));
+        return new GameState("Player-1", hand, phase, 1, 0, 1, shop);
     }
 
     private static String readRequestBody(HttpRequest request) throws Exception {

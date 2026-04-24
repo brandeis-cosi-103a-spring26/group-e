@@ -5,13 +5,11 @@ import static org.junit.Assert.assertEquals;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
-import edu.brandeis.cosi103a.groupe.cosi21.MutableHand;
-import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.main.ShopManager;
-import edu.brandeis.cosi103a.groupe.main.TurnRunner;
-import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
-import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
+import edu.brandeis.cosi103a.groupe.cosi21.*;
+import edu.brandeis.cosi103a.groupe.main.*;
+import edu.brandeis.cosi103a.groupe.main.actions.*;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
+import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +38,14 @@ public class EnginePlayCardTest {
             }
             active = players.get(0);
 
-            ActionEffectRegistry registry = new ActionEffectRegistry(List.of());
-            runner = new TurnRunner(players, shop, registry);
+            ActionEffectRegistry registry =
+                    new ActionEffectRegistry(
+                            List.of(
+                                    new CodeReviewEffect(),
+                                    new RefactorEffect(),
+                                    new edu.brandeis.cosi103a.groupe.main.actions
+                                            .EvergreenTestEffect()));
+            runner = new TurnRunner(players, shop, registry, new MegaObserver());
             runner.setActivePlayer(active);
             runner.setPhase(GameState.TurnPhase.ACTION);
         }

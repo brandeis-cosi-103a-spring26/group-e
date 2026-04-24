@@ -1,6 +1,5 @@
 package edu.brandeis.cosi103a.groupe.player;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.decisions.Decision;
@@ -97,60 +96,22 @@ public class ClientPlayer extends AbstractPlayer {
             String responseBody, ImmutableList<Decision> options) {
         try {
             DecisionResponse typedResponse = om.readValue(responseBody, DecisionResponse.class);
-            if (typedResponse != null && typedResponse.decision() != null) {
-                for (Decision option : options) {
-                    if (option.equals(typedResponse.decision())) {
-                        return option;
-                    }
-                }
-
-                JsonNode typedDecisionNode = om.valueToTree(typedResponse.decision());
-                Decision matchedTypedDecision = tryResolveDecisionNode(typedDecisionNode, options);
-                if (matchedTypedDecision != null) {
-                    return matchedTypedDecision;
-                }
-            }
-        } catch (IOException ignored) {
-            // Fall back to raw node parsing to preserve compatibility for polymorphic decisions.
-        }
-
-        JsonNode decisionNode = extractRawDecisionNode(responseBody);
-        return resolveDecisionFromNode(decisionNode, options);
-    }
-
-    private JsonNode extractRawDecisionNode(String responseBody) {
-        try {
-            JsonNode rawResponse = om.readTree(responseBody);
-            JsonNode decisionNode = rawResponse.get("decision");
-            if (decisionNode == null || decisionNode.isNull()) {
+            if (typedResponse == null || typedResponse.decision() == null) {
                 throw new RuntimeException("Decision response must include a decision field");
             }
-            return decisionNode;
-        } catch (IOException rawParseFailure) {
-            throw new RuntimeException("Failed to parse decision response", rawParseFailure);
-        }
-    }
 
-    private Decision resolveDecisionFromNode(
-            JsonNode decisionNode, ImmutableList<Decision> options) {
-        Decision match = tryResolveDecisionNode(decisionNode, options);
-        if (match != null) {
-            return match;
-        }
-
-        throw new RuntimeException(
-                "Decision response did not match any available option: " + decisionNode);
-    }
-
-    private Decision tryResolveDecisionNode(
-            JsonNode decisionNode, ImmutableList<Decision> options) {
-        for (Decision option : options) {
-            JsonNode optionNode = om.valueToTree(option);
-            if (optionNode.equals(decisionNode)) {
-                return option;
+            for (Decision option : options) {
+                if (option.equals(typedResponse.decision())) {
+                    return option;
+                }
             }
+
+            throw new RuntimeException(
+                    "Decision response did not match any available option: "
+                            + typedResponse.decision());
+        } catch (IOException parseFailure) {
+            throw new RuntimeException("Failed to parse decision response", parseFailure);
         }
-        return null;
     }
 
     @Override

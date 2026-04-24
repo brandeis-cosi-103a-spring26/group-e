@@ -9,6 +9,7 @@ import edu.brandeis.cosi103a.groupe.main.ShopManager;
 import edu.brandeis.cosi103a.groupe.main.TurnRunner;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionCardEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ abstract class ActionTestSupport {
             active = players.get(0);
 
             ActionEffectRegistry registry = new ActionEffectRegistry(effects);
-            runner = new TurnRunner(players, shop, registry);
+            runner = new TurnRunner(players, shop, registry, new MegaObserver());
             runner.setActivePlayer(active);
             runner.setPhase(GameState.TurnPhase.ACTION);
         }

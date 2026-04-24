@@ -12,6 +12,7 @@ import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.*;
 import edu.brandeis.cosi103a.groupe.main.*;
 import edu.brandeis.cosi103a.groupe.main.actions.*;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public class OurEngineTest {
                                 new IPOEffect(),
                                 new MonitoringEffect(),
                                 new DailyScrumEffect()));
-        return new TurnRunner(players, shopManager, registry);
+        return new TurnRunner(players, shopManager, registry, new MegaObserver());
     }
 
     /** Creates a ShopManager backed by the same MutableCardStacks as the given engine. */
@@ -97,7 +98,8 @@ public class OurEngineTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(activePlayer, players, shopManager, null, initialPhase);
+        return new ActionContext(
+                activePlayer, players, shopManager, null, initialPhase, new MegaObserver());
     }
 
     // ========== Constructor Validation Tests ==========
@@ -778,6 +780,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
@@ -803,6 +806,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
@@ -825,7 +829,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
-
+        runner.setPhase(GameState.TurnPhase.BUY);
         activePlayer.adjustMoney(5);
         activePlayer.adjustBuys(1);
 
@@ -905,6 +909,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card cardToTrash = unplayedCards.get(0);
@@ -944,6 +949,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         Card methodCard = new Card(Card.Type.METHOD, cardIdCounter.getAndIncrement());
         List<Card> deck = getPrivateField(activePlayer, "deck");
@@ -969,6 +975,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.ACTION);
 
         List<Card> unplayedCards = activePlayer.getUnplayedCards();
         Card bitcoinCard = null;
@@ -1628,9 +1635,8 @@ public class OurEngineTest {
         new RefactorEffect().execute(ctx);
 
         List<Card> discard = getPrivateField(activePlayer, "discard");
-        boolean frameworkInDiscard =
-                discard.stream().anyMatch(c -> c.type() == Card.Type.FRAMEWORK);
-        assertFalse("Trashed FRAMEWORK should not be in discard", frameworkInDiscard);
+        boolean trashedInDiscard = discard.stream().anyMatch(c -> c.id() == framework.id());
+        assertFalse("Trashed FRAMEWORK should not be in discard", trashedInDiscard);
         assertTrue("Should have gained a card", discard.size() > 0);
     }
 
@@ -1996,6 +2002,7 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
+        runner.setPhase(GameState.TurnPhase.BUY);
 
         activePlayer.turnReset();
         activePlayer.adjustMoney(10);

@@ -7,6 +7,8 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.GainCardEvent;
+import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -14,6 +16,7 @@ import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,18 +31,21 @@ public class ActionContext {
     private final ShopManager shop;
     private final TurnLog turnLog;
     private TurnPhase phase;
+    private final MegaObserver observer;
 
     public ActionContext(
             PlayerInfo active,
             List<PlayerInfo> allPlayers,
             ShopManager shop,
             TurnLog turnLog,
-            TurnPhase initialPhase) {
+            TurnPhase initialPhase,
+            MegaObserver observer) {
         this.active = active;
         this.allPlayers = allPlayers;
         this.shop = shop;
         this.turnLog = turnLog;
         this.phase = initialPhase;
+        this.observer = observer;
     }
 
     public void drawCard() {
@@ -63,11 +69,37 @@ public class ActionContext {
     }
 
     public void gainCard(Card.Type type) {
-        shop.gain(type, active);
+        boolean successfullyBought = shop.gain(type, active);
+        if (successfullyBought) {
+            GainCardEvent gainEvent = new GainCardEvent(type, active.getDisplayName());
+            GameState state =
+                    new GameState(
+                            active.getDisplayName(),
+                            active.getImmutableHand(),
+                            phase,
+                            active.numActions(),
+                            active.numMoney(),
+                            active.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, gainEvent);
+        }
     }
 
     public void giveCardTo(PlayerInfo p, Card.Type t) {
-        shop.gain(t, p);
+        boolean successfullyGiven = shop.gain(t, p);
+        if (successfullyGiven) {
+            GainCardEvent gainEvent = new GainCardEvent(t, p.getDisplayName());
+            GameState state =
+                    new GameState(
+                            active.getDisplayName(),
+                            active.getImmutableHand(),
+                            phase,
+                            active.numActions(),
+                            active.numMoney(),
+                            active.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, gainEvent);
+        }
     }
 
     /**
@@ -136,6 +168,18 @@ public class ActionContext {
         if (!trashed) {
             throw new IllegalStateException(
                     "Attempted to trash a card that is not in the active player's unplayed hand.");
+        } else {
+            TrashCardEvent trashEvent = new TrashCardEvent(card.type(), active.getDisplayName());
+            GameState state =
+                    new GameState(
+                            active.getDisplayName(),
+                            active.getImmutableHand(),
+                            phase,
+                            active.numActions(),
+                            active.numMoney(),
+                            active.numBuys(),
+                            shop.toImmutableCardStacks());
+            observer.notifyEvent(state, trashEvent);
         }
     }
 

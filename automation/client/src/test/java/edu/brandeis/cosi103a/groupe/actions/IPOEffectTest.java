@@ -11,6 +11,7 @@ import edu.brandeis.cosi103a.groupe.main.OurEngine;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionContext;
 import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -46,7 +47,8 @@ public class IPOEffectTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(activePlayer, players, shopManager, null, initialPhase);
+        return new ActionContext(
+            activePlayer, players, shopManager, null, initialPhase, new MegaObserver());
     }
 
     @Test
