@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import java.util.Map;
 
+import javax.annotation.meta.When;
+
 /** Static descriptions for each card type. */
 public class CardDescriptions {
 
@@ -85,10 +87,11 @@ public class CardDescriptions {
                             "(Reaction card) +2 Cards; When another player plays an Attack card,"
                                     + " reveal this from your hand to be unaffected by the"
                                     + " attack.\n\n"
-                                    + "When this card is played, the player immediately draws two"
-                                    + " cards into their hand. While this card remains unplayed in"
-                                    + " a player's hand, it automatically protects that player from"
-                                    + " attack effects.")
+                                    + "When played, this card grants +2 cards. When another player plays an attack card,"
+                                    + " players currently holding this card in hand will avoid the attack entirely."
+                                    + " When a player avoids an attack like this, a GameEvent should be logged."
+                                    + " The card is not considered \"played\" when used to avoid an attack, and remains in the player's hand."
+                                    + " Attack cards are: HACK, Evergreen Test, and Ransomware.")
                     .put(
                             Card.Type.HACK,
                             "(Attack card) +2 Money; Each other player discards down to 3 cards"
