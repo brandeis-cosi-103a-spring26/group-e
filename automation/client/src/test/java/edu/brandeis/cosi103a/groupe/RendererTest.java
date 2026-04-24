@@ -131,6 +131,16 @@ public class RendererTest {
     }
 
     @Test
+    public void testRenderGame_DisplaysReactionPhase() {
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.REACTION);
+
+        Renderer.renderGame(state);
+
+        String output = outputStream.toString();
+        assertTrue("Output should show Reaction phase", output.contains("Phase: Reaction"));
+    }
+
+    @Test
     public void testRenderGame_AllPhases_ContainPhaseLabel() {
         GameState.TurnPhase[] phases = {
             GameState.TurnPhase.ACTION,
@@ -138,7 +148,8 @@ public class RendererTest {
             GameState.TurnPhase.MONEY,
             GameState.TurnPhase.CLEANUP,
             GameState.TurnPhase.GAIN,
-            GameState.TurnPhase.DISCARD
+            GameState.TurnPhase.DISCARD,
+            GameState.TurnPhase.REACTION
         };
 
         for (GameState.TurnPhase phase : phases) {

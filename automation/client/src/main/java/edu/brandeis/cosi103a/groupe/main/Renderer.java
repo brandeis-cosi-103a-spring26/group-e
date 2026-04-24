@@ -227,6 +227,9 @@ public class Renderer {
             case GameState.TurnPhase.DISCARD:
                 System.out.print(ansi().fgBrightBlue().a(phaseText).reset());
                 break;
+            case GameState.TurnPhase.REACTION:
+                System.out.print(ansi().fgMagenta().a(phaseText).reset());
+                break;
         }
 
         System.out.println();
