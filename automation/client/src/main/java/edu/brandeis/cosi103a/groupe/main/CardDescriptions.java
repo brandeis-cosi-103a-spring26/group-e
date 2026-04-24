@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import java.util.Map;
 
-import javax.annotation.meta.When;
-
 /** Static descriptions for each card type. */
 public class CardDescriptions {
 
