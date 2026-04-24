@@ -199,6 +199,9 @@ public class Renderer {
             case GameState.TurnPhase.DISCARD:
                 phaseText = "Phase: Discard";
                 break;
+            case GameState.TurnPhase.REACTION:
+                phaseText = "Phase: Reaction";
+                break;
         }
 
         int phasePosition = SCREEN_WIDTH - phaseText.length();
