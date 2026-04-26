@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
+import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
+import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
@@ -11,6 +13,8 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
+import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
@@ -45,7 +49,11 @@ public class ActionContext {
     }
 
     public void drawCard() {
-        active.drawCard();
+        drawCard(active);
+    }
+
+    public void drawCard(PlayerInfo player) {
+        player.drawCard();
     }
 
     public void adjustActions(int delta) {
@@ -94,9 +102,59 @@ public class ActionContext {
         }
     }
 
+    /**
+     * Returns true when the player chooses to reveal Monitoring in REACTION phase and is unaffected
+     * by the given attack card.
+     */
+    public boolean isUnaffectedByAttack(PlayerInfo target, Card.Type attackType)
+            throws PlayerViolationException {
+        boolean hasMonitoring =
+                target.getUnplayedCards().stream()
+                        .anyMatch(card -> card.type() == Card.Type.MONITORING);
+        if (!hasMonitoring) {
+            return false;
+        }
+
+        TurnPhase previousPhase = phase;
+        phase = TurnPhase.REACTION;
+        try {
+            ImmutableList<Decision> options = DecisionBuilder.buildReactionDecisions(target);
+            Decision decision = makeDecisionForPlayer(target, options);
+
+            if (decision instanceof PlayCardDecision playDecision) {
+                if (playDecision.card().type() != Card.Type.MONITORING
+                        || !target.getUnplayedCards().contains(playDecision.card())) {
+                    throw new PlayerViolationException(
+                            "Invalid reaction card played: " + playDecision.card().type());
+                }
+
+                log(
+                        "  "
+                                + target.getDisplayName()
+                                + " revealed Monitoring and was unaffected by "
+                                + Renderer.displayName(attackType));
+                return true;
+            }
+
+            if (decision instanceof EndPhaseDecision endPhaseDecision
+                    && endPhaseDecision.phase() == TurnPhase.REACTION) {
+                return false;
+            }
+
+            throw new PlayerViolationException("Invalid reaction decision: " + decision);
+        } finally {
+            phase = previousPhase;
+        }
+    }
+
     public Decision makeDecision(ImmutableList<Decision> opts) throws PlayerViolationException {
-        GameState gs = buildGameState();
-        Decision d = active.makeDecision(gs, opts);
+        return makeDecisionForPlayer(active, opts);
+    }
+
+    public Decision makeDecisionForPlayer(PlayerInfo player, ImmutableList<Decision> opts)
+            throws PlayerViolationException {
+        GameState gs = buildGameState(player);
+        Decision d = player.makeDecision(gs, opts);
         if (d == null || !opts.contains(d)) {
             throw new PlayerViolationException(
                     "Player made an invalid decision: " + (d == null ? "null" : d.toString()));
@@ -122,6 +180,22 @@ public class ActionContext {
                             active.numBuys(),
                             shop.toImmutableCardStacks());
             observer.notifyEvent(state, trashEvent);
+        }
+    }
+
+    public void discardCard(Card card) {
+        boolean discarded = active.discardCard(card);
+        if (!discarded) {
+            throw new IllegalStateException(
+                    "Attempted to discard a card that is not in the active player's unplayed hand.");
+        }
+    }
+
+    public void discardCardForPlayer(PlayerInfo player, Card card) {
+        boolean discarded = player.discardCard(card);
+        if (!discarded) {
+            throw new IllegalStateException(
+                    "Attempted to discard a card that is not in the target player's unplayed hand.");
         }
     }
 
@@ -166,13 +240,17 @@ public class ActionContext {
 
     /** Builds an immutable GameState snapshot using the current context state. */
     public GameState buildGameState() {
+        return buildGameState(active);
+    }
+
+    public GameState buildGameState(PlayerInfo perspectivePlayer) {
         return new GameState(
-                active.getDisplayName(),
-                active.getImmutableHand(),
+                perspectivePlayer.getDisplayName(),
+                perspectivePlayer.getImmutableHand(),
                 phase,
-                active.numActions(),
-                active.numMoney(),
-                active.numBuys(),
+                perspectivePlayer.numActions(),
+                perspectivePlayer.numMoney(),
+                perspectivePlayer.numBuys(),
                 shop.toImmutableCardStacks());
     }
 }

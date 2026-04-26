@@ -78,7 +78,10 @@ public class OurEngineTest {
                         java.util.List.of(
                                 new CodeReviewEffect(),
                                 new RefactorEffect(),
-                                new EvergreenTestEffect()));
+                                new EvergreenTestEffect(),
+                                new IPOEffect(),
+                                new MonitoringEffect(),
+                                new DailyScrumEffect()));
         return new TurnRunner(players, shopManager, registry, new MegaObserver());
     }
 
@@ -300,6 +303,16 @@ public class OurEngineTest {
                 "EVERGREEN_TEST should have 10",
                 10,
                 shop.getNumAvailable(Card.Type.EVERGREEN_TEST));
+        assertEquals("MONITORING should have 10", 10, shop.getNumAvailable(Card.Type.MONITORING));
+        assertEquals("HACK should have 10", 10, shop.getNumAvailable(Card.Type.HACK));
+        assertEquals("TECH_DEBT should have 10", 10, shop.getNumAvailable(Card.Type.TECH_DEBT));
+        assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
+        assertEquals("DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));
+        assertEquals(
+                "SPRINT_PLANNING should have 10",
+                10,
+                shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
+        assertEquals("RANSOMWARE should have 10", 10, shop.getNumAvailable(Card.Type.RANSOMWARE));
     }
 
     @Test
@@ -1216,6 +1229,112 @@ public class OurEngineTest {
                 initialPlayer2DiscardSize,
                 player2Discard.size());
         assertEquals("BUG supply should still be 0", 0, shop.getNumAvailable(Card.Type.BUG));
+    }
+
+    @Test
+    public void testExecuteActionDailyScrum_DrawsFourCardsAndAddsBuy() throws Exception {
+        List<Player> freshPlayers = createPlayers(2);
+        OurEngine engine = new OurEngine(freshPlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        ShopManager shopManager = createShopManager(engine);
+
+        List<Card> deck = getPrivateField(activePlayer, "deck");
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+        while (deck.size() < 4) {
+            deck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+
+        int initialHandSize = activePlayer.getUnplayedCards().size();
+        int initialBuys = activePlayer.numBuys();
+
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new DailyScrumEffect().execute(ctx);
+
+        assertEquals(
+                "Should draw 4 cards", initialHandSize + 4, activePlayer.getUnplayedCards().size());
+        assertEquals("Should add 1 buy", initialBuys + 1, activePlayer.numBuys());
+    }
+
+    @Test
+    public void testExecuteActionDailyScrum_OtherPlayersDrawOneCardEach() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        ShopManager shopManager = createShopManager(engine);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+
+        List<Card> activeDeck = getPrivateField(activePlayer, "deck");
+        while (activeDeck.size() < 4) {
+            activeDeck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+
+        PlayerInfo player2 = players.get(1);
+        PlayerInfo player3 = players.get(2);
+        List<Card> player2Deck = getPrivateField(player2, "deck");
+        List<Card> player3Deck = getPrivateField(player3, "deck");
+        if (player2Deck.isEmpty()) {
+            player2Deck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+        if (player3Deck.isEmpty()) {
+            player3Deck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+
+        int initialPlayer2HandSize = player2.getUnplayedCards().size();
+        int initialPlayer3HandSize = player3.getUnplayedCards().size();
+
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new DailyScrumEffect().execute(ctx);
+
+        assertEquals(
+                "Player 2 should draw one card",
+                initialPlayer2HandSize + 1,
+                player2.getUnplayedCards().size());
+        assertEquals(
+                "Player 3 should draw one card",
+                initialPlayer3HandSize + 1,
+                player3.getUnplayedCards().size());
+    }
+
+    @Test
+    public void testExecuteActionDailyScrum_SkipsDisqualifiedPlayers() throws Exception {
+        OurEngine engine = new OurEngine(threePlayers);
+        List<PlayerInfo> players = getPrivateField(engine, "players");
+        PlayerInfo activePlayer = players.get(0);
+        ShopManager shopManager = createShopManager(engine);
+        AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
+
+        List<Card> activeDeck = getPrivateField(activePlayer, "deck");
+        while (activeDeck.size() < 4) {
+            activeDeck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+
+        PlayerInfo player2 = players.get(1);
+        PlayerInfo player3 = players.get(2);
+        player2.forfeit();
+
+        List<Card> player3Deck = getPrivateField(player3, "deck");
+        if (player3Deck.isEmpty()) {
+            player3Deck.add(new Card(Card.Type.BITCOIN, cardIdCounter.getAndIncrement()));
+        }
+
+        int initialPlayer2HandSize = player2.getUnplayedCards().size();
+        int initialPlayer3HandSize = player3.getUnplayedCards().size();
+
+        ActionContext ctx =
+                createActionContext(activePlayer, players, shopManager, GameState.TurnPhase.ACTION);
+        new DailyScrumEffect().execute(ctx);
+
+        assertEquals(
+                "Disqualified player should not draw",
+                initialPlayer2HandSize,
+                player2.getUnplayedCards().size());
+        assertEquals(
+                "Non-disqualified player should draw",
+                initialPlayer3HandSize + 1,
+                player3.getUnplayedCards().size());
     }
 
     // ========== Player Disqualification Tests ==========
