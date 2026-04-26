@@ -7,6 +7,7 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.DiscardCardEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -72,15 +73,7 @@ public class ActionContext {
         boolean successfullyBought = shop.gain(type, active);
         if (successfullyBought) {
             GainCardEvent gainEvent = new GainCardEvent(type, active.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, gainEvent);
         }
     }
@@ -89,15 +82,7 @@ public class ActionContext {
         boolean successfullyGiven = shop.gain(t, p);
         if (successfullyGiven) {
             GainCardEvent gainEvent = new GainCardEvent(t, p.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, gainEvent);
         }
     }
@@ -170,15 +155,7 @@ public class ActionContext {
                     "Attempted to trash a card that is not in the active player's unplayed hand.");
         } else {
             TrashCardEvent trashEvent = new TrashCardEvent(card.type(), active.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, trashEvent);
         }
     }
@@ -188,6 +165,11 @@ public class ActionContext {
         if (!discarded) {
             throw new IllegalStateException(
                     "Attempted to discard a card that is not in the active player's unplayed hand.");
+        } else {
+            DiscardCardEvent discardEvent =
+                    new DiscardCardEvent(card.type(), active.getDisplayName());
+            GameState state = buildGameState();
+            observer.notifyEvent(state, discardEvent);
         }
     }
 
@@ -196,6 +178,11 @@ public class ActionContext {
         if (!discarded) {
             throw new IllegalStateException(
                     "Attempted to discard a card that is not in the target player's unplayed hand.");
+        } else {
+            DiscardCardEvent discardEvent =
+                    new DiscardCardEvent(card.type(), player.getDisplayName());
+            GameState state = buildGameState();
+            observer.notifyEvent(state, discardEvent);
         }
     }
 

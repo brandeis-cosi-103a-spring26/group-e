@@ -73,15 +73,7 @@ public class TurnRunner {
         activePlayer.cleanup();
         shop.setDiscount(false);
         EndTurnEvent endTurnEvent = new EndTurnEvent();
-        GameState state =
-                new GameState(
-                        activePlayer.getDisplayName(),
-                        activePlayer.getImmutableHand(),
-                        phase,
-                        activePlayer.numActions(),
-                        activePlayer.numMoney(),
-                        activePlayer.numBuys(),
-                        shop.toImmutableCardStacks());
+        GameState state = buildGameState();
         observer.notifyEvent(state, endTurnEvent);
     }
 
@@ -115,15 +107,7 @@ public class TurnRunner {
         Card card = decision.card();
         activePlayer.playCard(card);
         PlayCardEvent playEvent = new PlayCardEvent(card, activePlayer.getDisplayName());
-        GameState state =
-                new GameState(
-                        activePlayer.getDisplayName(),
-                        activePlayer.getImmutableHand(),
-                        phase,
-                        activePlayer.numActions(),
-                        activePlayer.numMoney(),
-                        activePlayer.numBuys(),
-                        shop.toImmutableCardStacks());
+        GameState state = buildGameState();
         observer.notifyEvent(state, playEvent);
         switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
@@ -157,15 +141,7 @@ public class TurnRunner {
         } else {
             TrashCardEvent trashEvent =
                     new TrashCardEvent(cardToTrash.type(), activePlayer.getDisplayName());
-            GameState state =
-                    new GameState(
-                            activePlayer.getDisplayName(),
-                            activePlayer.getImmutableHand(),
-                            phase,
-                            activePlayer.numActions(),
-                            activePlayer.numMoney(),
-                            activePlayer.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, trashEvent);
         }
     }
@@ -262,15 +238,7 @@ public class TurnRunner {
         boolean successfullyBought = shop.gain(type, activePlayer);
         if (successfullyBought) {
             GainCardEvent gainEvent = new GainCardEvent(type, activePlayer.getDisplayName());
-            GameState state =
-                    new GameState(
-                            activePlayer.getDisplayName(),
-                            activePlayer.getImmutableHand(),
-                            phase,
-                            activePlayer.numActions(),
-                            activePlayer.numMoney(),
-                            activePlayer.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, gainEvent);
         }
         if (currentTurnLog != null) {
