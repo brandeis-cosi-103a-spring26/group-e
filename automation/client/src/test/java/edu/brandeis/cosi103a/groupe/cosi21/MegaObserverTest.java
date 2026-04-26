@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -37,7 +38,7 @@ public class MegaObserverTest {
 
         megaObserver.addObserver(observer);
 
-        ImmutableList<Observer> observers = megaObserver.getObservers();
+        ImmutableList<GameObserver> observers = megaObserver.getObservers();
         assertEquals("Should have one registered observer", 1, observers.size());
         assertSame("Should store the same observer instance", observer, observers.get(0));
     }
@@ -50,7 +51,7 @@ public class MegaObserverTest {
         megaObserver.addObserver(observer);
         megaObserver.addObserver(observer);
 
-        ImmutableList<Observer> observers = megaObserver.getObservers();
+        ImmutableList<GameObserver> observers = megaObserver.getObservers();
         assertEquals("Duplicate observer should not be added twice", 1, observers.size());
 
         GameState state = createGameState("Player-1", 3);
@@ -77,7 +78,7 @@ public class MegaObserverTest {
         Observer secondObserver = new Observer();
         megaObserver.addObserver(firstObserver);
 
-        ImmutableList<Observer> snapshot = megaObserver.getObservers();
+        ImmutableList<GameObserver> snapshot = megaObserver.getObservers();
 
         try {
             snapshot.add(secondObserver);
@@ -91,6 +92,30 @@ public class MegaObserverTest {
         assertEquals("Snapshot should remain unchanged", 1, snapshot.size());
         assertEquals(
                 "Observer list should continue to grow", 2, megaObserver.getObservers().size());
+    }
+
+    @Test
+    public void testAddObserver_AcceptsAnyGameObserverImplementation() {
+        MegaObserver megaObserver = new MegaObserver();
+        final int[] notifyCount = {0};
+
+        GameObserver customObserver =
+                new GameObserver() {
+                    @Override
+                    public void notifyEvent(GameState state, Event event) {
+                        notifyCount[0]++;
+                    }
+                };
+
+        megaObserver.addObserver(customObserver);
+        megaObserver.notifyEvent(
+                createGameState("Player-1", 7),
+                new PlayCardEvent(new Card(Card.Type.BITCOIN, 107), "Player-1"));
+
+        assertEquals("Custom GameObserver should be notified once", 1, notifyCount[0]);
+        assertEquals(
+                "Custom GameObserver should be registered", 1, megaObserver.getObservers().size());
+        assertSame(customObserver, megaObserver.getObservers().get(0));
     }
 
     @Test

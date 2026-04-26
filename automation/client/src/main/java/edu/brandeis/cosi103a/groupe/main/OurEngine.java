@@ -31,7 +31,6 @@ import edu.brandeis.cosi103a.groupe.main.actions.SprintPlanningEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
-import edu.brandeis.cosi103a.groupe.observers.Observer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -79,9 +78,7 @@ public class OurEngine implements Engine {
             this.players.add(new PlayerInfo(p, cardIdCounter));
             Optional<GameObserver> maybeObserver = p.getObserver();
             if (maybeObserver.isPresent()) {
-                if (maybeObserver.get() instanceof Observer) {
-                    observer.addObserver((Observer) maybeObserver.get());
-                }
+                observer.addObserver(maybeObserver.get());
             }
         }
         activePlayer = this.players.get(this.players.size() - 1);

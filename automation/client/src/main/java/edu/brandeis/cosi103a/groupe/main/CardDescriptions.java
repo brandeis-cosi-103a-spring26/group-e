@@ -176,7 +176,7 @@ public class CardDescriptions {
                             "+1 Buy, +$1. This turn, cards cost $1 less (but not less than $0).\n\n"
                                     + "When this card is played, the player gains an additional buy and"
                                     + " $1 for this turn. Additionally, all cards cost $1 less for the"
-                                    + " remainder of this turn (minimum cost is $$0).")
+                                    + " remainder of this turn (minimum cost is $0).")
                     .build();
 
     public static String get(Card.Type cardType) {
