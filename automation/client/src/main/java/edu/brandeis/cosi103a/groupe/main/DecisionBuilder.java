@@ -101,4 +101,67 @@ public class DecisionBuilder {
 
         return decisionBuilder.build();
     }
+
+    /**
+     * Builds decision options for discarding cards from the given player's current hand. Returns
+     * DiscardCardDecisions for each card, and an EndPhaseDecision to end the discard phase.
+     *
+     * @param playerInfo the current player's info, including the unplayed cards available to
+     *     discard
+     * @return List of discard decisions, and a single EndPhaseDecision
+     */
+    public static ImmutableList<Decision> buildDiscardDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        ImmutableList<Card> unplayedCards = playerInfo.getUnplayedCards();
+
+        for (Card card : unplayedCards) {
+            decisionBuilder.add(new DiscardCardDecision(card));
+        }
+
+        decisionBuilder.add(new EndPhaseDecision(TurnPhase.DISCARD));
+
+        return decisionBuilder.build();
+    }
+
+    /**
+     * Builds non-optional discard options for the given player.
+     *
+     * <p>Unlike {@link #buildDiscardDecisions(PlayerInfo)}, this list intentionally excludes
+     * EndPhaseDecision so the caller can enforce mandatory discards.
+     *
+     * @param playerInfo the player whose unplayed cards can be discarded
+     * @return List containing one DiscardCardDecision per unplayed card
+     */
+    public static ImmutableList<Decision> buildForcedDiscardDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        ImmutableList<Card> unplayedCards = playerInfo.getUnplayedCards();
+        for (Card card : unplayedCards) {
+            decisionBuilder.add(new DiscardCardDecision(card));
+        }
+
+        return decisionBuilder.build();
+    }
+
+    /**
+     * Builds decision options for the REACTION phase.
+     *
+     * <p>Only Monitoring can be revealed as a reaction in this flow.
+     *
+     * @param playerInfo the player who may react to an attack
+     * @return List containing one PlayCardDecision per Monitoring in hand and EndPhaseDecision
+     */
+    public static ImmutableList<Decision> buildReactionDecisions(PlayerInfo playerInfo) {
+        ImmutableList.Builder<Decision> decisionBuilder = ImmutableList.builder();
+
+        for (Card card : playerInfo.getUnplayedCards()) {
+            if (card.type() == Card.Type.MONITORING) {
+                decisionBuilder.add(new PlayCardDecision(card));
+            }
+        }
+
+        decisionBuilder.add(new EndPhaseDecision(TurnPhase.REACTION));
+        return decisionBuilder.build();
+    }
 }

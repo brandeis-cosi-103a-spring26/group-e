@@ -141,6 +141,7 @@ public class TurnRunner {
             case EndPhaseDecision endPhase -> processEndPhaseDecision(endPhase);
             case PlayCardDecision play -> processPlayCardDecision(play);
             case TrashCardDecision trash -> processTrashCardDecision(trash);
+            case DiscardCardDecision discard -> processDiscardCardDecision(discard);
             default -> throw new UnsupportedOperationException("Decision type not supported");
         }
     }
@@ -165,6 +166,16 @@ public class TurnRunner {
                             activePlayer.numBuys(),
                             shop.toImmutableCardStacks());
             observer.notifyEvent(state, trashEvent);
+        }
+    }
+
+    @VisibleForTesting
+    public void processDiscardCardDecision(DiscardCardDecision decision) {
+        Card cardToDiscard = decision.card();
+        boolean wasDiscarded = activePlayer.discardCard(cardToDiscard);
+        if (!wasDiscarded) {
+            throw new IllegalStateException(
+                    "Card to discard was not found in active player's hand's unplayed cards");
         }
     }
 

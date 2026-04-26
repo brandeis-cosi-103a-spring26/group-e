@@ -18,6 +18,9 @@ public class EvergreenTestEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.log("  +2 Cards; each other player gains a Bug");
         for (PlayerInfo p : ctx.otherPlayers()) {
+            if (ctx.isUnaffectedByAttack(p, handles())) {
+                continue;
+            }
             ctx.giveCardTo(p, Card.Type.BUG);
         }
     }

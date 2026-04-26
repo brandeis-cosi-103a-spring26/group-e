@@ -166,6 +166,20 @@ public class PlayerInfo {
     }
 
     /**
+     * Discards a card from the player's unplayed hand to the discard pile.
+     *
+     * @param card The card to discard
+     * @return true if the card was successfully discarded, false if not found in unplayed hand
+     */
+    public boolean discardCard(Card card) {
+        boolean discarded = hand.removeFromUnplayed(card);
+        if (discarded) {
+            discard.add(card);
+        }
+        return discarded;
+    }
+
+    /**
      * Gets all unplayed cards currently in the player's hand.
      *
      * @return An immutable list of cards that haven't been played this turn
