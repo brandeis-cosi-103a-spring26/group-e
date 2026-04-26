@@ -8,6 +8,7 @@ import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.DiscardCardEvent;
+import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -73,8 +74,7 @@ public class ActionContext {
         boolean successfullyBought = shop.gain(type, active);
         if (successfullyBought) {
             GainCardEvent gainEvent = new GainCardEvent(type, active.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, gainEvent);
+            notifyObserver(gainEvent);
         }
     }
 
@@ -82,8 +82,7 @@ public class ActionContext {
         boolean successfullyGiven = shop.gain(t, p);
         if (successfullyGiven) {
             GainCardEvent gainEvent = new GainCardEvent(t, p.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, gainEvent);
+            notifyObserver(gainEvent);
         }
     }
 
@@ -155,8 +154,7 @@ public class ActionContext {
                     "Attempted to trash a card that is not in the active player's unplayed hand.");
         } else {
             TrashCardEvent trashEvent = new TrashCardEvent(card.type(), active.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, trashEvent);
+            notifyObserver(trashEvent);
         }
     }
 
@@ -168,8 +166,7 @@ public class ActionContext {
         } else {
             DiscardCardEvent discardEvent =
                     new DiscardCardEvent(card.type(), active.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, discardEvent);
+            notifyObserver(discardEvent);
         }
     }
 
@@ -181,8 +178,7 @@ public class ActionContext {
         } else {
             DiscardCardEvent discardEvent =
                     new DiscardCardEvent(card.type(), player.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, discardEvent);
+            notifyObserver(discardEvent);
         }
     }
 
@@ -217,6 +213,11 @@ public class ActionContext {
 
     public void discountShop() {
         shop.setDiscount(true);
+    }
+
+    public void notifyObserver(Event e) {
+        GameState state = buildGameState();
+        observer.notifyEvent(state, e);
     }
 
     public void log(String entry) {

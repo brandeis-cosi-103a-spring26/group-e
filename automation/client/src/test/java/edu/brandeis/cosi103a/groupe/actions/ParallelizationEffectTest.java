@@ -12,14 +12,18 @@ import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
+import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
+import edu.brandeis.cosi103a.groupe.cosi21.EventNotif;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableHand;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
+import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
+import edu.brandeis.cosi103a.groupe.observers.Observer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -219,5 +223,64 @@ public class ParallelizationEffectTest extends ActionTestSupport {
         assertTrue(chooser.sawEndPhaseDecision);
         assertEquals(opponentDiscardBefore, opponentDiscard.size());
         assertTrue(s.active.getUnplayedCards().contains(evergreenTest));
+    }
+
+    @Test
+    public void testParallelization_EmitsPlayCardEventForChosenCard() throws Exception {
+        Setup s = newSetup(2);
+        s.active.turnReset();
+
+        Observer sink = new Observer();
+        MegaObserver mega = getField(s.runner, "observer");
+        mega.addObserver(sink);
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+        MutableHand hand = getField(s.active, "hand");
+        Card parallelization = new Card(Card.Type.PARALLELIZATION, counter.getAndIncrement());
+        Card evergreenTest = new Card(Card.Type.EVERGREEN_TEST, counter.getAndIncrement());
+        hand.addToUnplayed(parallelization);
+        hand.addToUnplayed(evergreenTest);
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(parallelization));
+
+        long playEvents =
+                sink.getEvents().stream()
+                        .map(EventNotif::getEvent)
+                        .filter(event -> event instanceof PlayCardEvent)
+                        .count();
+
+        // One PlayCardEvent for PARALLELIZATION in TurnRunner + one for chosen card in effect.
+        assertEquals(2, playEvents);
+    }
+
+    @Test
+    public void testParallelization_SkipDoesNotEmitExtraPlayCardEvent() throws Exception {
+        Setup s = newSetup(2);
+        s.active.turnReset();
+
+        Observer sink = new Observer();
+        MegaObserver mega = getField(s.runner, "observer");
+        mega.addObserver(sink);
+
+        EndPhaseChoosingPlayer chooser = new EndPhaseChoosingPlayer("EndNow");
+        setField(s.active, "player", chooser);
+
+        AtomicInteger counter = getField(s.shop, "cardIdCounter");
+        MutableHand hand = getField(s.active, "hand");
+        Card parallelization = new Card(Card.Type.PARALLELIZATION, counter.getAndIncrement());
+        Card evergreenTest = new Card(Card.Type.EVERGREEN_TEST, counter.getAndIncrement());
+        hand.addToUnplayed(parallelization);
+        hand.addToUnplayed(evergreenTest);
+
+        s.runner.processPlayCardDecision(new PlayCardDecision(parallelization));
+
+        long playEvents =
+                sink.getEvents().stream()
+                        .map(EventNotif::getEvent)
+                        .filter(event -> event instanceof PlayCardEvent)
+                        .count();
+
+        // Only PARALLELIZATION itself should emit PlayCardEvent when player skips.
+        assertEquals(1, playEvents);
     }
 }
