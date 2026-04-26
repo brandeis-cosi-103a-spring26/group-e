@@ -17,15 +17,18 @@ import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.DailyScrumEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.DeploymentPipelineEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.HackEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.IPOEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.MergeConflictEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.ParallelizationEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RansomwareEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RefactorEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.SprintPlanningEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
+import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +91,10 @@ public class OurEngine implements Engine {
                         Type.BACKLOG,
                         Type.DAILY_SCRUM,
                         Type.SPRINT_PLANNING,
-                        Type.RANSOMWARE);
+                        Type.RANSOMWARE,
+                        Type.MERGE_CONFLICT,
+                        Type.UNIT_TEST,
+                        Type.DEPLOYMENT_PIPELINE);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
@@ -110,6 +116,9 @@ public class OurEngine implements Engine {
                                 new TechDebtEffect(),
                                 new SprintPlanningEffect(),
                                 new RansomwareEffect(),
+                                new MergeConflictEffect(),
+                                new UnitTestEffect(),
+                                new DeploymentPipelineEffect(),
                                 parallelization));
         parallelization.setRegistry(registry);
         runner = new GameRunner(this.players, shopManager, registry, observer);
