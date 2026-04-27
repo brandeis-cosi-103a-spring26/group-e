@@ -2,7 +2,6 @@ package edu.brandeis.cosi103a.groupe.actions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -138,7 +137,7 @@ public class MergeConflictEffectTest extends ActionTestSupport {
 
         assertEquals(0, s.active.getUnplayedCards().size());
         assertEquals(0, deck.size());
-        assertTrue(chooser.sawEndPhaseOption);
+        assertFalse(chooser.sawEndPhaseOption);
     }
 
     @Test

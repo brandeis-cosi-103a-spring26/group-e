@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
-import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -125,23 +124,7 @@ public class TurnRunner {
             case BuyDecision buy -> processBuyDecision(buy);
             case EndPhaseDecision endPhase -> processEndPhaseDecision(endPhase);
             case PlayCardDecision play -> processPlayCardDecision(play);
-            case TrashCardDecision trash -> processTrashCardDecision(trash);
             default -> throw new UnsupportedOperationException("Decision type not supported");
-        }
-    }
-
-    @VisibleForTesting
-    public void processTrashCardDecision(TrashCardDecision decision) {
-        Card cardToTrash = decision.card();
-        boolean wasRemoved = activePlayer.trashCard(cardToTrash);
-        if (!wasRemoved) {
-            throw new IllegalStateException(
-                    "Card to trash was not found in active player's hand's unplayed cards");
-        } else {
-            TrashCardEvent trashEvent =
-                    new TrashCardEvent(cardToTrash.type(), activePlayer.getDisplayName());
-            GameState state = buildGameState();
-            observer.notifyEvent(state, trashEvent);
         }
     }
 

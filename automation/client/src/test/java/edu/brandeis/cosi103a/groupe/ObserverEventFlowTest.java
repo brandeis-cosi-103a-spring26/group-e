@@ -3,6 +3,7 @@ package edu.brandeis.cosi103a.groupe;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -11,7 +12,6 @@ import edu.brandeis.cosi.atg.decisions.BuyDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
-import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.event.DiscardCardEvent;
 import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.event.Event;
@@ -213,37 +213,6 @@ public class ObserverEventFlowTest {
     }
 
     @Test
-    public void testTurnRunner_ProcessTrashCardDecision_EmitsTrashCardEvent() throws Exception {
-        AtomicInteger counter = new AtomicInteger(1);
-        MutableCardStacks stacks = new MutableCardStacks(2, ImmutableSet.of());
-        ShopManager shop = new ShopManager(stacks, counter);
-
-        List<Player> players =
-                List.of(
-                        new ScriptedPlayer("p1", List.of(), false),
-                        new ScriptedPlayer("p2", List.of(), false));
-        List<PlayerInfo> infos = createPlayerInfos(players, counter);
-        PlayerInfo active = infos.get(0);
-
-        MegaObserver mega = new MegaObserver();
-        Observer sink = new Observer();
-        mega.addObserver(sink);
-
-        TurnRunner runner = new TurnRunner(infos, shop, new ActionEffectRegistry(List.of()), mega);
-        runner.setActivePlayer(active);
-        runner.setPhase(GameState.TurnPhase.ACTION);
-
-        MutableHand hand = getPrivateField(active, "hand");
-        hand.clear();
-        Card trashTarget = new Card(Card.Type.BITCOIN, counter.getAndIncrement());
-        hand.addToUnplayed(trashTarget);
-
-        runner.processTrashCardDecision(new TrashCardDecision(trashTarget));
-
-        assertTrue(latestEvent(sink) instanceof TrashCardEvent);
-    }
-
-    @Test
     public void testTurnRunner_ProcessBuyDecision_EmitsGainCardEvent() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks = new MutableCardStacks(2, ImmutableSet.of());
@@ -359,6 +328,38 @@ public class ObserverEventFlowTest {
         ctx.trashCard(target);
 
         assertTrue(latestEvent(sink) instanceof TrashCardEvent);
+    }
+
+    @Test
+    public void testActionContext_TrashCard_NotInHand_ThrowsException() throws Exception {
+        AtomicInteger counter = new AtomicInteger(1);
+        MutableCardStacks stacks = new MutableCardStacks(2, ImmutableSet.of());
+        ShopManager shop = new ShopManager(stacks, counter);
+
+        List<Player> players =
+                List.of(
+                        new ScriptedPlayer("p1", List.of(), false),
+                        new ScriptedPlayer("p2", List.of(), false));
+        List<PlayerInfo> infos = createPlayerInfos(players, counter);
+        PlayerInfo active = infos.get(0);
+
+        MegaObserver mega = new MegaObserver();
+        Observer sink = new Observer();
+        mega.addObserver(sink);
+
+        ActionContext ctx =
+                createActionContext(active, infos, shop, mega, GameState.TurnPhase.ACTION);
+
+        MutableHand hand = getPrivateField(active, "hand");
+        hand.clear();
+        Card missing = new Card(Card.Type.BITCOIN, counter.getAndIncrement());
+
+        try {
+            ctx.trashCard(missing);
+            fail("Expected IllegalStateException when trashing a card not in hand");
+        } catch (IllegalStateException expected) {
+            assertTrue(expected.getMessage().contains("Attempted to trash a card"));
+        }
     }
 
     @Test

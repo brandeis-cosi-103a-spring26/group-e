@@ -3,7 +3,6 @@ package edu.brandeis.cosi103a.groupe.main.actions;
 import com.google.common.collect.ImmutableList;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.Decision;
-import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
@@ -21,11 +20,10 @@ public class MergeConflictEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ImmutableList<Decision> trashOptions =
                 DecisionBuilder.buildTrashCardDecisions(ctx.activePlayer());
-        Decision playerChoice = ctx.makeDecision(trashOptions);
-
-        if (playerChoice instanceof EndPhaseDecision) {
+        if (trashOptions.isEmpty()) {
             return;
         }
+        Decision playerChoice = ctx.makeDecision(trashOptions);
 
         TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
         ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));
