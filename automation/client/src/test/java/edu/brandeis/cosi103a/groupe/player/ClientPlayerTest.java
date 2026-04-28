@@ -129,7 +129,7 @@ public class ClientPlayerTest {
     @Test
     public void makeDecision_WithRealObjectMapper_MapsDecisionJsonToMatchingOption()
             throws Exception {
-        ObjectMapper realMapper = new ObjectMapper();
+        ObjectMapper realMapper = new ObjectMapper().findAndRegisterModules();
         FakeHttpClient httpClient = new FakeHttpClient();
 
         Decision fallback = new EndPhaseDecision(GameState.TurnPhase.ACTION);
