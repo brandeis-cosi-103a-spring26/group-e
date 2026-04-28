@@ -137,7 +137,6 @@ public class ClientPlayerTest {
         ImmutableList<Decision> options = ImmutableList.of(fallback, expected);
 
         httpClient.responseBody = "{\"decision\":" + realMapper.writeValueAsString(expected) + "}";
-        System.out.println(realMapper.writeValueAsString(expected));
         ClientPlayer player = new ClientPlayer("http://localhost:9000/api", httpClient, realMapper);
 
         Decision actual = player.makeDecision(null, options, Optional.<Event>empty());

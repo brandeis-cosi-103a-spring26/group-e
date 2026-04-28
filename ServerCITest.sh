@@ -21,7 +21,8 @@ while [ "$ATTEMPT" -le 60 ]; do
 	if curl -sS -o /dev/null \
 		-X POST http://localhost:8080/decide \
 		-H "Content-Type: application/json" \
-		-d "$REQUEST_PAYLOAD"; then
+		-d "$REQUEST_PAYLOAD" \
+		--fail; then
 		break
 	fi
 

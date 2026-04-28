@@ -29,16 +29,11 @@ public class PlayerController {
 
     @PostMapping("/decide")
     public DecisionResponse choose(@RequestBody DecisionRequest decisionRequest) {
-        try {
-            Player player = getOrCreatePlayer(decisionRequest.playerUUID());
-            GameState state = decisionRequest.state();
-            ImmutableList<Decision> options = decisionRequest.options();
-            Optional<Event> reason = decisionRequest.reason();
-            return new DecisionResponse(player.makeDecision(state, options, reason));
-        } catch (Exception e) {
-            System.out.println(e);
-            throw e;
-        }
+        Player player = getOrCreatePlayer(decisionRequest.playerUUID());
+        GameState state = decisionRequest.state();
+        ImmutableList<Decision> options = decisionRequest.options();
+        Optional<Event> reason = decisionRequest.reason();
+        return new DecisionResponse(player.makeDecision(state, options, reason));
     }
 
     @PostMapping("/log-event")
