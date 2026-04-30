@@ -58,11 +58,11 @@ public class DeploymentPipelineEffectTest extends ActionTestSupport {
         hand.addToUnplayed(pipeline);
 
         MutableCardStacks stacks = getField(s.shop, "stacks");
-        assertFalse(stacks.discounted());
+        assertEquals(0, stacks.getDiscount());
 
         s.runner.processPlayCardDecision(new PlayCardDecision(pipeline));
 
-        assertTrue(stacks.discounted());
+        assertEquals(1, stacks.getDiscount());
     }
 
     @Test

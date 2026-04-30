@@ -49,11 +49,15 @@ public class ShopManager {
         return stacks.toImmutableCardStacks();
     }
 
-    public void setDiscount(boolean d) {
-        stacks.setDiscount(d);
+    public void incrementDiscount() {
+        stacks.incrementDiscount();
     }
 
-    public boolean discounted() {
-        return stacks.discounted();
+    public void resetDiscount() {
+        stacks.resetDiscount();
+    }
+
+    public int getDiscount() {
+        return stacks.getDiscount();
     }
 }

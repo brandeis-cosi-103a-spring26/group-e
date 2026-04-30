@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.engine.Engine;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
-import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.event.GameStartEvent;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameResult;
@@ -33,7 +32,6 @@ import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class OurEngine implements Engine {
@@ -76,10 +74,7 @@ public class OurEngine implements Engine {
         this.players = new ArrayList<>();
         for (Player p : players) {
             this.players.add(new PlayerInfo(p, cardIdCounter));
-            Optional<GameObserver> maybeObserver = p.getObserver();
-            if (maybeObserver.isPresent()) {
-                observer.addObserver(maybeObserver.get());
-            }
+            p.getObserver().ifPresent(o -> observer.addObserver(o));
         }
         activePlayer = this.players.get(this.players.size() - 1);
 

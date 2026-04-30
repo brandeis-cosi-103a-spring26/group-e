@@ -70,7 +70,7 @@ public class TurnRunner {
             }
         }
         activePlayer.cleanup();
-        shop.setDiscount(false);
+        shop.resetDiscount();
         EndTurnEvent endTurnEvent = new EndTurnEvent();
         GameState state = buildGameState();
         observer.notifyEvent(state, endTurnEvent);
@@ -190,10 +190,7 @@ public class TurnRunner {
     @VisibleForTesting
     public void processBuyDecision(BuyDecision decision) {
         Card.Type type = decision.cardType();
-        int discount = 0;
-        if (shop.discounted()) {
-            discount = 1;
-        }
+        int discount = shop.getDiscount();
         if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
         }

@@ -273,6 +273,36 @@ public class ObserverEventFlowTest {
     }
 
     @Test
+    public void testTurnRunner_RunTurn_ResetsDiscount() throws Exception {
+        AtomicInteger counter = new AtomicInteger(1);
+        MutableCardStacks stacks = new MutableCardStacks(2, ImmutableSet.of());
+        ShopManager shop = new ShopManager(stacks, counter);
+
+        ScriptedPlayer scripted =
+                new ScriptedPlayer(
+                        "scripted",
+                        List.of(
+                                new EndPhaseDecision(GameState.TurnPhase.ACTION),
+                                new EndPhaseDecision(GameState.TurnPhase.MONEY),
+                                new EndPhaseDecision(GameState.TurnPhase.BUY)),
+                        false);
+        List<Player> players = List.of(scripted, new ScriptedPlayer("p2", List.of(), false));
+        List<PlayerInfo> infos = createPlayerInfos(players, counter);
+
+        MegaObserver mega = new MegaObserver();
+
+        TurnRunner runner = new TurnRunner(infos, shop, new ActionEffectRegistry(List.of()), mega);
+
+        shop.incrementDiscount();
+        shop.incrementDiscount();
+        assertEquals(2, shop.getDiscount());
+
+        runner.runTurn(infos.get(0), new TurnLog(1, infos.get(0).getDisplayName()));
+
+        assertEquals(0, shop.getDiscount());
+    }
+
+    @Test
     public void testActionContext_GainCardAndGiveCardTo_EmitGainCardEvents() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks = new MutableCardStacks(2, ImmutableSet.of());

@@ -380,6 +380,39 @@ public class MutableCardStacksTest {
                 "Should not include depleted MODULE", afterDepletion.contains(Card.Type.MODULE));
     }
 
+    @Test
+    public void testDiscount_IncrementAndReset() {
+        MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
+
+        assertEquals("Discount should start at 0", 0, stacks.getDiscount());
+
+        stacks.incrementDiscount();
+        assertEquals("Discount should be 1 after increment", 1, stacks.getDiscount());
+
+        stacks.incrementDiscount();
+        assertEquals("Discount should be 2 after second increment", 2, stacks.getDiscount());
+
+        stacks.resetDiscount();
+        assertEquals("Discount should reset to 0", 0, stacks.getDiscount());
+    }
+
+    @Test
+    public void testAvailableCardsForCost_UsesDiscount() {
+        MutableCardStacks stacks = new MutableCardStacks(2, standardActionCards);
+
+        int frameworkCost = Card.Type.FRAMEWORK.cost();
+        int threshold = frameworkCost - 1;
+        assertFalse(
+                "FRAMEWORK should not be affordable without discount",
+                stacks.availableCardsForCost(threshold).contains(Card.Type.FRAMEWORK));
+
+        stacks.incrementDiscount();
+
+        assertTrue(
+                "FRAMEWORK should be affordable after discount",
+                stacks.availableCardsForCost(threshold).contains(Card.Type.FRAMEWORK));
+    }
+
     // ========== toImmutableCardStacks Tests ==========
 
     @Test

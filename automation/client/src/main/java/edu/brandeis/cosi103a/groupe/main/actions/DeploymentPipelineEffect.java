@@ -15,7 +15,7 @@ public class DeploymentPipelineEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ctx.adjustBuys(1);
         ctx.adjustMoney(1);
-        ctx.discountShop();
+        ctx.incrementDiscount();
         ctx.log("  +1 Buy, +1 Money; cards cost $1 less this turn");
     }
 }
