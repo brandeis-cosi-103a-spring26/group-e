@@ -74,11 +74,10 @@ public class ParallelizationEffect implements ActionCardEffect {
         // (e.g. another Parallelization) do not see it as unplayed.
         ctx.activePlayer().playCard(chosen);
         PlayCardEvent playEvent = new PlayCardEvent(chosen, ctx.activePlayer().getDisplayName());
-        ctx.notifyObserver(playEvent);
-        ctx.notifyObserver(playEvent);
         ctx.log("  Parallelizing " + Renderer.displayName(chosen.type()));
-
+        ctx.notifyObserver(playEvent);
         registry.execute(chosen.type(), ctx); // first execution
+        ctx.notifyObserver(playEvent);
         registry.execute(chosen.type(), ctx); // second execution
     }
 }
