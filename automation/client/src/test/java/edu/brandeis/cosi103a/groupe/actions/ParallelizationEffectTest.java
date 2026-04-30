@@ -249,8 +249,9 @@ public class ParallelizationEffectTest extends ActionTestSupport {
                         .filter(event -> event instanceof PlayCardEvent)
                         .count();
 
-        // One PlayCardEvent for PARALLELIZATION in TurnRunner + one for chosen card in effect.
-        assertEquals(2, playEvents);
+        // One PlayCardEvent for PARALLELIZATION in TurnRunner + two for the chosen card
+        // (the effect notifies the play twice).
+        assertEquals(3, playEvents);
     }
 
     @Test

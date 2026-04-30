@@ -207,9 +207,12 @@ public class ObserverEventFlowTest {
                         .map(event -> (PlayCardEvent) event)
                         .toList();
 
-        assertEquals(2, playEvents.size());
+        // One PlayCardEvent for PARALLELIZATION, then two PlayCardEvents for the
+        // chosen card because the effect notifies the play twice.
+        assertEquals(3, playEvents.size());
         assertEquals(Card.Type.PARALLELIZATION, playEvents.get(0).card().type());
         assertEquals(Card.Type.CODE_REVIEW, playEvents.get(1).card().type());
+        assertEquals(Card.Type.CODE_REVIEW, playEvents.get(2).card().type());
     }
 
     @Test

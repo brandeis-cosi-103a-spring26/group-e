@@ -74,10 +74,8 @@ public class ParallelizationEffect implements ActionCardEffect {
         // (e.g. another Parallelization) do not see it as unplayed.
         ctx.activePlayer().playCard(chosen);
         PlayCardEvent playEvent = new PlayCardEvent(chosen, ctx.activePlayer().getDisplayName());
-        ctx.notifyObserver(
-                playEvent); // since the description for this action says "You may play an Action
-        // card from your hand twice," should there be two PlayCardEvents here
-        // or just one?
+        ctx.notifyObserver(playEvent);
+        ctx.notifyObserver(playEvent);
         ctx.log("  Parallelizing " + Renderer.displayName(chosen.type()));
 
         registry.execute(chosen.type(), ctx); // first execution
