@@ -154,6 +154,29 @@ public class CardDescriptions {
                                     + " A player who chooses discard may still choose it with fewer"
                                     + " than 2 cards in hand and will discard as many as possible up"
                                     + " to 2.")
+                    .put(
+                            Card.Type.MERGE_CONFLICT,
+                            "Trash a card from your hand. +1 Card per $1 it costs.\n\n"
+                                    + "Trashing a card removes it from the player's deck entirely. When"
+                                    + " this card is played, the player will be prompted with"
+                                    + " TrashCardDecisions for each card in their hand. Trashing is not"
+                                    + " optional, so the list of decisions will not include an"
+                                    + " EndPhaseDecision. After the player makes a trash decision, the"
+                                    + " engine will draw a number of cards equal to the cost of"
+                                    + " the trashed card into the player's hand.")
+                    .put(
+                            Card.Type.UNIT_TEST,
+                            "Choose one: +2 Actions; +$2; +2 Cards.\n\n"
+                                    + "When this card is played, the engine prompts the player with three"
+                                    + " options: either gain two additional actions for this turn, gain $2"
+                                    + " to spend for this turn, or draw 2 cards. The player must choose one"
+                                    + " option.")
+                    .put(
+                            Card.Type.DEPLOYMENT_PIPELINE,
+                            "+1 Buy, +$1. This turn, cards cost $1 less (but not less than $0).\n\n"
+                                    + "When this card is played, the player gains an additional buy and"
+                                    + " $1 for this turn. Additionally, all cards cost $1 less for the"
+                                    + " remainder of this turn (minimum cost is $0).")
                     .build();
 
     public static String get(Card.Type cardType) {

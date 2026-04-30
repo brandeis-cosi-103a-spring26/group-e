@@ -7,6 +7,8 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.DiscardCardEvent;
+import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -72,16 +74,7 @@ public class ActionContext {
         boolean successfullyBought = shop.gain(type, active);
         if (successfullyBought) {
             GainCardEvent gainEvent = new GainCardEvent(type, active.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
-            observer.notifyEvent(state, gainEvent);
+            notifyObserver(gainEvent);
         }
     }
 
@@ -89,16 +82,7 @@ public class ActionContext {
         boolean successfullyGiven = shop.gain(t, p);
         if (successfullyGiven) {
             GainCardEvent gainEvent = new GainCardEvent(t, p.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
-            observer.notifyEvent(state, gainEvent);
+            notifyObserver(gainEvent);
         }
     }
 
@@ -170,16 +154,7 @@ public class ActionContext {
                     "Attempted to trash a card that is not in the active player's unplayed hand.");
         } else {
             TrashCardEvent trashEvent = new TrashCardEvent(card.type(), active.getDisplayName());
-            GameState state =
-                    new GameState(
-                            active.getDisplayName(),
-                            active.getImmutableHand(),
-                            phase,
-                            active.numActions(),
-                            active.numMoney(),
-                            active.numBuys(),
-                            shop.toImmutableCardStacks());
-            observer.notifyEvent(state, trashEvent);
+            notifyObserver(trashEvent);
         }
     }
 
@@ -188,6 +163,10 @@ public class ActionContext {
         if (!discarded) {
             throw new IllegalStateException(
                     "Attempted to discard a card that is not in the active player's unplayed hand.");
+        } else {
+            DiscardCardEvent discardEvent =
+                    new DiscardCardEvent(card.type(), active.getDisplayName());
+            notifyObserver(discardEvent);
         }
     }
 
@@ -196,6 +175,10 @@ public class ActionContext {
         if (!discarded) {
             throw new IllegalStateException(
                     "Attempted to discard a card that is not in the target player's unplayed hand.");
+        } else {
+            DiscardCardEvent discardEvent =
+                    new DiscardCardEvent(card.type(), player.getDisplayName());
+            notifyObserver(discardEvent);
         }
     }
 
@@ -226,6 +209,15 @@ public class ActionContext {
 
     public ImmutableSet<Card.Type> availableCardsForCost(int max) {
         return shop.availableForCost(max);
+    }
+
+    public void incrementDiscount() {
+        shop.incrementDiscount();
+    }
+
+    public void notifyObserver(Event e) {
+        GameState state = buildGameState();
+        observer.notifyEvent(state, e);
     }
 
     public void log(String entry) {
