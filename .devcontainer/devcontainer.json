@@ -18,6 +18,9 @@
 			"version": "latest",
 			"enableNonRootDocker": "true",
 			"moby": "true"
+		},
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"version": "latest"
 		}
 	}
 

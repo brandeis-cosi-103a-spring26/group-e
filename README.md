@@ -15,6 +15,25 @@ mvn -B package --file automation/pom.xml
 ```
 - You can use `mvn test` from `automation` to only run tests
 
+## Deploying to Azure Container Registry
+To deploy the Docker image to the Azure Container Registry, follow these steps:
+
+1. Log in to your Azure account:
+   ```bash
+   az login
+   ```
+2. Retrieve the admin credentials for the container registry (necessary if you lack RBAC push permissions):
+   ```bash
+   az acr credential show --name ServerATG
+   ```
+3. Log in to the Docker registry using the username (`ServerATG`) and one of the passwords from the previous command's output:
+   ```bash
+   docker login serveratg-akabbzauhefhc6ak.azurecr.io -u ServerATG -p <your-admin-password>
+   ```
+4. Push the image to the registry:
+   ```bash
+   docker push serveratg-akabbzauhefhc6ak.azurecr.io/group-e-server:v1
+   ```
 
 ---
 
