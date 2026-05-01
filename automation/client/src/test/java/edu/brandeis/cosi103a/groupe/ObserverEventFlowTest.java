@@ -107,6 +107,20 @@ public class ObserverEventFlowTest {
         return infos;
     }
 
+    private List<Card.Type> defaultActions() {
+        return List.of(
+                Card.Type.CODE_REVIEW,
+                Card.Type.REFACTOR,
+                Card.Type.EVERGREEN_TEST,
+                Card.Type.IPO,
+                Card.Type.MONITORING,
+                Card.Type.HACK,
+                Card.Type.PARALLELIZATION,
+                Card.Type.TECH_DEBT,
+                Card.Type.BACKLOG,
+                Card.Type.DAILY_SCRUM);
+    }
+
     private ActionContext createActionContext(
             PlayerInfo active,
             List<PlayerInfo> players,
@@ -121,7 +135,9 @@ public class ObserverEventFlowTest {
         ScriptedPlayer invalidFirst = new ScriptedPlayer("invalid", List.of(), true);
         ScriptedPlayer passiveSecond = new ScriptedPlayer("passive", List.of(), false);
 
-        OurEngine engine = new OurEngine(new ArrayList<>(List.of(invalidFirst, passiveSecond)));
+        OurEngine engine =
+                new OurEngine(
+                        new ArrayList<>(List.of(invalidFirst, passiveSecond)), defaultActions());
         GameResult result = engine.play();
 
         assertNotNull(result);

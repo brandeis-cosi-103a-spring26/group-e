@@ -3,8 +3,12 @@ package edu.brandeis.cosi103a.groupe.main;
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 
+import com.google.common.collect.ImmutableSet;
+import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import org.fusesource.jansi.AnsiConsole;
@@ -68,8 +72,28 @@ public class Harness {
 
         System.out.print(ansi().fg(WHITE).a("Press enter to start the game...").reset());
         scanner.nextLine();
+        ImmutableSet<Type> actionCards =
+                ImmutableSet.of(
+                        Type.CODE_REVIEW,
+                        Type.REFACTOR,
+                        Type.EVERGREEN_TEST,
+                        Type.IPO,
+                        Type.MONITORING,
+                        Type.HACK,
+                        Type.PARALLELIZATION,
+                        Type.TECH_DEBT,
+                        Type.BACKLOG,
+                        Type.DAILY_SCRUM,
+                        Type.SPRINT_PLANNING,
+                        Type.RANSOMWARE,
+                        Type.MERGE_CONFLICT,
+                        Type.UNIT_TEST,
+                        Type.DEPLOYMENT_PIPELINE);
+        List<Type> randomActions = new ArrayList<>(actionCards);
+        Collections.shuffle(randomActions);
+        randomActions = randomActions.subList(0, 10);
 
-        OurEngine engine = new OurEngine(players);
+        OurEngine engine = new OurEngine(players, randomActions);
         for (Player p : players) {
             if (p instanceof ConsolePlayer) {
                 ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());

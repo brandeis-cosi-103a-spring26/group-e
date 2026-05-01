@@ -51,13 +51,16 @@ public class OurEngine implements Engine {
     private static final int MIN_PLAYERS = 2;
 
     /**
-     * Validates players, wires up {@link ShopManager}, {@link ActionEffectRegistry}, and {@link
-     * GameRunner}.
+     * Validates players and action cards, wires up {@link ShopManager}, {@link
+     * ActionEffectRegistry}, and {@link GameRunner}.
      *
      * @param players A list of 2–4 players in turn order.
-     * @throws IllegalArgumentException if the list is null, too short, too long, or contains nulls.
+     * @param actions A list of exactly 10 unique action card types.
+     * @throws IllegalArgumentException if players is null, too short, too long, or contains nulls;
+     *     if actions is null, contains nulls, contains non-action types, contains duplicates, or
+     *     does not contain exactly 10 entries.
      */
-    public OurEngine(List<Player> players) throws IllegalArgumentException {
+    public OurEngine(List<Player> players, List<Type> actions) throws IllegalArgumentException {
         if (players == null) {
             throw new IllegalArgumentException("Players list cannot be null");
         }
@@ -70,6 +73,25 @@ public class OurEngine implements Engine {
         if (players.contains(null)) {
             throw new IllegalArgumentException("Players list cannot contain null players");
         }
+        if (actions == null) {
+            throw new IllegalArgumentException("Actions list cannot be null");
+        }
+        for (Type action : actions) {
+            if (action == null) {
+                throw new IllegalArgumentException("Actions list cannot contain null types");
+            }
+            if (action.category() != Type.Category.ACTION) {
+                throw new IllegalArgumentException(
+                        "Actions list cannot contain non-action types, found: " + action);
+            }
+        }
+        if (actions.size() != 10) {
+            throw new IllegalArgumentException("Provide exactly 10 action types");
+        }
+        ImmutableSet<Type> actionCards = ImmutableSet.copyOf(actions);
+        if (actionCards.size() != actions.size()) {
+            throw new IllegalArgumentException("Actions list cannot contain duplicate types");
+        }
 
         this.players = new ArrayList<>();
         for (Player p : players) {
@@ -78,23 +100,6 @@ public class OurEngine implements Engine {
         }
         activePlayer = this.players.get(this.players.size() - 1);
 
-        ImmutableSet<Type> actionCards =
-                ImmutableSet.of(
-                        Type.CODE_REVIEW,
-                        Type.REFACTOR,
-                        Type.EVERGREEN_TEST,
-                        Type.IPO,
-                        Type.MONITORING,
-                        Type.HACK,
-                        Type.PARALLELIZATION,
-                        Type.TECH_DEBT,
-                        Type.BACKLOG,
-                        Type.DAILY_SCRUM,
-                        Type.SPRINT_PLANNING,
-                        Type.RANSOMWARE,
-                        Type.MERGE_CONFLICT,
-                        Type.UNIT_TEST,
-                        Type.DEPLOYMENT_PIPELINE);
         shop = new MutableCardStacks(this.players.size(), actionCards);
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);

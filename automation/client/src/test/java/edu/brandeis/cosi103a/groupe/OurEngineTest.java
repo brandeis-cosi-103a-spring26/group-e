@@ -49,6 +49,24 @@ public class OurEngineTest {
         return players;
     }
 
+    private List<Card.Type> defaultActions() {
+        return List.of(
+                Card.Type.CODE_REVIEW,
+                Card.Type.REFACTOR,
+                Card.Type.EVERGREEN_TEST,
+                Card.Type.IPO,
+                Card.Type.MONITORING,
+                Card.Type.HACK,
+                Card.Type.PARALLELIZATION,
+                Card.Type.TECH_DEBT,
+                Card.Type.BACKLOG,
+                Card.Type.DAILY_SCRUM);
+    }
+
+    private OurEngine createEngine(List<Player> players) {
+        return new OurEngine(players, defaultActions());
+    }
+
     /** Uses reflection to access a private field from an object. */
     @SuppressWarnings("unchecked")
     private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
@@ -108,40 +126,40 @@ public class OurEngineTest {
     public void testConstructor_TwoPlayers_Success() {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         assertNotNull("Engine should be created successfully", engine);
     }
 
     @Test
     public void testConstructor_ThreePlayers_Success() {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         assertNotNull("Engine should be created successfully", engine);
     }
 
     @Test
     public void testConstructor_FourPlayers_Success() {
-        OurEngine engine = new OurEngine(fourPlayers);
+        OurEngine engine = createEngine(fourPlayers);
         assertNotNull("Engine should be created successfully", engine);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_OnePlayer_ThrowsException() {
-        new OurEngine(createPlayers(1));
+        createEngine(createPlayers(1));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_ZeroPlayers_ThrowsException() {
-        new OurEngine(createPlayers(0));
+        createEngine(createPlayers(0));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_FivePlayers_ThrowsException() {
-        new OurEngine(createPlayers(5));
+        createEngine(createPlayers(5));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructor_NullPlayersList_ThrowsException() {
-        new OurEngine(null);
+        createEngine(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -149,21 +167,53 @@ public class OurEngineTest {
         List<Player> playersWithNull = new ArrayList<>();
         playersWithNull.add(new BigMoneyPlayer());
         playersWithNull.add(null);
-        new OurEngine(playersWithNull);
+        createEngine(playersWithNull);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_NullActions_ThrowsException() {
+        new OurEngine(createPlayers(2), null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsContainNull_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions());
+        actions.set(0, null);
+        new OurEngine(createPlayers(2), actions);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsNotTen_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions().subList(0, 9));
+        new OurEngine(createPlayers(2), actions);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsContainDuplicate_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions());
+        actions.set(0, actions.get(1));
+        new OurEngine(createPlayers(2), actions);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsContainNonAction_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions());
+        actions.set(0, Card.Type.BITCOIN);
+        new OurEngine(createPlayers(2), actions);
     }
 
     @Test
     public void testConstructor_InitializesPhaseToAction() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         GameState.TurnPhase phase = getPrivateField(engine, "phase");
         assertEquals("Initial phase should be ACTION", GameState.TurnPhase.ACTION, phase);
     }
 
     @Test
     public void testConstructor_CreatesPlayerInfoForAllPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> playerInfos = getPrivateField(engine, "players");
 
         assertEquals("Should have PlayerInfo instances for all players", 3, playerInfos.size());
@@ -182,7 +232,7 @@ public class OurEngineTest {
     public void testConstructor_InitializesActivePlayerToLastPlayer() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         PlayerInfo activePlayer = getPrivateField(engine, "activePlayer");
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
@@ -197,7 +247,7 @@ public class OurEngineTest {
     public void testConstructor_EachPlayerStartsWithFiveCardHand() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         for (PlayerInfo playerInfo : players) {
@@ -212,7 +262,7 @@ public class OurEngineTest {
     public void testConstructor_EachPlayerStartsWithFiveCardsInDeck() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         for (PlayerInfo playerInfo : players) {
@@ -227,7 +277,7 @@ public class OurEngineTest {
     public void testConstructor_VerifyStartingCardsComposition() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         for (PlayerInfo playerInfo : players) {
@@ -260,7 +310,7 @@ public class OurEngineTest {
     public void testConstructor_VerifyCardIdUniqueness() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         List<Integer> allIds = new ArrayList<>();
@@ -283,7 +333,7 @@ public class OurEngineTest {
     public void testConstructor_InitializesShopCorrectly_TwoPlayers() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
         assertEquals("BITCOIN should have 60", 60, shop.getNumAvailable(Card.Type.BITCOIN));
@@ -309,15 +359,22 @@ public class OurEngineTest {
         assertEquals("BACKLOG should have 10", 10, shop.getNumAvailable(Card.Type.BACKLOG));
         assertEquals("DAILY_SCRUM should have 10", 10, shop.getNumAvailable(Card.Type.DAILY_SCRUM));
         assertEquals(
-                "SPRINT_PLANNING should have 10",
-                10,
+                "SPRINT_PLANNING should have 0",
+                0,
                 shop.getNumAvailable(Card.Type.SPRINT_PLANNING));
-        assertEquals("RANSOMWARE should have 10", 10, shop.getNumAvailable(Card.Type.RANSOMWARE));
+        assertEquals("RANSOMWARE should have 0", 0, shop.getNumAvailable(Card.Type.RANSOMWARE));
+        assertEquals(
+                "MERGE_CONFLICT should have 0", 0, shop.getNumAvailable(Card.Type.MERGE_CONFLICT));
+        assertEquals("UNIT_TEST should have 0", 0, shop.getNumAvailable(Card.Type.UNIT_TEST));
+        assertEquals(
+                "DEPLOYMENT_PIPELINE should have 0",
+                0,
+                shop.getNumAvailable(Card.Type.DEPLOYMENT_PIPELINE));
     }
 
     @Test
     public void testConstructor_InitializesShopCorrectly_FourPlayers() throws Exception {
-        OurEngine engine = new OurEngine(fourPlayers);
+        OurEngine engine = createEngine(fourPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
         assertEquals(
@@ -336,7 +393,7 @@ public class OurEngineTest {
     public void testConstructor_InitializesCardIdCounter() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
 
         assertNotNull("Card ID counter should be initialized", cardIdCounter);
@@ -350,7 +407,7 @@ public class OurEngineTest {
     public void testConstructor_InitializesTurnNumber() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         int turnNumber = getPrivateField(engine, "turnNumber");
 
         assertEquals("Turn number should start at 0", 0, turnNumber);
@@ -360,7 +417,7 @@ public class OurEngineTest {
     public void testConstructor_AllCardsHaveUniqueIDs() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Collect all card IDs from all players' decks, discards, and hands
@@ -401,7 +458,7 @@ public class OurEngineTest {
     public void testGetNextPlayer_TwoPlayers_RotatesCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // First call should return first player
@@ -421,7 +478,7 @@ public class OurEngineTest {
 
     @Test
     public void testGetNextPlayer_ThreePlayers_RotatesCorrectly() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         PlayerInfo player1 = engine.getNextPlayer();
@@ -439,7 +496,7 @@ public class OurEngineTest {
 
     @Test
     public void testGetNextPlayer_SkipsDisqualifiedPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Disqualify the second player
@@ -459,7 +516,7 @@ public class OurEngineTest {
     public void testGetNextPlayer_AllButOneDisqualified_ThrowsException() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Disqualify one player (leaving only one)
@@ -473,7 +530,7 @@ public class OurEngineTest {
     public void testGetNextPlayer_MultipleCallsCycleThroughAllPlayers() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(3);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Track which players we visit
@@ -504,7 +561,7 @@ public class OurEngineTest {
     public void testGetNextPlayer_PlayerDisqualifiedMidGame_SkipsCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(4);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Start normal rotation: 0 -> 1 -> 2
@@ -555,7 +612,7 @@ public class OurEngineTest {
     public void testIsGameOver_InitialState_ReturnsFalse() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         assertFalse("Game should not be over initially", engine.isGameOver());
     }
 
@@ -563,7 +620,7 @@ public class OurEngineTest {
     public void testIsGameOver_FrameworksSoldOut_ReturnsTrue() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         MutableCardStacks shop = getPrivateField(engine, "shop");
 
         // Sell out all FRAMEWORKs
@@ -577,7 +634,7 @@ public class OurEngineTest {
 
     @Test
     public void testIsGameOver_AllButOnePlayerDisqualified_ReturnsTrue() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         // Disqualify all but one player
@@ -593,7 +650,7 @@ public class OurEngineTest {
     @Test
     public void testBuildGameState_CorrectActivePlayerName() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo firstPlayer = players.get(0);
 
@@ -612,7 +669,7 @@ public class OurEngineTest {
     @Test
     public void testBuildGameState_CorrectPhase() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         TurnRunner runner = createTurnRunner(engine);
@@ -630,7 +687,7 @@ public class OurEngineTest {
     @Test
     public void testBuildGameState_CorrectTurnResources() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -652,7 +709,7 @@ public class OurEngineTest {
     @Test
     public void testBuildGameState_ContainsShopState() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         TurnRunner runner = createTurnRunner(engine);
@@ -672,7 +729,7 @@ public class OurEngineTest {
     @Test
     public void testValidateDecision_ValidDecision_ReturnsTrue() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
 
         EndPhaseDecision decision = new EndPhaseDecision(GameState.TurnPhase.ACTION);
@@ -686,7 +743,7 @@ public class OurEngineTest {
     @Test
     public void testValidateDecision_InvalidDecision_ReturnsFalse() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
 
         EndPhaseDecision decision1 = new EndPhaseDecision(GameState.TurnPhase.ACTION);
@@ -701,7 +758,7 @@ public class OurEngineTest {
     @Test
     public void testValidateDecision_NullDecision_ReturnsFalse() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
 
         ImmutableList<Decision> validDecisions =
@@ -716,7 +773,7 @@ public class OurEngineTest {
     @Test
     public void testProcessEndPhaseDecision_ActionToMoney_ChangesPhase() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
         runner.setPhase(GameState.TurnPhase.ACTION);
 
@@ -731,7 +788,7 @@ public class OurEngineTest {
     @Test
     public void testProcessEndPhaseDecision_MoneyToBuy_ChangesPhase() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
         runner.setPhase(GameState.TurnPhase.MONEY);
 
@@ -746,7 +803,7 @@ public class OurEngineTest {
     @Test
     public void testProcessEndPhaseDecision_BuyToCleanup_ChangesPhase() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
         runner.setPhase(GameState.TurnPhase.BUY);
 
@@ -761,7 +818,7 @@ public class OurEngineTest {
     @Test(expected = IllegalArgumentException.class)
     public void testProcessEndPhaseDecision_MismatchedPhase_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
         runner.setPhase(GameState.TurnPhase.ACTION);
 
@@ -774,7 +831,7 @@ public class OurEngineTest {
     @Test
     public void testProcessBuyDecision_ValidBuy_DecrementsBuysAndMoney() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -800,7 +857,7 @@ public class OurEngineTest {
     @Test
     public void testProcessBuyDecision_ValidBuy_AddsCardToDiscard() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -822,7 +879,7 @@ public class OurEngineTest {
     @Test
     public void testProcessBuyDecision_ValidBuy_DecrementsShop() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -846,7 +903,7 @@ public class OurEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testProcessBuyDecision_InsufficientMoney_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -862,7 +919,7 @@ public class OurEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testProcessBuyDecision_NoBuysRemaining_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -880,7 +937,7 @@ public class OurEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testProcessBuyDecision_CardOutOfStock_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -903,7 +960,7 @@ public class OurEngineTest {
     @Test
     public void testProcessGainingCard_ValidGain_AddsCardToDiscard() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -920,7 +977,7 @@ public class OurEngineTest {
     @Test
     public void testProcessGainingCard_ValidGain_DecrementsShop() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -939,7 +996,7 @@ public class OurEngineTest {
     @Test
     public void testProcessGainingCard_CardNotAvailable_ReturnsFalse() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -959,7 +1016,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionCodeReview_DrawsCard() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -983,7 +1040,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionCodeReview_AddsTwoActions() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1000,7 +1057,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionEvergreenTest_DrawsTwoCards() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1023,7 +1080,7 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionEvergreenTest_GivesBugToOtherPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1045,7 +1102,7 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionEvergreenTest_SkipsDisqualifiedPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1073,7 +1130,7 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionEvergreenTest_InsufficientBugsInSupply() throws Exception {
-        OurEngine engine = new OurEngine(fourPlayers);
+        OurEngine engine = createEngine(fourPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -1107,7 +1164,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionEvergreenTest_NoBugsInSupply() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         MutableCardStacks shop = getPrivateField(engine, "shop");
@@ -1136,7 +1193,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionDailyScrum_DrawsFourCardsAndAddsBuy() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1161,7 +1218,7 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionDailyScrum_OtherPlayersDrawOneCardEach() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1202,7 +1259,7 @@ public class OurEngineTest {
 
     @Test
     public void testExecuteActionDailyScrum_SkipsDisqualifiedPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1244,7 +1301,7 @@ public class OurEngineTest {
     @Test
     public void testHandleCheating_DisqualifiesPlayer() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo cheater = players.get(0);
 
@@ -1261,7 +1318,7 @@ public class OurEngineTest {
     @Test
     public void testEndGame_ReturnsGameResult() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         GameRunner gameRunner = getPrivateField(engine, "runner");
 
         GameResult result = gameRunner.endGame();
@@ -1271,7 +1328,7 @@ public class OurEngineTest {
 
     @Test
     public void testEndGame_IncludesAllPlayers() throws Exception {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         GameRunner gameRunner = getPrivateField(engine, "runner");
 
         GameResult result = gameRunner.endGame();
@@ -1282,7 +1339,7 @@ public class OurEngineTest {
     @Test
     public void testEndGame_SortsPlayersByScore() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
         GameRunner gameRunner = getPrivateField(engine, "runner");
@@ -1305,7 +1362,7 @@ public class OurEngineTest {
     public void testPlay_GameCompletesSuccessfully() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         GameResult result = engine.play();
 
         assertNotNull("Should return a game result", result);
@@ -1316,7 +1373,7 @@ public class OurEngineTest {
     public void testPlay_AllPlayersHaveFinalDecks() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         GameResult result = engine.play();
 
         for (PlayerResult pr : result.playerResults()) {
@@ -1327,7 +1384,7 @@ public class OurEngineTest {
 
     @Test
     public void testGetNumPlayers_ReturnsCorrectCount() {
-        OurEngine engine = new OurEngine(threePlayers);
+        OurEngine engine = createEngine(threePlayers);
         assertEquals("Should return correct player count", 3, engine.getNumPlayers());
     }
 
@@ -1335,7 +1392,7 @@ public class OurEngineTest {
     public void testGetTurnLogs_ReturnsNonNullList() {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<TurnLog> logs = engine.getTurnLogs();
 
         assertNotNull("Turn logs should not be null", logs);
@@ -1346,7 +1403,7 @@ public class OurEngineTest {
     @Test(expected = IllegalStateException.class)
     public void testProcessPlayActionCard_NoActionsRemaining_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1364,7 +1421,7 @@ public class OurEngineTest {
     @Test
     public void testProcessPlayActionCard_ValidAction_DecrementsActions() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1389,7 +1446,7 @@ public class OurEngineTest {
     @Test
     public void testProcessPlayMoneyCard_Bitcoin_AddsOneMoney() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1406,7 +1463,7 @@ public class OurEngineTest {
     @Test
     public void testProcessPlayMoneyCard_Ethereum_AddsTwoMoney() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1423,7 +1480,7 @@ public class OurEngineTest {
     @Test
     public void testProcessPlayMoneyCard_Dogecoin_AddsThreeMoney() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1440,7 +1497,7 @@ public class OurEngineTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testProcessPlayMoneyCard_NonMoneyCard_ThrowsException() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
 
         TurnRunner runner = createTurnRunner(engine);
@@ -1454,7 +1511,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionRefactor_TrashAndGain_Success() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1479,7 +1536,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionRefactor_NoCardsInHand_ReturnsEarly() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -1498,7 +1555,7 @@ public class OurEngineTest {
     public void testExecuteActionRefactor_CostCalculation_AllowsCardsUpToCostPlusTwo()
             throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1521,7 +1578,7 @@ public class OurEngineTest {
     public void testExecuteActionRefactor_TrashExpensiveCard_CanGainExpensiveReplacement()
             throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1545,7 +1602,7 @@ public class OurEngineTest {
     @Test
     public void testExecuteActionRefactor_PhasesTransition_GainPhase() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1572,7 +1629,7 @@ public class OurEngineTest {
     public void testDrawCard_EmptyDeck_ReshufflesDiscard() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1601,7 +1658,7 @@ public class OurEngineTest {
     public void testDrawCard_BothDeckAndDiscardEmpty_NoCardDrawn() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1627,7 +1684,7 @@ public class OurEngineTest {
     public void testDrawMultipleCards_InsufficientCards_DrawsWhatAvailable() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1657,7 +1714,7 @@ public class OurEngineTest {
     public void testDrawCard_ReshufflePreservesCards_NoDuplication() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1696,7 +1753,7 @@ public class OurEngineTest {
     @Test
     public void testMoneyPhase_PlayAllMoneyCardsSequentially_AccumulatesMoney() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1722,7 +1779,7 @@ public class OurEngineTest {
     @Test
     public void testMoneyPhase_MultipleSameTypeCards_EachAddsValue() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1744,7 +1801,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_MethodCardsCountedCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1765,7 +1822,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_ModuleCardsCountedCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1787,7 +1844,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_OnlyTreasureCards_ZeroPoints() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1809,7 +1866,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_BugCardsPenalty() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1833,7 +1890,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_FrameworkCardsCountedCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1854,7 +1911,7 @@ public class OurEngineTest {
     public void testEndGame_ScoreCalculation_MixedVictoryCardsWithFramework() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo player = players.get(0);
         AtomicInteger cardIdCounter = getPrivateField(engine, "cardIdCounter");
@@ -1879,7 +1936,7 @@ public class OurEngineTest {
     @Test
     public void testProcessEndPhaseDecision_AllPhases_CompleteSequence() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         TurnRunner runner = createTurnRunner(engine);
 
         runner.setPhase(GameState.TurnPhase.ACTION);
@@ -1898,7 +1955,7 @@ public class OurEngineTest {
     @Test
     public void testProcessBuyDecision_MultipleBuys_DecrementsCorrectly() throws Exception {
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1930,7 +1987,7 @@ public class OurEngineTest {
     public void testCleanup_DiscardsAllCards_DrawsFiveNew() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1964,7 +2021,7 @@ public class OurEngineTest {
     public void testCleanup_WithPlayedCards_DiscardsAll() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -1999,7 +2056,7 @@ public class OurEngineTest {
     public void testTurnReset_ResetsResourcesCorrectly() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
@@ -2026,7 +2083,7 @@ public class OurEngineTest {
     public void testCleanup_WithEmptyDeck_ReshufflesDiscard() throws Exception {
         // Create fresh players to avoid any state sharing
         List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = new OurEngine(freshPlayers);
+        OurEngine engine = createEngine(freshPlayers);
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
 
