@@ -723,7 +723,7 @@ public class RendererTest {
         outputStream.reset();
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
         ImmutableList<EventNotif> events =
-                ImmutableList.of(new EventNotif(state, new EndTurnEvent(),1));
+                ImmutableList.of(new EventNotif(state, new EndTurnEvent(), 1));
 
         Renderer.renderGameWithDecisions(state, ImmutableList.of(), events);
 
