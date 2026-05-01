@@ -37,12 +37,15 @@ public class Observer implements GameObserver {
     }
 
     /**
-     * Returns an unmodifiable view of the recorded events without copying.
+     * Returns an immutable snapshot of the recorded events.
      *
-     * @return an unmodifiable view of the current event history
+     * <p>This method preserves the current behavior of returning a copied, unmodifiable list,
+     * equivalent to {@link #getEvents()}.
+     *
+     * @return an immutable copy of the current event history
      */
     public List<EventNotif> getEventsView() {
-        return ImmutableList.copyOf(events);
+        return getEvents();
     }
 
     /**
