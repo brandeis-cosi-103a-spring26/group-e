@@ -24,11 +24,10 @@ public class RefactorEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ImmutableList<Decision> trashOptions =
                 DecisionBuilder.buildTrashCardDecisions(ctx.activePlayer());
-        Decision playerChoice = ctx.makeDecision(trashOptions);
-
-        if (playerChoice instanceof EndPhaseDecision) {
+        if (trashOptions.isEmpty()) {
             return;
         }
+        Decision playerChoice = ctx.makeDecision(trashOptions);
 
         TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
         ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));

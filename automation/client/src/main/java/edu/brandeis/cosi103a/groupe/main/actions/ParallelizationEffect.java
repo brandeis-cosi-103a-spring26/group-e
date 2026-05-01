@@ -6,6 +6,7 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
+import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.List;
@@ -72,9 +73,11 @@ public class ParallelizationEffect implements ActionCardEffect {
         // Move chosen card to the played zone so nested effects that inspect the hand
         // (e.g. another Parallelization) do not see it as unplayed.
         ctx.activePlayer().playCard(chosen);
+        PlayCardEvent playEvent = new PlayCardEvent(chosen, ctx.activePlayer().getDisplayName());
         ctx.log("  Parallelizing " + Renderer.displayName(chosen.type()));
-
+        ctx.notifyObserver(playEvent);
         registry.execute(chosen.type(), ctx); // first execution
+        ctx.notifyObserver(playEvent);
         registry.execute(chosen.type(), ctx); // second execution
     }
 }

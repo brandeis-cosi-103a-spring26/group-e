@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 public class MutableCardStacks {
 
     private Map<Type, Integer> shop;
+    private int discount = 0;
 
     // Starting shop quantities
     private static final int BITCOIN_COUNT = 60;
@@ -119,15 +120,33 @@ public class MutableCardStacks {
      * @return An immutable set of card types that are available for gain at or below the given cost
      */
     public ImmutableSet<Type> availableCardsForCost(int cost) {
-
         ImmutableSet.Builder<Type> availableCards = ImmutableSet.builder();
         for (Map.Entry<Type, Integer> entry : shop.entrySet()) {
             Type type = entry.getKey();
             int count = entry.getValue();
-            if (count > 0 && type.cost() <= cost) {
+            if (count > 0 && type.cost() - discount <= cost) {
                 availableCards.add(type);
             }
         }
         return availableCards.build();
+    }
+
+    /** Increases the active buy discount by 1 for future cost checks. */
+    public void incrementDiscount() {
+        discount++;
+    }
+
+    /** Clears any active buy discount and restores full prices. */
+    public void resetDiscount() {
+        discount = 0;
+    }
+
+    /**
+     * Returns the current buy discount applied to card costs.
+     *
+     * @return the discount applied to card costs when checking affordability
+     */
+    public int getDiscount() {
+        return discount;
     }
 }

@@ -236,18 +236,13 @@ public class DecisionBuilderTest {
     // ========== buildTrashCardDecisions Tests ==========
 
     @Test
-    public void testBuildTrashCardDecisions_EmptyHand_ReturnsEndPhaseDecision() throws Exception {
+    public void testBuildTrashCardDecisions_EmptyHand_ReturnsNoDecisions() throws Exception {
         PlayerInfo playerInfo = createPlayer();
         setHand(playerInfo); // replace with empty hand
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildTrashCardDecisions(playerInfo);
 
-        assertEquals("Should have one decision", 1, decisions.size());
-        assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
-        assertEquals(
-                "Should be ACTION phase",
-                GameState.TurnPhase.ACTION,
-                ((EndPhaseDecision) decisions.get(0)).phase());
+        assertTrue("Should return no decisions when hand is empty", decisions.isEmpty());
     }
 
     @Test
@@ -268,7 +263,7 @@ public class DecisionBuilderTest {
     }
 
     @Test
-    public void testBuildTrashCardDecisions_OnlyPlayedCards_ReturnsEndPhaseDecision() {
+    public void testBuildTrashCardDecisions_OnlyPlayedCards_ReturnsNoDecisions() {
         PlayerInfo playerInfo = createPlayer();
         // Play all cards so unplayed is empty
         List<Card> cards = new ArrayList<>(playerInfo.getUnplayedCards());
@@ -279,8 +274,7 @@ public class DecisionBuilderTest {
 
         ImmutableList<Decision> decisions = DecisionBuilder.buildTrashCardDecisions(playerInfo);
 
-        assertEquals("Should have 1 decision", 1, decisions.size());
-        assertTrue("Should be EndPhaseDecision", decisions.get(0) instanceof EndPhaseDecision);
+        assertTrue("Should return no decisions when no unplayed cards exist", decisions.isEmpty());
     }
 
     @Test

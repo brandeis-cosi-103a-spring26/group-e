@@ -29,6 +29,24 @@ public class IPOEffectTest {
         return players;
     }
 
+    private List<Card.Type> defaultActions() {
+        return List.of(
+                Card.Type.CODE_REVIEW,
+                Card.Type.REFACTOR,
+                Card.Type.EVERGREEN_TEST,
+                Card.Type.IPO,
+                Card.Type.MONITORING,
+                Card.Type.HACK,
+                Card.Type.PARALLELIZATION,
+                Card.Type.TECH_DEBT,
+                Card.Type.BACKLOG,
+                Card.Type.DAILY_SCRUM);
+    }
+
+    private OurEngine createEngine(List<Player> players) {
+        return new OurEngine(players, defaultActions());
+    }
+
     @SuppressWarnings("unchecked")
     private <T> T getPrivateField(Object obj, String fieldName) throws Exception {
         Field field = obj.getClass().getDeclaredField(fieldName);
@@ -53,7 +71,7 @@ public class IPOEffectTest {
 
     @Test
     public void testExecute_DrawsTwoCards() throws Exception {
-        OurEngine engine = new OurEngine(createPlayers(2));
+        OurEngine engine = createEngine(createPlayers(2));
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -75,7 +93,7 @@ public class IPOEffectTest {
 
     @Test
     public void testExecute_AddsOneAction() throws Exception {
-        OurEngine engine = new OurEngine(createPlayers(2));
+        OurEngine engine = createEngine(createPlayers(2));
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -91,7 +109,7 @@ public class IPOEffectTest {
 
     @Test
     public void testExecute_AddsTwoMoney() throws Exception {
-        OurEngine engine = new OurEngine(createPlayers(2));
+        OurEngine engine = createEngine(createPlayers(2));
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);
@@ -107,7 +125,7 @@ public class IPOEffectTest {
 
     @Test
     public void testExecute_AppliesAllBenefits() throws Exception {
-        OurEngine engine = new OurEngine(createPlayers(2));
+        OurEngine engine = createEngine(createPlayers(2));
         List<PlayerInfo> players = getPrivateField(engine, "players");
         PlayerInfo activePlayer = players.get(0);
         ShopManager shopManager = createShopManager(engine);

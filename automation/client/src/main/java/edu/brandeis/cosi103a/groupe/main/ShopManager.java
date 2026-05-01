@@ -48,4 +48,16 @@ public class ShopManager {
     public CardStacks toImmutableCardStacks() {
         return stacks.toImmutableCardStacks();
     }
+
+    public void incrementDiscount() {
+        stacks.incrementDiscount();
+    }
+
+    public void resetDiscount() {
+        stacks.resetDiscount();
+    }
+
+    public int getDiscount() {
+        return stacks.getDiscount();
+    }
 }
