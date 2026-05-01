@@ -32,8 +32,8 @@ public class Renderer {
     private static final int COLUMN_WIDTH = 22;
     private static final int SUPPLY_GAP = 2;
     private static final int MARKER_PREFIX = 2; // "* " or " " before each card name
-    private static final int LOG_PANEL_WIDTH = 38;
-    private static final int MAX_TURN_LOGS = 10;
+    private static final int LOG_PANEL_WIDTH = 48;
+    private static final int MAX_TURN_LOGS = 5;
 
     /** Matches ANSI CSI escape sequences (e.g. color codes) for visual-length calculation. */
     private static final Pattern ANSI_ESCAPE = Pattern.compile("\\033\\[[0-9;]*[A-Za-z]");

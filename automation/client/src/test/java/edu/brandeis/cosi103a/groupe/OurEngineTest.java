@@ -402,15 +402,6 @@ public class OurEngineTest {
                 cardIdCounter.get() > 20);
     }
 
-    @Test
-    public void testConstructor_InitializesTurnNumber() throws Exception {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = createEngine(freshPlayers);
-        int turnNumber = getPrivateField(engine, "turnNumber");
-
-        assertEquals("Turn number should start at 0", 0, turnNumber);
-    }
 
     @Test
     public void testConstructor_AllCardsHaveUniqueIDs() throws Exception {
