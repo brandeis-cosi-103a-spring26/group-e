@@ -1,7 +1,6 @@
 package edu.brandeis.cosi103a.groupe.player;
 
 import com.google.common.collect.ImmutableList;
-
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.BuyDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
@@ -10,9 +9,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 public class AutoPlayerPlus extends AutoPlayer {
 
     private static final Card.Type[] VICTORY_CARDS = {
-        Card.Type.FRAMEWORK,
-        Card.Type.MODULE,
-        Card.Type.METHOD
+        Card.Type.FRAMEWORK, Card.Type.MODULE, Card.Type.METHOD
     };
 
     /**
@@ -37,7 +34,7 @@ public class AutoPlayerPlus extends AutoPlayer {
 
         // Count the number of empty card piles.
         int emptyCount = 0;
-        for (Card.Type cardType: state.buyableCards().getCardTypes()) {
+        for (Card.Type cardType : state.buyableCards().getCardTypes()) {
             if (state.buyableCards().cardCounts().get(cardType) == 0) {
                 emptyCount++;
             }
