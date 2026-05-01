@@ -152,9 +152,9 @@ public class HackEffectTest extends ActionTestSupport {
         assertEquals(1, tracker.promptCount);
         assertEquals(1, tracker.reactionPromptCount);
         assertTrue(
-            s.eventSink.getEvents().stream()
-                .map(n -> n.getEvent().getDescription())
-                .anyMatch(desc -> desc.contains("revealed Monitoring")));
+                s.eventSink.getEvents().stream()
+                        .map(n -> n.getEvent().getDescription())
+                        .anyMatch(desc -> desc.contains("revealed Monitoring")));
     }
 
     @Test

@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** +1 Action; Discard any number of cards, then draw that many. */
 public class BacklogEffect implements ActionCardEffect {

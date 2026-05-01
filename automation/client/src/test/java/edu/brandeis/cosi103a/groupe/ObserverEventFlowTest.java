@@ -40,8 +40,8 @@ import edu.brandeis.cosi103a.groupe.observers.Observer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
@@ -151,7 +151,7 @@ public class ObserverEventFlowTest {
     public void testTurnRunner_ProcessPlayCardDecision_EmitsPlayCardEvent() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -184,10 +184,10 @@ public class ObserverEventFlowTest {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
                 new MutableCardStacks(
-                    2,
-                    Objects.requireNonNull(
-                        ImmutableSet.<Card.Type>of(
-                            Card.Type.PARALLELIZATION, Card.Type.CODE_REVIEW)));
+                        2,
+                        Objects.requireNonNull(
+                                ImmutableSet.<Card.Type>of(
+                                        Card.Type.PARALLELIZATION, Card.Type.CODE_REVIEW)));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -239,7 +239,7 @@ public class ObserverEventFlowTest {
     public void testTurnRunner_ProcessBuyDecision_EmitsGainCardEvent() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -269,7 +269,7 @@ public class ObserverEventFlowTest {
     public void testTurnRunner_RunTurn_EmitsEndTurnEvent() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         ScriptedPlayer scripted =
@@ -298,7 +298,7 @@ public class ObserverEventFlowTest {
     public void testTurnRunner_RunTurn_ResetsDiscount() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         ScriptedPlayer scripted =
@@ -329,7 +329,7 @@ public class ObserverEventFlowTest {
     public void testActionContext_GainCardAndGiveCardTo_EmitGainCardEvents() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -361,7 +361,7 @@ public class ObserverEventFlowTest {
     public void testActionContext_TrashCard_EmitsTrashCardEvent() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -392,7 +392,7 @@ public class ObserverEventFlowTest {
     public void testActionContext_TrashCard_NotInHand_ThrowsException() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =
@@ -425,7 +425,7 @@ public class ObserverEventFlowTest {
     public void testActionContext_DiscardMethods_EmitDiscardCardEvents() throws Exception {
         AtomicInteger counter = new AtomicInteger(1);
         MutableCardStacks stacks =
-            new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
+                new MutableCardStacks(2, Objects.requireNonNull(ImmutableSet.<Card.Type>of()));
         ShopManager shop = new ShopManager(stacks, counter);
 
         List<Player> players =

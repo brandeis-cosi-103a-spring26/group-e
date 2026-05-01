@@ -150,18 +150,18 @@ public class Renderer {
      */
     public static void renderGameWithDecisions(GameState state, List<Decision> options) {
         renderGameWithDecisions(state, options, 0);
-        }
+    }
 
-        /**
-         * Renders the current game state to console, including indicators for which cards in hand and
-         * supply are actionable based on the provided decisions.
-         *
-         * @param state Current game state to render
-         * @param options List of available decisions for the current player - used to determine which
-         *     cards are actionable and should be marked with *
-         * @param discount Current shop discount to apply to displayed costs
-         */
-        public static void renderGameWithDecisions(
+    /**
+     * Renders the current game state to console, including indicators for which cards in hand and
+     * supply are actionable based on the provided decisions.
+     *
+     * @param state Current game state to render
+     * @param options List of available decisions for the current player - used to determine which
+     *     cards are actionable and should be marked with *
+     * @param discount Current shop discount to apply to displayed costs
+     */
+    public static void renderGameWithDecisions(
             GameState state, List<Decision> options, int discount) {
         // Build sets of actionable cards from the available decisions
         Set<Card> actionableHandCards = new HashSet<>();
@@ -323,11 +323,11 @@ public class Renderer {
                 Card.Type cardType = actionCards.get(i);
                 int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
-                    cardType,
-                    state.buyableCards().getNumAvailable(cardType),
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
                         displayCost,
-                    actionableSupplyTypes.contains(cardType),
-                    ansi().fgBrightBlue());
+                        actionableSupplyTypes.contains(cardType),
+                        ansi().fgBrightBlue());
             } else {
                 renderEmptySupplyCell();
             }
@@ -338,11 +338,11 @@ public class Renderer {
                 Card.Type cardType = treasureCards.get(i);
                 int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
-                    cardType,
-                    state.buyableCards().getNumAvailable(cardType),
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
                         displayCost,
-                    actionableSupplyTypes.contains(cardType),
-                    ansi().fgYellow());
+                        actionableSupplyTypes.contains(cardType),
+                        ansi().fgYellow());
             } else {
                 renderEmptySupplyCell();
             }
@@ -355,11 +355,11 @@ public class Renderer {
                         (cardType == Card.Type.BUG) ? ansi().fgMagenta() : ansi().fgGreen();
                 int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
-                    cardType,
-                    state.buyableCards().getNumAvailable(cardType),
-                    displayCost,
-                    actionableSupplyTypes.contains(cardType),
-                    color);
+                        cardType,
+                        state.buyableCards().getNumAvailable(cardType),
+                        displayCost,
+                        actionableSupplyTypes.contains(cardType),
+                        color);
             } else {
                 renderEmptySupplyCell();
             }
@@ -524,10 +524,7 @@ public class Renderer {
      * @param discount current shop discount to apply to displayed costs
      */
     public static void renderGameWithDecisions(
-            GameState state,
-            List<Decision> options,
-            List<EventNotif> eventNotifs,
-            int discount) {
+            GameState state, List<Decision> options, List<EventNotif> eventNotifs, int discount) {
         // Capture the main panel output into a buffer so we can merge it with the
         // log panel line-by-line.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -610,9 +607,9 @@ public class Renderer {
     }
 
     /**
-     * Builds the lines of the right-hand turn log panel. Shows the latest turns (up to
-     * {@link #MAX_TURN_LOGS}) based on the event stream. The current turn is shown in full colour;
-     * older turns are dimmed.
+     * Builds the lines of the right-hand turn log panel. Shows the latest turns (up to {@link
+     * #MAX_TURN_LOGS}) based on the event stream. The current turn is shown in full colour; older
+     * turns are dimmed.
      *
      * @param eventNotifs the event history for this session
      * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH} visible

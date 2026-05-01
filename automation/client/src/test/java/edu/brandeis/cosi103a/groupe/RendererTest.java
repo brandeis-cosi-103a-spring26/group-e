@@ -723,8 +723,7 @@ public class RendererTest {
         outputStream.reset();
         GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
         ImmutableList<EventNotif> events =
-                ImmutableList.of(
-                        new EventNotif(state, new EndTurnEvent()));
+                ImmutableList.of(new EventNotif(state, new EndTurnEvent()));
 
         Renderer.renderGameWithDecisions(state, ImmutableList.of(), events);
 
@@ -777,13 +776,13 @@ public class RendererTest {
                                 Card.Type.BITCOIN, 30 // costs $0
                                 ));
         Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
-        GameState state =
-            new GameState("Player1", hand, GameState.TurnPhase.BUY, 1, 0, 1, supply);
+        GameState state = new GameState("Player1", hand, GameState.TurnPhase.BUY, 1, 0, 1, supply);
 
         Renderer.renderGameWithDecisions(state, ImmutableList.of(), 1);
 
         String output = outputStream.toString();
-        assertTrue("Should display discounted cost for Method ($1)", output.contains("Method ($1)"));
+        assertTrue(
+                "Should display discounted cost for Method ($1)", output.contains("Method ($1)"));
         assertTrue("Should still display Bitcoin at $0", output.contains("Bitcoin ($0)"));
     }
 
@@ -810,10 +809,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())),
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())));
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())),
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -833,10 +832,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of(bitcoin, method))),
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())));
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of(bitcoin, method))),
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -857,10 +856,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())),
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of(refactor))));
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())),
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of(refactor))));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -878,10 +877,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())),
-                ImmutableMap.<Player, List<Card>>of(
-                    player, Objects.requireNonNull(ImmutableList.of())));
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())),
+                        ImmutableMap.<Player, List<Card>>of(
+                                player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 

@@ -116,7 +116,8 @@ public class OurEngineTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(activePlayer, players, shopManager, initialPhase, new MegaObserver());
+        return new ActionContext(
+                activePlayer, players, shopManager, initialPhase, new MegaObserver());
     }
 
     // ========== Constructor Validation Tests ==========
@@ -401,7 +402,6 @@ public class OurEngineTest {
                 "Card ID counter should be > 20 after creating starting cards",
                 cardIdCounter.get() > 20);
     }
-
 
     @Test
     public void testConstructor_AllCardsHaveUniqueIDs() throws Exception {

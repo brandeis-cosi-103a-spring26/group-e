@@ -5,6 +5,7 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
@@ -12,7 +13,6 @@ import edu.brandeis.cosi103a.groupe.cosi21.EventNotif;
 import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.observers.Observer;
-import edu.brandeis.cosi.atg.event.GameObserver;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +58,7 @@ public class ConsolePlayer extends AbstractPlayer {
     }
 
     /**
-     * Gets the GameObserver for this player. 
+     * Gets the GameObserver for this player.
      *
      * @return an Optional containing a GameObserver used by the Console Player
      */
@@ -131,11 +131,7 @@ public class ConsolePlayer extends AbstractPlayer {
 
         @SuppressWarnings("unchecked")
         List<EventNotif> eventNotifs = (List<EventNotif>) (List<?>) observer.getEvents();
-        Renderer.renderGameWithDecisions(
-            state,
-            options,
-            eventNotifs,
-            discountSupplier.getAsInt());
+        Renderer.renderGameWithDecisions(state, options, eventNotifs, discountSupplier.getAsInt());
 
         DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
 

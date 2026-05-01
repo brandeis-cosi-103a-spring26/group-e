@@ -51,14 +51,14 @@ public class GameRunner {
         GameResult finalResult = endGame();
         GameEndEvent endEvent = new GameEndEvent(shop.toImmutableCardStacks(), finalResult);
         GameState state =
-            new GameState(
-                activePlayer.getDisplayName(),
-                activePlayer.getImmutableHand(),
-                TurnPhase.CLEANUP,
-                activePlayer.numActions(),
-                activePlayer.numMoney(),
-                activePlayer.numBuys(),
-                shop.toImmutableCardStacks());
+                new GameState(
+                        activePlayer.getDisplayName(),
+                        activePlayer.getImmutableHand(),
+                        TurnPhase.CLEANUP,
+                        activePlayer.numActions(),
+                        activePlayer.numMoney(),
+                        activePlayer.numBuys(),
+                        shop.toImmutableCardStacks());
         observer.notifyEvent(state, endEvent);
         Renderer.printGameResult(finalResult);
         return finalResult;
@@ -93,5 +93,4 @@ public class GameRunner {
         }
         return new GameResult(builder.build());
     }
-
 }

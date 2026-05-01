@@ -9,8 +9,8 @@ import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.DiscardCardEvent;
 import edu.brandeis.cosi.atg.event.Event;
-import edu.brandeis.cosi.atg.event.GameEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
+import edu.brandeis.cosi.atg.event.GameEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
@@ -37,7 +37,9 @@ public class ActionContext {
     public ActionContext(
             PlayerInfo active,
             List<PlayerInfo> allPlayers,
-            ShopManager shop, TurnPhase initialPhase, MegaObserver observer) {
+            ShopManager shop,
+            TurnPhase initialPhase,
+            MegaObserver observer) {
         this.active = active;
         this.allPlayers = allPlayers;
         this.shop = shop;
@@ -108,10 +110,10 @@ public class ActionContext {
                 }
 
                 GameEvent revealEvent =
-                    new GameEvent(
-                        target.getDisplayName()
-                            + " revealed Monitoring to block "
-                            + Renderer.displayName(attackType));
+                        new GameEvent(
+                                target.getDisplayName()
+                                        + " revealed Monitoring to block "
+                                        + Renderer.displayName(attackType));
                 notifyObserver(revealEvent);
 
                 return true;
@@ -230,6 +232,6 @@ public class ActionContext {
                 perspectivePlayer.numActions(),
                 perspectivePlayer.numMoney(),
                 perspectivePlayer.numBuys(),
-            shop.toImmutableCardStacks());
+                shop.toImmutableCardStacks());
     }
 }

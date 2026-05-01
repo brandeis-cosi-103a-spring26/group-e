@@ -12,7 +12,6 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
@@ -30,6 +29,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.SprintPlanningEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
+import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -145,14 +145,14 @@ public class OurEngine implements Engine {
         GameStartEvent startEvent =
                 new GameStartEvent(ImmutableList.copyOf(playerNames), shop.toImmutableCardStacks());
         GameState state =
-            new GameState(
-                startingPlayer.getDisplayName(),
-                startingPlayer.getImmutableHand(),
-                phase,
-                startingPlayer.numActions(),
-                startingPlayer.numMoney(),
-                startingPlayer.numBuys(),
-                shop.toImmutableCardStacks());
+                new GameState(
+                        startingPlayer.getDisplayName(),
+                        startingPlayer.getImmutableHand(),
+                        phase,
+                        startingPlayer.numActions(),
+                        startingPlayer.numMoney(),
+                        startingPlayer.numBuys(),
+                        shop.toImmutableCardStacks());
         observer.notifyEvent(state, startEvent);
         return runner.play();
     }

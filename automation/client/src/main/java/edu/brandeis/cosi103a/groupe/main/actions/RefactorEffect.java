@@ -10,7 +10,6 @@ import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** Trash a card from your hand; Gain a card costing up to 2 more than the trashed card. */
 public class RefactorEffect implements ActionCardEffect {

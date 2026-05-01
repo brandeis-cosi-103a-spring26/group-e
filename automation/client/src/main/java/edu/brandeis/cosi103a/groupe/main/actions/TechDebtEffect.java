@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** +1 Card, +1 Action, +1 Money; Discard one card per empty Supply pile. */
 public class TechDebtEffect implements ActionCardEffect {

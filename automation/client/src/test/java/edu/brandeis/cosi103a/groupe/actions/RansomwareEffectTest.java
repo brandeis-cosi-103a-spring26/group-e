@@ -219,9 +219,9 @@ public class RansomwareEffectTest extends ActionTestSupport {
         assertEquals(1, chooser.totalPrompts);
         assertEquals(1, chooser.reactionPrompts);
         assertTrue(
-            s.eventSink.getEvents().stream()
-                .map(n -> n.getEvent().getDescription())
-                .anyMatch(desc -> desc.contains("revealed Monitoring")));
+                s.eventSink.getEvents().stream()
+                        .map(n -> n.getEvent().getDescription())
+                        .anyMatch(desc -> desc.contains("revealed Monitoring")));
     }
 
     @Test

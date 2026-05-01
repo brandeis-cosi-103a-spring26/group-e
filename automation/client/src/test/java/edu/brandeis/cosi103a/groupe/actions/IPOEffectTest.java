@@ -65,7 +65,8 @@ public class IPOEffectTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(activePlayer, players, shopManager, initialPhase, new MegaObserver());
+        return new ActionContext(
+                activePlayer, players, shopManager, initialPhase, new MegaObserver());
     }
 
     @Test

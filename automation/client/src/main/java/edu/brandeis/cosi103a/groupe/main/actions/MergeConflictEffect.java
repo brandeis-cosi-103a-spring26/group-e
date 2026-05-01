@@ -6,7 +6,6 @@ import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.decisions.TrashCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** Trash a card from your hand. +1 Card per $1 it costs. */
 public class MergeConflictEffect implements ActionCardEffect {

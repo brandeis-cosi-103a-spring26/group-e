@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.List;
 
 /**

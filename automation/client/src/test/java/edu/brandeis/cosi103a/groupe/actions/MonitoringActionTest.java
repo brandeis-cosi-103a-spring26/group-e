@@ -116,9 +116,9 @@ public class MonitoringActionTest extends ActionTestSupport {
         assertEquals(initialOpponentDiscardSize, opponentDiscard.size());
         assertTrue(opponent.getUnplayedCards().contains(monitoring));
         assertTrue(
-            s.eventSink.getEvents().stream()
-                .map(n -> n.getEvent().getDescription())
-                .anyMatch(desc -> desc.contains("revealed Monitoring")));
+                s.eventSink.getEvents().stream()
+                        .map(n -> n.getEvent().getDescription())
+                        .anyMatch(desc -> desc.contains("revealed Monitoring")));
     }
 
     @Test

@@ -136,8 +136,7 @@ public class TurnRunner {
             throw new IllegalStateException("No actions remaining for active player");
         }
 
-        ActionContext ctx =
-                new ActionContext(activePlayer, players, shop, phase, observer);
+        ActionContext ctx = new ActionContext(activePlayer, players, shop, phase, observer);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
@@ -227,7 +226,6 @@ public class TurnRunner {
                 activePlayer.numActions(),
                 activePlayer.numMoney(),
                 activePlayer.numBuys(),
-            shop.toImmutableCardStacks());
+                shop.toImmutableCardStacks());
     }
-
 }

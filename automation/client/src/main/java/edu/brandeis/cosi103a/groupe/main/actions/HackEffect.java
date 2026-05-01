@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** (Attack card) +2 Money; Each other player discards down to 3 cards in hand. */
 public class HackEffect implements ActionCardEffect {
