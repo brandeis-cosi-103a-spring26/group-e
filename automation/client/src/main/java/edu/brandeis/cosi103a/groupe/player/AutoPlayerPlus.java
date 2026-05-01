@@ -35,13 +35,13 @@ public class AutoPlayerPlus extends AutoPlayer {
         // Count the number of empty card piles.
         int emptyCount = 0;
         for (Card.Type cardType : state.buyableCards().getCardTypes()) {
-            if (state.buyableCards().cardCounts().get(cardType) == 0) {
+            if (state.buyableCards().getNumAvailable(cardType) == 0) {
                 emptyCount++;
             }
         }
 
         // If 2 empty piles, or if fewer than 3 Frameworks left, prioritize buying Victory cards.
-        if (emptyCount == 2 || state.buyableCards().cardCounts().get(Card.Type.FRAMEWORK) < 3) {
+        if (emptyCount >= 2 || state.buyableCards().getNumAvailable(Card.Type.FRAMEWORK) < 3) {
             for (Card.Type victoryType : VICTORY_CARDS) {
                 for (Decision option : options) {
                     if (option instanceof BuyDecision buyDecision) {
