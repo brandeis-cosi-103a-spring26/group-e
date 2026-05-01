@@ -694,14 +694,14 @@ public class Renderer {
     private static List<TurnGroup> groupEvents(List<EventNotif> eventNotifs) {
         List<TurnGroup> groups = new ArrayList<>();
         TurnGroup current = null;
-        int turnNumber = 1;
 
         for (EventNotif notif : eventNotifs) {
             if (notif == null || notif.getEvent() == null) {
                 continue;
             }
             if (current == null) {
-                current = new TurnGroup(turnNumber, playerNameFrom(notif));
+                int resolvedTurn = Math.max(1, notif.getTurnNumber());
+                current = new TurnGroup(resolvedTurn, playerNameFrom(notif));
             }
 
             String description = notif.getEvent().getDescription();
@@ -712,7 +712,6 @@ public class Renderer {
             if (notif.getEvent() instanceof EndTurnEvent) {
                 groups.add(current);
                 current = null;
-                turnNumber++;
             }
         }
 

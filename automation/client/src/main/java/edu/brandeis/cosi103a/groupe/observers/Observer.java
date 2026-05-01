@@ -1,6 +1,7 @@
 package edu.brandeis.cosi103a.groupe.observers;
 
 import com.google.common.collect.ImmutableList;
+import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.event.Event;
 import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
@@ -18,10 +19,12 @@ public class Observer implements GameObserver {
 
     private static final int MAX_EVENT_HISTORY = 200;
     private final List<EventNotif> events;
+    private int currentTurn;
 
     /** Creates an empty observer history. */
     public Observer() {
         this.events = new ArrayList<>();
+        this.currentTurn = 1;
     }
 
     /**
@@ -50,7 +53,10 @@ public class Observer implements GameObserver {
      */
     @Override
     public void notifyEvent(GameState state, Event event) {
-        events.add(new EventNotif(state, event));
+        events.add(new EventNotif(state, event, currentTurn));
+        if (event instanceof EndTurnEvent) {
+            currentTurn++;
+        }
         while (events.size() > MAX_EVENT_HISTORY) {
             events.remove(0);
         }
