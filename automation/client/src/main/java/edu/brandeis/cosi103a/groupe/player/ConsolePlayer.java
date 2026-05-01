@@ -129,8 +129,7 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        @SuppressWarnings("unchecked")
-        List<EventNotif> eventNotifs = (List<EventNotif>) (List<?>) observer.getEvents();
+        List<EventNotif> eventNotifs = observer.getEventsView();
         Renderer.renderGameWithDecisions(state, options, eventNotifs, discountSupplier.getAsInt());
 
         DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
