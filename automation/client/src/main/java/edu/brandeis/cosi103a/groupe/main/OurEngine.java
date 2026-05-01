@@ -12,7 +12,6 @@ import edu.brandeis.cosi.atg.state.GameResult;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.main.actions.BacklogEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.CodeReviewEffect;
@@ -30,6 +29,7 @@ import edu.brandeis.cosi103a.groupe.main.actions.SprintPlanningEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.TechDebtEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.UnitTestEffect;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
+import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +42,6 @@ public class OurEngine implements Engine {
     private PlayerInfo activePlayer;
     private final MutableCardStacks shop;
     private final AtomicInteger cardIdCounter = new AtomicInteger(1);
-    private final int turnNumber = 0;
 
     private final GameRunner runner;
     private final MegaObserver observer = new MegaObserver();
@@ -104,6 +103,12 @@ public class OurEngine implements Engine {
 
         ShopManager shopManager = new ShopManager(shop, cardIdCounter);
 
+        for (Player p : players) {
+            if (p instanceof ConsolePlayer consolePlayer) {
+                consolePlayer.setDiscountSupplier(shopManager::getDiscount);
+            }
+        }
+
         // Instantiate ParallelizationEffect first (no registry yet) so all effects
         // are created exactly once, then inject the registry back in via setter.
         ParallelizationEffect parallelization = new ParallelizationEffect();
@@ -150,14 +155,6 @@ public class OurEngine implements Engine {
                         shop.toImmutableCardStacks());
         observer.notifyEvent(state, startEvent);
         return runner.play();
-    }
-
-    /**
-     * Returns an unmodifiable view of the last 10 turn logs from the running game. The list is live
-     * — entries are appended as events occur.
-     */
-    public List<TurnLog> getTurnLogs() {
-        return runner.getTurnLogs();
     }
 
     /** Returns the total number of players in this game. */

@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 import java.util.List;
 
 /**
@@ -52,7 +51,7 @@ public class ParallelizationEffect implements ActionCardEffect {
 
         List<Card> otherActions = ctx.activePlayer().getActionsInHand();
         if (otherActions.isEmpty()) {
-            ctx.log("  No action cards to parallelize");
+            // ctx.log("  No action cards to parallelize");
             return;
         }
 
@@ -64,7 +63,7 @@ public class ParallelizationEffect implements ActionCardEffect {
 
         Decision choice = ctx.makeDecision(opts.build());
         if (choice instanceof EndPhaseDecision) {
-            ctx.log("  Parallelization skipped");
+            // ctx.log("  Parallelization skipped");
             return;
         }
 
@@ -74,7 +73,7 @@ public class ParallelizationEffect implements ActionCardEffect {
         // (e.g. another Parallelization) do not see it as unplayed.
         ctx.activePlayer().playCard(chosen);
         PlayCardEvent playEvent = new PlayCardEvent(chosen, ctx.activePlayer().getDisplayName());
-        ctx.log("  Parallelizing " + Renderer.displayName(chosen.type()));
+        // ctx.log("  Parallelizing " + Renderer.displayName(chosen.type()));
         ctx.notifyObserver(playEvent);
         registry.execute(chosen.type(), ctx); // first execution
         ctx.notifyObserver(playEvent);

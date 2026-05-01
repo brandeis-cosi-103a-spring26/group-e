@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.decisions.EndPhaseDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** +1 Action; Discard any number of cards, then draw that many. */
 public class BacklogEffect implements ActionCardEffect {
@@ -22,7 +21,7 @@ public class BacklogEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         // +1 Action
         ctx.adjustActions(1);
-        ctx.log("  +1 Action");
+        // ctx.log("  +1 Action");
 
         TurnPhase previousPhase = ctx.getPhase();
         ctx.setPhase(TurnPhase.DISCARD);
@@ -40,7 +39,7 @@ public class BacklogEffect implements ActionCardEffect {
                 }
 
                 DiscardCardDecision discardDecision = (DiscardCardDecision) playerChoice;
-                ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+                // ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
                 ctx.discardCard(discardDecision.card());
                 discardedCount++;
             }
@@ -53,7 +52,7 @@ public class BacklogEffect implements ActionCardEffect {
             for (int i = 0; i < discardedCount; i++) {
                 ctx.drawCard();
             }
-            ctx.log("  Drew " + discardedCount + " cards");
+            // ctx.log("  Drew " + discardedCount + " cards");
         }
     }
 }
