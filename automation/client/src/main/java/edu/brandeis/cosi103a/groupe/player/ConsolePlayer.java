@@ -11,6 +11,8 @@ import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
 import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
+import edu.brandeis.cosi103a.groupe.observers.Observer;
+import edu.brandeis.cosi.atg.event.GameObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,7 @@ public class ConsolePlayer extends AbstractPlayer {
     private final ConsoleInput consoleInput;
     private final String customDisplayName;
     private boolean autoPlayTreasures = false;
+    private Observer observer;
 
     /**
      * Creates a console player with the default display name format.
@@ -41,6 +44,17 @@ public class ConsolePlayer extends AbstractPlayer {
         this.consoleInput = Objects.requireNonNull(consoleInput);
         String trimmedName = customDisplayName == null ? "" : customDisplayName.trim();
         this.customDisplayName = trimmedName.isEmpty() ? null : trimmedName;
+        this.observer = new Observer();
+    }
+
+    /**
+     * Gets the GameObserver for this player. 
+     *
+     * @return an Optional containing a GameObserver used by the Console Player
+     */
+    @Override
+    public Optional<GameObserver> getObserver() {
+        return Optional.of(observer);
     }
 
     @Override
@@ -49,22 +63,6 @@ public class ConsolePlayer extends AbstractPlayer {
             return customDisplayName;
         }
         return "Human " + super.getDisplayName();
-    }
-
-    /**
-     * Live reference to the engine's turn log history; set after engine creation via {@link
-     * #setTurnLogs(List)}. All turns from all players are visible.
-     */
-    private List<TurnLog> turnLogs = new ArrayList<>();
-
-    /**
-     * Sets the shared turn log list from the engine. Should be called once after the engine is
-     * constructed and before the game starts.
-     *
-     * @param logs the engine's live turn log list
-     */
-    public void setTurnLogs(List<TurnLog> logs) {
-        this.turnLogs = logs;
     }
 
     /**
@@ -137,7 +135,7 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
+        Renderer.renderGameWithDecisions(state, options, observer.getEvents(), numPlayers);
 
         DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
 
