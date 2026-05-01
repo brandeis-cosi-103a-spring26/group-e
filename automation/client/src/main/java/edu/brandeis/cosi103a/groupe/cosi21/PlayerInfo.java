@@ -67,9 +67,12 @@ public class PlayerInfo {
     }
 
     /**
-     * Gets the name of the underlying player.
+     * Gets the underlying player's identifier.
      *
-     * @return The player's name
+     * <p>For AbstractPlayer implementations this is usually a UUID-based value, not the
+     * human-readable display name.
+     *
+     * @return The underlying player's identifier
      */
     public String getName() {
         return player.getName();

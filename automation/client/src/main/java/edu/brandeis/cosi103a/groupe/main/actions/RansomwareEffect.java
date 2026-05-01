@@ -77,9 +77,6 @@ public class RansomwareEffect implements ActionCardEffect {
 
             if (effectChoice.effect() == ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG) {
                 ctx.giveCardTo(player, Card.Type.BUG);
-                // Note: This could fail if there are no bugs left. giveCardTo will have to be
-                // rewritten as
-                // a boolean, and confirm if bug was given before eventing it
                 ctx.log("  " + player.getDisplayName() + " gained a Bug");
                 continue;
             }

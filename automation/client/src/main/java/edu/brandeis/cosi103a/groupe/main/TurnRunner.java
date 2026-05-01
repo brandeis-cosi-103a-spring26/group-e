@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.PlayCardEvent;
-import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
@@ -71,16 +70,9 @@ public class TurnRunner {
             }
         }
         activePlayer.cleanup();
+        shop.resetDiscount();
         EndTurnEvent endTurnEvent = new EndTurnEvent();
-        GameState state =
-                new GameState(
-                        activePlayer.getDisplayName(),
-                        activePlayer.getImmutableHand(),
-                        phase,
-                        activePlayer.numActions(),
-                        activePlayer.numMoney(),
-                        activePlayer.numBuys(),
-                        shop.toImmutableCardStacks());
+        GameState state = buildGameState();
         observer.notifyEvent(state, endTurnEvent);
     }
 
@@ -114,15 +106,7 @@ public class TurnRunner {
         Card card = decision.card();
         activePlayer.playCard(card);
         PlayCardEvent playEvent = new PlayCardEvent(card, activePlayer.getDisplayName());
-        GameState state =
-                new GameState(
-                        activePlayer.getDisplayName(),
-                        activePlayer.getImmutableHand(),
-                        phase,
-                        activePlayer.numActions(),
-                        activePlayer.numMoney(),
-                        activePlayer.numBuys(),
-                        shop.toImmutableCardStacks());
+        GameState state = buildGameState();
         observer.notifyEvent(state, playEvent);
         switch (card.category()) {
             case ACTION -> processPlayActionCard(card.type());
@@ -140,42 +124,7 @@ public class TurnRunner {
             case BuyDecision buy -> processBuyDecision(buy);
             case EndPhaseDecision endPhase -> processEndPhaseDecision(endPhase);
             case PlayCardDecision play -> processPlayCardDecision(play);
-            case TrashCardDecision trash -> processTrashCardDecision(trash);
-            case DiscardCardDecision discard -> processDiscardCardDecision(discard);
             default -> throw new UnsupportedOperationException("Decision type not supported");
-        }
-    }
-
-    @VisibleForTesting
-    public void processTrashCardDecision(TrashCardDecision decision) {
-        Card cardToTrash = decision.card();
-        boolean wasRemoved = activePlayer.trashCard(cardToTrash);
-        if (!wasRemoved) {
-            throw new IllegalStateException(
-                    "Card to trash was not found in active player's hand's unplayed cards");
-        } else {
-            TrashCardEvent trashEvent =
-                    new TrashCardEvent(cardToTrash.type(), activePlayer.getDisplayName());
-            GameState state =
-                    new GameState(
-                            activePlayer.getDisplayName(),
-                            activePlayer.getImmutableHand(),
-                            phase,
-                            activePlayer.numActions(),
-                            activePlayer.numMoney(),
-                            activePlayer.numBuys(),
-                            shop.toImmutableCardStacks());
-            observer.notifyEvent(state, trashEvent);
-        }
-    }
-
-    @VisibleForTesting
-    public void processDiscardCardDecision(DiscardCardDecision decision) {
-        Card cardToDiscard = decision.card();
-        boolean wasDiscarded = activePlayer.discardCard(cardToDiscard);
-        if (!wasDiscarded) {
-            throw new IllegalStateException(
-                    "Card to discard was not found in active player's hand's unplayed cards");
         }
     }
 
@@ -241,29 +190,24 @@ public class TurnRunner {
     @VisibleForTesting
     public void processBuyDecision(BuyDecision decision) {
         Card.Type type = decision.cardType();
+        int discount = shop.getDiscount();
         if (shop.getNumAvailable(type) <= 0) {
             throw new IllegalStateException("Cannot buy card that is out of stock");
         }
-        if (activePlayer.numMoney() < type.cost()) {
+        if (activePlayer.numMoney() < type.cost() - discount) {
             throw new IllegalStateException("Not enough money to buy this card");
         }
         if (activePlayer.numBuys() <= 0) {
             throw new IllegalStateException("No buys remaining to buy a card");
         }
-        activePlayer.adjustMoney(-type.cost());
+        if (type.cost() - discount > 0) {
+            activePlayer.adjustMoney(-type.cost() + discount);
+        }
         activePlayer.adjustBuys(-1);
         boolean successfullyBought = shop.gain(type, activePlayer);
         if (successfullyBought) {
             GainCardEvent gainEvent = new GainCardEvent(type, activePlayer.getDisplayName());
-            GameState state =
-                    new GameState(
-                            activePlayer.getDisplayName(),
-                            activePlayer.getImmutableHand(),
-                            phase,
-                            activePlayer.numActions(),
-                            activePlayer.numMoney(),
-                            activePlayer.numBuys(),
-                            shop.toImmutableCardStacks());
+            GameState state = buildGameState();
             observer.notifyEvent(state, gainEvent);
         }
         if (currentTurnLog != null) {

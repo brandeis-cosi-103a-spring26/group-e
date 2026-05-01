@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class MegaObserver implements GameObserver {
 
-    private final List<Observer> observers;
+    private final List<GameObserver> observers;
 
     /** Creates an empty collection of observers. */
     public MegaObserver() {
@@ -27,7 +27,7 @@ public class MegaObserver implements GameObserver {
      *
      * @return an immutable copy of the current observer list
      */
-    public ImmutableList<Observer> getObservers() {
+    public ImmutableList<GameObserver> getObservers() {
         return ImmutableList.copyOf(observers);
     }
 
@@ -36,7 +36,7 @@ public class MegaObserver implements GameObserver {
      *
      * @param observer the observer to add; null observers are ignored
      */
-    public void addObserver(Observer observer) {
+    public void addObserver(GameObserver observer) {
         if (observer != null && !observers.contains(observer)) {
             observers.add(observer);
         }
@@ -50,7 +50,7 @@ public class MegaObserver implements GameObserver {
      */
     @Override
     public void notifyEvent(GameState state, Event event) {
-        for (Observer observer : observers) {
+        for (GameObserver observer : observers) {
             observer.notifyEvent(state, event);
         }
     }
