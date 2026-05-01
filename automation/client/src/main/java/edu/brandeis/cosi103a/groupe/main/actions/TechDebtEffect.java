@@ -23,7 +23,7 @@ public class TechDebtEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.adjustActions(1);
         ctx.adjustMoney(1);
-        ctx.log("  +1 Card, +1 Action, +1 Money");
+        // ctx.log("  +1 Card, +1 Action, +1 Money");
 
         GameState state = ctx.buildGameState();
         int emptyPiles = 0;
@@ -50,7 +50,7 @@ public class TechDebtEffect implements ActionCardEffect {
                 }
 
                 ctx.discardCard(discardDecision.card());
-                ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+                // ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
             }
         } finally {
             ctx.setPhase(previousPhase);

@@ -30,7 +30,7 @@ public class RefactorEffect implements ActionCardEffect {
         Decision playerChoice = ctx.makeDecision(trashOptions);
 
         TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
-        ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));
+        // ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));
         ctx.trashCard(trashCardDecision.card());
 
         int maxGainCost = trashCardDecision.card().cost() + 2;
@@ -53,7 +53,7 @@ public class RefactorEffect implements ActionCardEffect {
         }
 
         GainCardDecision gainCardDecision = (GainCardDecision) gainDecisionOrEndPhase;
-        ctx.log("  Gained " + Renderer.displayName(gainCardDecision.cardType()));
+        // ctx.log("  Gained " + Renderer.displayName(gainCardDecision.cardType()));
         ctx.gainCard(gainCardDecision.cardType());
         ctx.setPhase(TurnPhase.ACTION);
     }

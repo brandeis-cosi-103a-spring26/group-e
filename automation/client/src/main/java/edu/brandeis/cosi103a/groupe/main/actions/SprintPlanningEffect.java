@@ -16,6 +16,6 @@ public class SprintPlanningEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.adjustActions(1);
         ctx.adjustBuys(1);
-        ctx.log("  +1 Card, +1 Action, +1 Buy");
+        // ctx.log("  +1 Card, +1 Action, +1 Buy");
     }
 }

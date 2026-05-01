@@ -94,12 +94,7 @@ public class Harness {
         randomActions = randomActions.subList(0, 10);
 
         OurEngine engine = new OurEngine(players, randomActions);
-        for (Player p : players) {
-            if (p instanceof ConsolePlayer) {
-                ((ConsolePlayer) p).setTurnLogs(engine.getTurnLogs());
-                ((ConsolePlayer) p).setNumPlayers(engine.getNumPlayers());
-            }
-        }
+
         try {
             engine.play();
         } catch (Exception e) {

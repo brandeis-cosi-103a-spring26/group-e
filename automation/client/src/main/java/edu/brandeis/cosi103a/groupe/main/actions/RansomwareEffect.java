@@ -24,7 +24,7 @@ public class RansomwareEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.drawCard();
         ctx.drawCard();
-        ctx.log("  +3 Cards; each other player discards 2 cards or gains a Bug");
+        // ctx.log("  +3 Cards; each other player discards 2 cards or gains a Bug");
 
         for (PlayerInfo player : ctx.otherPlayers()) {
             if (ctx.isUnaffectedByAttack(player, handles())) {
@@ -63,11 +63,11 @@ public class RansomwareEffect implements ActionCardEffect {
                         }
 
                         ctx.discardCardForPlayer(player, discardDecision.card());
-                        ctx.log(
-                                "  "
-                                        + player.getDisplayName()
-                                        + " discarded "
-                                        + Renderer.displayName(discardDecision.card().type()));
+                        // ctx.log(
+                        //         "  "
+                        //                 + player.getDisplayName()
+                        //                 + " discarded "
+                        //                 + Renderer.displayName(discardDecision.card().type()));
                     }
                 } finally {
                     ctx.setPhase(previousPhase);
@@ -77,7 +77,7 @@ public class RansomwareEffect implements ActionCardEffect {
 
             if (effectChoice.effect() == ChooseEffectDecision.Effect.RANSOMWARE_GAIN_BUG) {
                 ctx.giveCardTo(player, Card.Type.BUG);
-                ctx.log("  " + player.getDisplayName() + " gained a Bug");
+                // ctx.log("  " + player.getDisplayName() + " gained a Bug");
                 continue;
             }
 

@@ -9,12 +9,12 @@ import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.event.DiscardCardEvent;
 import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameEvent;
 import edu.brandeis.cosi.atg.event.GainCardEvent;
 import edu.brandeis.cosi.atg.event.TrashCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
 import edu.brandeis.cosi103a.groupe.main.ShopManager;
@@ -31,21 +31,16 @@ public class ActionContext {
     private final PlayerInfo active;
     private final List<PlayerInfo> allPlayers;
     private final ShopManager shop;
-    private final TurnLog turnLog;
     private TurnPhase phase;
     private final MegaObserver observer;
 
     public ActionContext(
             PlayerInfo active,
             List<PlayerInfo> allPlayers,
-            ShopManager shop,
-            TurnLog turnLog,
-            TurnPhase initialPhase,
-            MegaObserver observer) {
+            ShopManager shop, TurnPhase initialPhase, MegaObserver observer) {
         this.active = active;
         this.allPlayers = allPlayers;
         this.shop = shop;
-        this.turnLog = turnLog;
         this.phase = initialPhase;
         this.observer = observer;
     }
@@ -112,11 +107,13 @@ public class ActionContext {
                             "Invalid reaction card played: " + playDecision.card().type());
                 }
 
-                log(
-                        "  "
-                                + target.getDisplayName()
-                                + " revealed Monitoring and was unaffected by "
-                                + Renderer.displayName(attackType));
+                GameEvent revealEvent =
+                    new GameEvent(
+                        target.getDisplayName()
+                            + " revealed Monitoring to block "
+                            + Renderer.displayName(attackType));
+                notifyObserver(revealEvent);
+
                 return true;
             }
 
@@ -220,12 +217,6 @@ public class ActionContext {
         observer.notifyEvent(state, e);
     }
 
-    public void log(String entry) {
-        if (turnLog != null) {
-            turnLog.addEntry(entry);
-        }
-    }
-
     /** Builds an immutable GameState snapshot using the current context state. */
     public GameState buildGameState() {
         return buildGameState(active);
@@ -239,6 +230,6 @@ public class ActionContext {
                 perspectivePlayer.numActions(),
                 perspectivePlayer.numMoney(),
                 perspectivePlayer.numBuys(),
-                shop.toImmutableCardStacks());
+            shop.toImmutableCardStacks());
     }
 }

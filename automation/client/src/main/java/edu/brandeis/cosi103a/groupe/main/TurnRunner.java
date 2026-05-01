@@ -11,14 +11,10 @@ import edu.brandeis.cosi.atg.event.PlayCardEvent;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionContext;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Runs a single player's turn: manages the phase state machine and routes decisions to the
@@ -31,9 +27,6 @@ public class TurnRunner {
     private final List<PlayerInfo> players;
     private final ShopManager shop;
     private final ActionEffectRegistry registry;
-    private TurnLog currentTurnLog;
-    private Map<Card.Type, Integer> treasuresPlayedThisTurn = new LinkedHashMap<>();
-    private int moneyFromTreasuresThisTurn = 0;
     private final MegaObserver observer;
 
     public TurnRunner(
@@ -51,12 +44,9 @@ public class TurnRunner {
      * Runs the full inner loop for one player's turn (ACTION → MONEY → BUY → CLEANUP). Calls {@code
      * activePlayer.turnReset()} at the start and cleanup at the end.
      */
-    public void runTurn(PlayerInfo activePlayer, TurnLog log) {
+    public void runTurn(PlayerInfo activePlayer) {
         this.activePlayer = activePlayer;
-        this.currentTurnLog = log;
         this.phase = TurnPhase.ACTION;
-        this.treasuresPlayedThisTurn = new LinkedHashMap<>();
-        this.moneyFromTreasuresThisTurn = 0;
         activePlayer.turnReset();
 
         while (phase != TurnPhase.CLEANUP) {
@@ -90,11 +80,6 @@ public class TurnRunner {
     @VisibleForTesting
     public TurnPhase getPhase() {
         return phase;
-    }
-
-    @VisibleForTesting
-    public void setCurrentTurnLog(TurnLog log) {
-        this.currentTurnLog = log;
     }
 
     /**
@@ -137,9 +122,6 @@ public class TurnRunner {
         switch (decision.phase()) {
             case ACTION -> phase = TurnPhase.MONEY;
             case MONEY -> {
-                if (currentTurnLog != null && !treasuresPlayedThisTurn.isEmpty()) {
-                    currentTurnLog.addEntry(buildMoneyLogEntry());
-                }
                 phase = TurnPhase.BUY;
             }
             case BUY -> phase = TurnPhase.CLEANUP;
@@ -153,12 +135,9 @@ public class TurnRunner {
         if (activePlayer.numActions() <= 0) {
             throw new IllegalStateException("No actions remaining for active player");
         }
-        if (currentTurnLog != null) {
-            currentTurnLog.addEntry("Played " + Renderer.displayName(type));
-        }
 
         ActionContext ctx =
-                new ActionContext(activePlayer, players, shop, currentTurnLog, phase, observer);
+                new ActionContext(activePlayer, players, shop, phase, observer);
 
         registry.execute(type, ctx);
         phase = ctx.getPhase(); // sync back — RefactorEffect mutates phase during gain step
@@ -167,24 +146,18 @@ public class TurnRunner {
 
     @VisibleForTesting
     public void processPlayMoneyCard(Card.Type type) {
-        int value;
         switch (type) {
             case BITCOIN -> {
                 activePlayer.adjustMoney(1);
-                value = 1;
             }
             case ETHEREUM -> {
                 activePlayer.adjustMoney(2);
-                value = 2;
             }
             case DOGECOIN -> {
                 activePlayer.adjustMoney(3);
-                value = 3;
             }
             default -> throw new UnsupportedOperationException("Unsupported money card type");
         }
-        treasuresPlayedThisTurn.merge(type, 1, Integer::sum);
-        moneyFromTreasuresThisTurn += value;
     }
 
     @VisibleForTesting
@@ -209,9 +182,6 @@ public class TurnRunner {
             GainCardEvent gainEvent = new GainCardEvent(type, activePlayer.getDisplayName());
             GameState state = buildGameState();
             observer.notifyEvent(state, gainEvent);
-        }
-        if (currentTurnLog != null) {
-            currentTurnLog.addEntry("Bought " + Renderer.displayName(type));
         }
     }
 
@@ -257,14 +227,7 @@ public class TurnRunner {
                 activePlayer.numActions(),
                 activePlayer.numMoney(),
                 activePlayer.numBuys(),
-                shop.toImmutableCardStacks());
+            shop.toImmutableCardStacks());
     }
 
-    private String buildMoneyLogEntry() {
-        List<String> parts = new ArrayList<>();
-        for (Map.Entry<Card.Type, Integer> e : treasuresPlayedThisTurn.entrySet()) {
-            parts.add(e.getValue() + " " + Renderer.displayName(e.getKey()));
-        }
-        return "Played " + String.join(" and ", parts) + " (+" + moneyFromTreasuresThisTurn + ")";
-    }
 }

@@ -116,8 +116,7 @@ public class OurEngineTest {
             List<PlayerInfo> players,
             ShopManager shopManager,
             GameState.TurnPhase initialPhase) {
-        return new ActionContext(
-                activePlayer, players, shopManager, null, initialPhase, new MegaObserver());
+        return new ActionContext(activePlayer, players, shopManager, initialPhase, new MegaObserver());
     }
 
     // ========== Constructor Validation Tests ==========
@@ -1388,16 +1387,6 @@ public class OurEngineTest {
         assertEquals("Should return correct player count", 3, engine.getNumPlayers());
     }
 
-    @Test
-    public void testGetTurnLogs_ReturnsNonNullList() {
-        // Create fresh players to avoid any state sharing
-        List<Player> freshPlayers = createPlayers(2);
-        OurEngine engine = createEngine(freshPlayers);
-        List<TurnLog> logs = engine.getTurnLogs();
-
-        assertNotNull("Turn logs should not be null", logs);
-    }
-
     // ========== processPlayActionCard Tests ==========
 
     @Test(expected = IllegalStateException.class)
@@ -1409,7 +1398,6 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
-        runner.setCurrentTurnLog(null);
 
         activePlayer.turnReset();
         activePlayer.adjustActions(-1);
@@ -1427,7 +1415,6 @@ public class OurEngineTest {
 
         TurnRunner runner = createTurnRunner(engine);
         runner.setActivePlayer(activePlayer);
-        runner.setCurrentTurnLog(null);
         runner.setPhase(GameState.TurnPhase.ACTION);
 
         activePlayer.adjustActions(3);

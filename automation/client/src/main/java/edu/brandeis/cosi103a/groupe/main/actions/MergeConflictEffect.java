@@ -26,7 +26,7 @@ public class MergeConflictEffect implements ActionCardEffect {
         Decision playerChoice = ctx.makeDecision(trashOptions);
 
         TrashCardDecision trashCardDecision = (TrashCardDecision) playerChoice;
-        ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));
+        // ctx.log("  Trashed " + Renderer.displayName(trashCardDecision.card().type()));
         ctx.trashCard(trashCardDecision.card());
 
         for (int i = 0; i < trashCardDecision.card().cost(); i++) {

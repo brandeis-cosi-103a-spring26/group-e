@@ -21,7 +21,7 @@ public class HackEffect implements ActionCardEffect {
     @Override
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ctx.adjustMoney(2);
-        ctx.log("  +2 Money; each other player discards down to 3 cards in hand");
+        // ctx.log("  +2 Money; each other player discards down to 3 cards in hand");
 
         TurnPhase previousPhase = ctx.getPhase();
         ctx.setPhase(TurnPhase.DISCARD);
@@ -42,11 +42,11 @@ public class HackEffect implements ActionCardEffect {
                     }
 
                     ctx.discardCardForPlayer(player, discardDecision.card());
-                    ctx.log(
-                            "  "
-                                    + player.getDisplayName()
-                                    + " discarded "
-                                    + Renderer.displayName(discardDecision.card().type()));
+                    // ctx.log(
+                    //         "  "
+                    //                 + player.getDisplayName()
+                    //                 + " discarded "
+                    //                 + Renderer.displayName(discardDecision.card().type()));
                 }
             }
         } finally {

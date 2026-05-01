@@ -18,7 +18,7 @@ public class DailyScrumEffect implements ActionCardEffect {
             ctx.drawCard();
         }
         ctx.adjustBuys(1);
-        ctx.log("  +4 Cards, +1 Buy; each other player draws a card");
+        // ctx.log("  +4 Cards, +1 Buy; each other player draws a card");
         for (PlayerInfo p : ctx.otherPlayers()) {
             ctx.drawCard(p);
         }

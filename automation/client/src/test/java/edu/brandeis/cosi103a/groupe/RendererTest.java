@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.event.EndTurnEvent;
+import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
@@ -14,6 +16,8 @@ import edu.brandeis.cosi103a.groupe.main.*;
 import edu.brandeis.cosi103a.groupe.player.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -714,6 +718,22 @@ public class RendererTest {
         assertFalse("EndPhaseDecision should not produce any * markers", output.contains("*"));
     }
 
+    @Test
+    public void testRenderGameWithDecisions_DisplaysEventLogPanel() {
+        outputStream.reset();
+        GameState state = createTestGameState("Player1", GameState.TurnPhase.ACTION);
+        ImmutableList<EventNotif> events =
+                ImmutableList.of(
+                        new EventNotif(state, new EndTurnEvent()));
+
+        Renderer.renderGameWithDecisions(state, ImmutableList.of(), events);
+
+        String output = outputStream.toString();
+        assertTrue("Should show turn log header", output.contains("Turn Log"));
+        assertTrue("Should show turn header", output.contains("Turn 1 - Player1"));
+        assertTrue("Should show event description", output.contains("End turn"));
+    }
+
     // ========== Supply Column Header & Cost Tests ==========
 
     @Test
@@ -749,6 +769,25 @@ public class RendererTest {
     }
 
     @Test
+    public void testRenderGame_SupplyDisplaysDiscountedCosts() {
+        CardStacks supply =
+                new CardStacks(
+                        ImmutableMap.of(
+                                Card.Type.METHOD, 12, // costs $2
+                                Card.Type.BITCOIN, 30 // costs $0
+                                ));
+        Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
+        GameState state =
+            new GameState("Player1", hand, GameState.TurnPhase.BUY, 1, 0, 1, supply);
+
+        Renderer.renderGameWithDecisions(state, ImmutableList.of(), 1);
+
+        String output = outputStream.toString();
+        assertTrue("Should display discounted cost for Method ($1)", output.contains("Method ($1)"));
+        assertTrue("Should still display Bitcoin at $0", output.contains("Bitcoin ($0)"));
+    }
+
+    @Test
     public void testRenderGame_BugCardInSupply_Renders() {
         CardStacks supply = new CardStacks(ImmutableMap.of(Card.Type.BUG, 20));
         Hand hand = new Hand(ImmutableList.of(), ImmutableList.of());
@@ -771,8 +810,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                        ImmutableMap.of(player, ImmutableList.<Card>of()),
-                        ImmutableMap.of(player, ImmutableList.<Card>of()));
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())),
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -792,8 +833,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                        ImmutableMap.of(player, ImmutableList.of(bitcoin, method)),
-                        ImmutableMap.of(player, ImmutableList.<Card>of()));
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of(bitcoin, method))),
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -814,8 +857,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                        ImmutableMap.of(player, ImmutableList.<Card>of()),
-                        ImmutableMap.of(player, ImmutableList.of(refactor)));
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())),
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of(refactor))));
 
         Renderer.renderGameDebugMode(debugState);
 
@@ -833,8 +878,10 @@ public class RendererTest {
         DebugGameState debugState =
                 new DebugGameState(
                         state,
-                        ImmutableMap.of(player, ImmutableList.<Card>of()),
-                        ImmutableMap.of(player, ImmutableList.<Card>of()));
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())),
+                ImmutableMap.<Player, List<Card>>of(
+                    player, Objects.requireNonNull(ImmutableList.of())));
 
         Renderer.renderGameDebugMode(debugState);
 

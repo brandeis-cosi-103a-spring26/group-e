@@ -18,7 +18,6 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableCardStacks;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableHand;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.RansomwareEffect;
 import java.lang.reflect.Field;
@@ -192,7 +191,6 @@ public class RansomwareEffectTest extends ActionTestSupport {
                         ImmutableSet.of(Card.Type.RANSOMWARE, Card.Type.MONITORING),
                         List.of(new RansomwareEffect(), new MonitoringEffect()));
         s.active.turnReset();
-        s.runner.setCurrentTurnLog(new TurnLog(1, s.active.getDisplayName()));
 
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
         Card ransomware = new Card(Card.Type.RANSOMWARE, counter.getAndIncrement());
@@ -220,8 +218,10 @@ public class RansomwareEffectTest extends ActionTestSupport {
         assertEquals(0, chooser.choicePrompts);
         assertEquals(1, chooser.totalPrompts);
         assertEquals(1, chooser.reactionPrompts);
-        TurnLog log = getField(s.runner, "currentTurnLog");
-        assertTrue(log.getEntries().stream().anyMatch(e -> e.contains("revealed Monitoring")));
+        assertTrue(
+            s.eventSink.getEvents().stream()
+                .map(n -> n.getEvent().getDescription())
+                .anyMatch(desc -> desc.contains("revealed Monitoring")));
     }
 
     @Test

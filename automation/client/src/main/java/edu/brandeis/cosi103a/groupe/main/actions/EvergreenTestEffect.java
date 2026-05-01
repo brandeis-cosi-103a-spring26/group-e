@@ -16,7 +16,7 @@ public class EvergreenTestEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ctx.drawCard();
         ctx.drawCard();
-        ctx.log("  +2 Cards; each other player gains a Bug");
+        // ctx.log("  +2 Cards; each other player gains a Bug");
         for (PlayerInfo p : ctx.otherPlayers()) {
             if (ctx.isUnaffectedByAttack(p, handles())) {
                 continue;
