@@ -27,6 +27,10 @@ public class EventNotif {
         this.turnNumber = turnNumber;
     }
 
+    public EventNotif(GameState state, Event event) {
+        this(state, event, 0);
+    }
+
     /**
      * Returns the game snapshot captured when this event occurred.
      *
