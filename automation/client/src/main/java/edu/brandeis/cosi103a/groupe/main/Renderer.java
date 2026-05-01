@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.decisions.*;
+import edu.brandeis.cosi.atg.event.EndTurnEvent;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.CardStacks;
 import edu.brandeis.cosi.atg.state.GameResult;
@@ -14,7 +15,7 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.Hand;
 import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.DebugGameState;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.cosi21.EventNotif;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -31,7 +32,8 @@ public class Renderer {
     private static final int COLUMN_WIDTH = 22;
     private static final int SUPPLY_GAP = 2;
     private static final int MARKER_PREFIX = 2; // "* " or " " before each card name
-    private static final int LOG_PANEL_WIDTH = 38;
+    private static final int LOG_PANEL_WIDTH = 48;
+    private static final int MAX_TURN_LOGS = 5;
 
     /** Matches ANSI CSI escape sequences (e.g. color codes) for visual-length calculation. */
     private static final Pattern ANSI_ESCAPE = Pattern.compile("\\033\\[[0-9;]*[A-Za-z]");
@@ -93,10 +95,14 @@ public class Renderer {
      * @param color the ANSI color to use for the pile text
      */
     private static void renderSupplyCell(
-            Card.Type cardType, int count, boolean actionable, org.fusesource.jansi.Ansi color) {
+            Card.Type cardType,
+            int count,
+            int displayCost,
+            boolean actionable,
+            org.fusesource.jansi.Ansi color) {
         System.out.print(actionable ? ansi().fgRed().a("*").reset() : " ");
         System.out.print(" ");
-        String pile = count + " " + displayName(cardType) + " ($" + cardType.cost() + ")";
+        String pile = count + " " + displayName(cardType) + " ($" + displayCost + ")";
         System.out.print(color.a(fixedWidth(pile, COLUMN_WIDTH)).reset());
     }
 
@@ -131,7 +137,7 @@ public class Renderer {
      * @param state the current game state to render
      */
     public static void renderGame(GameState state) {
-        renderGameWithDecisions(state, ImmutableList.of());
+        renderGameWithDecisions(state, ImmutableList.of(), 0);
     }
 
     /**
@@ -143,6 +149,20 @@ public class Renderer {
      *     cards are actionable and should be marked with *
      */
     public static void renderGameWithDecisions(GameState state, List<Decision> options) {
+        renderGameWithDecisions(state, options, 0);
+    }
+
+    /**
+     * Renders the current game state to console, including indicators for which cards in hand and
+     * supply are actionable based on the provided decisions.
+     *
+     * @param state Current game state to render
+     * @param options List of available decisions for the current player - used to determine which
+     *     cards are actionable and should be marked with *
+     * @param discount Current shop discount to apply to displayed costs
+     */
+    public static void renderGameWithDecisions(
+            GameState state, List<Decision> options, int discount) {
         // Build sets of actionable cards from the available decisions
         Set<Card> actionableHandCards = new HashSet<>();
         Set<Card.Type> actionableSupplyTypes = new HashSet<>();
@@ -301,9 +321,11 @@ public class Renderer {
             // Action column
             if (i < actionCards.size()) {
                 Card.Type cardType = actionCards.get(i);
+                int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
                         cardType,
                         state.buyableCards().getNumAvailable(cardType),
+                        displayCost,
                         actionableSupplyTypes.contains(cardType),
                         ansi().fgBrightBlue());
             } else {
@@ -314,9 +336,11 @@ public class Renderer {
             // Treasure column
             if (i < treasureCards.size()) {
                 Card.Type cardType = treasureCards.get(i);
+                int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
                         cardType,
                         state.buyableCards().getNumAvailable(cardType),
+                        displayCost,
                         actionableSupplyTypes.contains(cardType),
                         ansi().fgYellow());
             } else {
@@ -329,9 +353,11 @@ public class Renderer {
                 Card.Type cardType = victoryCards.get(i);
                 org.fusesource.jansi.Ansi color =
                         (cardType == Card.Type.BUG) ? ansi().fgMagenta() : ansi().fgGreen();
+                int displayCost = Math.max(0, cardType.cost() - discount);
                 renderSupplyCell(
                         cardType,
                         state.buyableCards().getNumAvailable(cardType),
+                        displayCost,
                         actionableSupplyTypes.contains(cardType),
                         color);
             } else {
@@ -476,31 +502,29 @@ public class Renderer {
     }
 
     /**
-     * Renders the current game state side-by-side with a turn log panel. Delegates to the 4-arg
-     * overload with a default of 2 players.
+     * Renders the current game state side-by-side with a turn log panel sourced from event
+     * notifications.
      *
      * @param state current game state
      * @param options available decisions (used for actionable-card markers)
-     * @param logs the engine's turn log list (shared live reference)
+     * @param eventNotifs event history to display in the log panel
      */
     public static void renderGameWithDecisions(
-            GameState state, List<Decision> options, List<TurnLog> logs) {
-        renderGameWithDecisions(state, options, logs, 2);
+            GameState state, List<Decision> options, List<EventNotif> eventNotifs) {
+        renderGameWithDecisions(state, options, eventNotifs, 0);
     }
 
     /**
-     * Renders the current game state side-by-side with a turn log panel on the right. The log panel
-     * shows the current turn (live) plus one full previous round of turns (i.e. the last {@code
-     * numPlayers} completed turns), so every player can see what happened on their own last turn.
+     * Renders the current game state side-by-side with a turn log panel sourced from event
+     * notifications.
      *
      * @param state current game state
      * @param options available decisions (used for actionable-card markers)
-     * @param logs the engine's turn log list (shared live reference)
-     * @param numPlayers total number of players; controls how many past turns are shown alongside
-     *     the current turn
+     * @param eventNotifs event history to display in the log panel
+     * @param discount current shop discount to apply to displayed costs
      */
     public static void renderGameWithDecisions(
-            GameState state, List<Decision> options, List<TurnLog> logs, int numPlayers) {
+            GameState state, List<Decision> options, List<EventNotif> eventNotifs, int discount) {
         // Capture the main panel output into a buffer so we can merge it with the
         // log panel line-by-line.
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -508,7 +532,7 @@ public class Renderer {
         PrintStream realOut = System.out;
         System.setOut(capture);
         try {
-            renderGameWithDecisions(state, options);
+            renderGameWithDecisions(state, options, discount);
         } finally {
             // Ensure we restore the real System.out and then close the capture stream.
             System.out.flush();
@@ -528,8 +552,8 @@ public class Renderer {
             mainLines.remove(mainLines.size() - 1);
         }
 
-        // Build the log panel: one full previous round + current turn.
-        List<String> logLines = buildLogPanelLines(logs, numPlayers);
+        // Build the log panel from EventNotif history.
+        List<String> logLines = buildLogPanelLines(eventNotifs);
 
         // Print main panel and log panel side by side.
         int maxRows = Math.max(mainLines.size(), logLines.size());
@@ -547,6 +571,20 @@ public class Renderer {
                 System.out.println(mainLine + pad);
             }
         }
+    }
+
+    /** Convenience overload for ImmutableList event histories. */
+    public static void renderGameWithDecisions(
+            GameState state, List<Decision> options, ImmutableList<EventNotif> eventNotifs) {
+        renderGameWithDecisions(state, options, (List<EventNotif>) eventNotifs);
+    }
+
+    /** Convenience overload for ImmutableList decisions and event histories. */
+    public static void renderGameWithDecisions(
+            GameState state,
+            ImmutableList<Decision> options,
+            ImmutableList<EventNotif> eventNotifs) {
+        renderGameWithDecisions(state, (List<Decision>) options, (List<EventNotif>) eventNotifs);
     }
 
     // ─── Turn log panel helpers ────────────────────────────────────────────────
@@ -569,16 +607,15 @@ public class Renderer {
     }
 
     /**
-     * Builds the lines of the right-hand turn log panel. Shows the current turn plus the previous
-     * {@code numPlayers} turns (one full round), so every player can see their own last turn. The
-     * current turn is shown in full colour; older turns are dimmed.
+     * Builds the lines of the right-hand turn log panel. Shows the latest turns (up to {@link
+     * #MAX_TURN_LOGS}) based on the event stream. The current turn is shown in full colour; older
+     * turns are dimmed.
      *
-     * @param logs the engine's live turn log list
-     * @param numPlayers total number of players; determines the window size
+     * @param eventNotifs the event history for this session
      * @return list of ANSI-coloured strings, each at most {@link #LOG_PANEL_WIDTH} visible
      *     characters wide
      */
-    private static List<String> buildLogPanelLines(List<TurnLog> logs, int numPlayers) {
+    private static List<String> buildLogPanelLines(List<EventNotif> eventNotifs) {
         List<String> lines = new ArrayList<>();
 
         // Panel header bar
@@ -591,17 +628,21 @@ public class Renderer {
                         .reset()
                         .toString());
 
-        if (logs == null || logs.isEmpty()) {
-            lines.add(ansi().fgBrightBlack().a("  (no turns yet)").reset().toString());
+        if (eventNotifs == null || eventNotifs.isEmpty()) {
+            lines.add(ansi().fgBrightBlack().a("  (no events yet)").reset().toString());
             return lines;
         }
 
-        // Show the current turn + one full previous round (numPlayers turns back).
-        int windowSize = numPlayers + 1;
-        int startIdx = Math.max(0, logs.size() - windowSize);
-        for (int t = startIdx; t < logs.size(); t++) {
-            TurnLog log = logs.get(t);
-            boolean isCurrent = (t == logs.size() - 1);
+        List<TurnGroup> groups = groupEvents(eventNotifs);
+        if (groups.isEmpty()) {
+            lines.add(ansi().fgBrightBlack().a("  (no events yet)").reset().toString());
+            return lines;
+        }
+
+        int startIdx = Math.max(0, groups.size() - MAX_TURN_LOGS);
+        for (int t = startIdx; t < groups.size(); t++) {
+            TurnGroup group = groups.get(t);
+            boolean isCurrent = (t == groups.size() - 1);
 
             if (t > startIdx) {
                 // Separator between turns.
@@ -613,8 +654,7 @@ public class Renderer {
                                 .toString());
             }
 
-            // Turn header.
-            String turnHeader = log.getHeader();
+            String turnHeader = "Turn " + group.turnNumber + " - " + group.playerName;
             if (isCurrent) {
                 lines.add(
                         ansi().bold()
@@ -630,8 +670,7 @@ public class Renderer {
                                 .toString());
             }
 
-            // Log entries for this turn.
-            for (String entry : log.getEntries()) {
+            for (String entry : group.entries) {
                 String entryLine = "  " + entry;
                 if (isCurrent) {
                     lines.add(
@@ -650,6 +689,55 @@ public class Renderer {
         }
 
         return lines;
+    }
+
+    private static List<TurnGroup> groupEvents(List<EventNotif> eventNotifs) {
+        List<TurnGroup> groups = new ArrayList<>();
+        TurnGroup current = null;
+
+        for (EventNotif notif : eventNotifs) {
+            if (notif == null || notif.getEvent() == null) {
+                continue;
+            }
+            if (current == null) {
+                int resolvedTurn = Math.max(1, notif.getTurnNumber());
+                current = new TurnGroup(resolvedTurn, playerNameFrom(notif));
+            }
+
+            String description = notif.getEvent().getDescription();
+            if (description != null && !description.isBlank()) {
+                current.entries.add(description);
+            }
+
+            if (notif.getEvent() instanceof EndTurnEvent) {
+                groups.add(current);
+                current = null;
+            }
+        }
+
+        if (current != null) {
+            groups.add(current);
+        }
+
+        return groups;
+    }
+
+    private static String playerNameFrom(EventNotif notif) {
+        if (notif.getGameState() == null || notif.getGameState().currentPlayerName() == null) {
+            return "Unknown";
+        }
+        return notif.getGameState().currentPlayerName();
+    }
+
+    private static final class TurnGroup {
+        private final int turnNumber;
+        private final String playerName;
+        private final List<String> entries = new ArrayList<>();
+
+        private TurnGroup(int turnNumber, String playerName) {
+            this.turnNumber = turnNumber;
+            this.playerName = playerName == null || playerName.isBlank() ? "Unknown" : playerName;
+        }
     }
 
     /**
@@ -925,7 +1013,8 @@ public class Renderer {
     private static void printCardGroup(List<Card> cards, Card.Type.Category category) {
         Map<Card.Type, Integer> counts = new java.util.LinkedHashMap<>();
         for (Card card : cards) {
-            counts.merge(card.type(), 1, Integer::sum);
+            Card.Type type = card.type();
+            counts.put(type, counts.getOrDefault(type, 0) + 1);
         }
         for (Map.Entry<Card.Type, Integer> entry : counts.entrySet()) {
             String line =

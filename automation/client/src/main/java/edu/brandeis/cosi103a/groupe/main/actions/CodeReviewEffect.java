@@ -15,6 +15,6 @@ public class CodeReviewEffect implements ActionCardEffect {
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ctx.drawCard();
         ctx.adjustActions(2);
-        ctx.log("  +1 Card, +2 Actions");
+        // ctx.log("  +1 Card, +2 Actions");
     }
 }

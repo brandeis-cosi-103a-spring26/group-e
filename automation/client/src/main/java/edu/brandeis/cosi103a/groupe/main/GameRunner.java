@@ -10,11 +10,8 @@ import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.ActionEffectRegistry;
 import edu.brandeis.cosi103a.groupe.observers.MegaObserver;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,8 +23,6 @@ public class GameRunner {
     private final List<PlayerInfo> players;
     private final ShopManager shop;
     private final ActionEffectRegistry registry;
-    private int turnNumber = 0;
-    private final List<TurnLog> allTurnLogs = new ArrayList<>();
     private PlayerInfo activePlayer;
     private final MegaObserver observer;
 
@@ -50,14 +45,8 @@ public class GameRunner {
     public GameResult play() throws PlayerViolationException {
         while (!isGameOver()) {
             activePlayer = getNextPlayer();
-            turnNumber++;
-            TurnLog log = new TurnLog(turnNumber, activePlayer.getDisplayName());
-            allTurnLogs.add(log);
-            if (allTurnLogs.size() > 10) {
-                allTurnLogs.remove(0);
-            }
             TurnRunner runner = new TurnRunner(players, shop, registry, observer);
-            runner.runTurn(activePlayer, log);
+            runner.runTurn(activePlayer);
         }
         GameResult finalResult = endGame();
         GameEndEvent endEvent = new GameEndEvent(shop.toImmutableCardStacks(), finalResult);
@@ -103,9 +92,5 @@ public class GameRunner {
             builder.add(new PlayerResult(p.getDisplayName(), p.getScore(), p.getEndingDeck()));
         }
         return new GameResult(builder.build());
-    }
-
-    public List<TurnLog> getTurnLogs() {
-        return Collections.unmodifiableList(allTurnLogs);
     }
 }

@@ -13,6 +13,7 @@ public class EventNotif {
 
     private final GameState gameState;
     private final Event event;
+    private final int turnNumber;
 
     /**
      * Creates a notification containing the supplied game state and event.
@@ -20,9 +21,14 @@ public class EventNotif {
      * @param state the game state associated with the event
      * @param event the event that was emitted
      */
-    public EventNotif(GameState state, Event event) {
+    public EventNotif(GameState state, Event event, int turnNumber) {
         this.gameState = state;
         this.event = event;
+        this.turnNumber = turnNumber;
+    }
+
+    public EventNotif(GameState state, Event event) {
+        this(state, event, 0);
     }
 
     /**
@@ -41,5 +47,14 @@ public class EventNotif {
      */
     public Event getEvent() {
         return event;
+    }
+
+    /**
+     * Returns the monotonic turn number when this event occurred.
+     *
+     * @return the 1-based turn number
+     */
+    public int getTurnNumber() {
+        return turnNumber;
     }
 }
