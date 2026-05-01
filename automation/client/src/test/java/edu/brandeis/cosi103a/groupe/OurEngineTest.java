@@ -188,6 +188,20 @@ public class OurEngineTest {
         new OurEngine(createPlayers(2), actions);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsContainDuplicate_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions());
+        actions.set(0, actions.get(1));
+        new OurEngine(createPlayers(2), actions);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructor_ActionsContainNonAction_ThrowsException() {
+        List<Card.Type> actions = new ArrayList<>(defaultActions());
+        actions.set(0, Card.Type.BITCOIN);
+        new OurEngine(createPlayers(2), actions);
+    }
+
     @Test
     public void testConstructor_InitializesPhaseToAction() throws Exception {
         // Create fresh players to avoid any state sharing
