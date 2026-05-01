@@ -1,0 +1,15 @@
+{
+    "state": null,
+    "options": [
+        {
+            "type": "end_phase",
+            "phase": "ACTION"
+        },
+        {
+            "type": "end_phase",
+            "phase": "BUY"
+        }
+    ],
+    "reason": null,
+    "player_uuid": "b82e3039-a809-40c0-9669-267fdd62b627"
+}

@@ -1,0 +1,11 @@
+{
+    "title": "DecisionResponse",
+    "description": "An object representing a decision chosen by the player",
+    "type": "object",
+    "properties": {
+        "decision": {
+            "description": "A serialized Decision object",
+            "type": "Decision"
+        }
+    }
+}
