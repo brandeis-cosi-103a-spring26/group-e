@@ -32,7 +32,7 @@ To deploy the Docker image to the Azure Container Registry, follow these steps:
    ```
 4. Push the image to the registry:
    ```bash
-   docker push serveratg-akabbzauhefhc6ak.azurecr.io/group-e-server:v1
+   docker push serveratg-akabbzauhefhc6ak.azurecr.io/group-e-server:<version>
    ```
 
 ---
