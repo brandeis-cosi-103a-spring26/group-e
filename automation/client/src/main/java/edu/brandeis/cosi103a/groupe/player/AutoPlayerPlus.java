@@ -35,7 +35,7 @@ public class AutoPlayerPlus extends AutoPlayer {
     @Override
     protected Decision makeBuyDecision(GameState state, ImmutableList<Decision> options) {
 
-        // If the shop has two empty slots, prioritize buying victory cards.
+        // Count the number of empty card piles.
         int emptyCount = 0;
         for (Card.Type cardType: state.buyableCards().getCardTypes()) {
             if (state.buyableCards().cardCounts().get(cardType) == 0) {
@@ -43,7 +43,8 @@ public class AutoPlayerPlus extends AutoPlayer {
             }
         }
 
-        if (emptyCount == 2) {
+        // If 2 empty piles, or if fewer than 3 Frameworks left, prioritize buying Victory cards.
+        if (emptyCount == 2 || state.buyableCards().cardCounts().get(Card.Type.FRAMEWORK) < 3) {
             for (Card.Type victoryType : VICTORY_CARDS) {
                 for (Decision option : options) {
                     if (option instanceof BuyDecision buyDecision) {
