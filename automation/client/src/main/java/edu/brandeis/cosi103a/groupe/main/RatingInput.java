@@ -2,6 +2,7 @@ package edu.brandeis.cosi103a.groupe.main;
 
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
+import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
 import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
 import edu.brandeis.cosi103a.groupe.player.ClientPlayer;
 import edu.brandeis.cosi103a.groupe.player.HandEVPlayer;
@@ -74,6 +75,7 @@ public class RatingInput {
                 types.remove(selectedType);
                 switch (selectedType) {
                     case AUTO -> players.add(new AutoPlayer());
+                    case AUTO_PLUS -> players.add(new AutoPlayerPlus());
                     case BIG_MONEY -> players.add(new BigMoneyPlayer());
                     case CLIENT -> players.add(new ClientPlayer());
                     case HAND_EV -> players.add(new HandEVPlayer());
