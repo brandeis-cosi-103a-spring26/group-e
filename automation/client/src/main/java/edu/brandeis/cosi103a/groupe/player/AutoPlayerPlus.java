@@ -5,6 +5,8 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.BuyDecision;
 import edu.brandeis.cosi.atg.decisions.Decision;
 import edu.brandeis.cosi.atg.state.GameState;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class AutoPlayerPlus extends AutoPlayer {
 
@@ -53,7 +55,10 @@ public class AutoPlayerPlus extends AutoPlayer {
             }
         }
 
-        // Otherwise, use the default buying strategy.
-        return super.makeBuyDecision(state, options);
+        // Otherwise, use the default buying strategy with a shuffled option order.
+        // Shuffling the options adds some variability to the decision-making process.
+        ArrayList<Decision> shuffledOptions = new ArrayList<>(options);
+        Collections.shuffle(shuffledOptions);
+        return super.makeBuyDecision(state, ImmutableList.copyOf(shuffledOptions));
     }
 }
