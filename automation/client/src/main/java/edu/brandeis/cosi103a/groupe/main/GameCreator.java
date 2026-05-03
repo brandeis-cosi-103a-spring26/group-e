@@ -5,7 +5,6 @@ import static org.fusesource.jansi.Ansi.Color.*;
 
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
-import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
 import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import java.util.ArrayList;
 import java.util.List;

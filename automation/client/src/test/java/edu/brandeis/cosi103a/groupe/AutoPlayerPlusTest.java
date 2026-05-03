@@ -444,6 +444,93 @@ public class AutoPlayerPlusTest {
                 result);
     }
 
+    @Test
+    public void testDeckStats_TracksTerminalBuysAndGains_FrameworkStillWinsAtThreshold() {
+        GameState buyState =
+                createMockBuyState(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 10,
+                                Card.Type.FRAMEWORK, 5,
+                                Card.Type.IPO, 5,
+                                Card.Type.DOGECOIN, 5));
+
+        BuyDecision buyTerminal = new BuyDecision(Card.Type.PARALLELIZATION);
+        ImmutableList<Decision> terminalBuyOptions = ImmutableList.of(buyTerminal);
+
+        assertSame(
+                buyTerminal,
+                player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty()));
+        assertSame(
+                buyTerminal,
+                player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty()));
+
+        GameState gainState = createMockGameState(GameState.TurnPhase.GAIN);
+        GainCardDecision gainTerminal = new GainCardDecision(Card.Type.PARALLELIZATION);
+        ImmutableList<Decision> terminalGainOptions = ImmutableList.of(gainTerminal);
+
+        assertSame(
+                gainTerminal,
+                player.makeDecision(gainState, terminalGainOptions, java.util.Optional.empty()));
+
+        BuyDecision buyTechDebt = new BuyDecision(Card.Type.TECH_DEBT);
+        BuyDecision buyFramework = new BuyDecision(Card.Type.FRAMEWORK);
+        ImmutableList<Decision> options = ImmutableList.of(buyFramework, buyTechDebt);
+
+        Decision result = player.makeDecision(buyState, options, java.util.Optional.empty());
+
+        assertSame(
+                "Framework should still win even over the terminal threshold",
+                buyFramework,
+                result);
+    }
+
+    @Test
+    public void testDeckStats_TrashLowersTerminalRatio_StopsForcingPlusActions() {
+        GameState buyState =
+                createMockBuyState(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 10,
+                                Card.Type.FRAMEWORK, 5,
+                                Card.Type.IPO, 5,
+                                Card.Type.DOGECOIN, 5));
+
+        BuyDecision buyTerminal = new BuyDecision(Card.Type.PARALLELIZATION);
+        ImmutableList<Decision> terminalBuyOptions = ImmutableList.of(buyTerminal);
+
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+
+        BuyDecision buyTechDebt = new BuyDecision(Card.Type.TECH_DEBT);
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
+        ImmutableList<Decision> beforeTrashOptions = ImmutableList.of(buyDogecoin, buyTechDebt);
+
+        Decision beforeTrash =
+                player.makeDecision(buyState, beforeTrashOptions, java.util.Optional.empty());
+
+        assertSame(
+                "Over the threshold, prefer plus-action buys when framework is unavailable",
+                buyTechDebt,
+                beforeTrash);
+
+        GameState trashState = createMockGameState(GameState.TurnPhase.ACTION);
+        Card terminalCard = new Card(Card.Type.PARALLELIZATION, 13);
+        TrashCardDecision trashTerminal = new TrashCardDecision(terminalCard);
+        ImmutableList<Decision> trashOptions = ImmutableList.of(trashTerminal);
+
+        assertSame(
+                trashTerminal,
+                player.makeDecision(trashState, trashOptions, java.util.Optional.empty()));
+
+        Decision result =
+                player.makeDecision(buyState, beforeTrashOptions, java.util.Optional.empty());
+
+        assertSame(
+                "After trashing a terminal, should fall back to normal buy priority",
+                buyDogecoin,
+                result);
+    }
+
     // ========== makeDiscardDecision ==========
 
     @Test
