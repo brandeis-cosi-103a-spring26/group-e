@@ -125,21 +125,42 @@ public class RatingHarness {
 
     private static void updateStatsFromResult(GameResult result, Map<String, PlayerStats> stats) {
         List<PlayerResult> results = result.playerResults();
-        for (int i = 0; i < results.size(); i++) {
-            PlayerResult pResult = results.get(i);
+        if (results.isEmpty()) {
+            return;
+        }
+
+        List<Integer> distinctScores = new ArrayList<>();
+        for (PlayerResult pResult : results) {
+            int score = pResult.score();
+            if (!distinctScores.contains(score)) {
+                distinctScores.add(score);
+            }
+        }
+        distinctScores.sort(Collections.reverseOrder());
+
+        Map<Integer, Integer> scoreToPlacement = new HashMap<>();
+        for (int i = 0; i < distinctScores.size(); i++) {
+            scoreToPlacement.put(distinctScores.get(i), i + 1);
+        }
+
+        int topScore = distinctScores.get(0);
+        int winningMargin = distinctScores.size() > 1 ? topScore - distinctScores.get(1) : 0;
+
+        for (PlayerResult pResult : results) {
             String pName = pResult.playerName();
             PlayerStats pStats = stats.get(pName);
             if (pStats == null) {
                 continue;
             }
+
+            int placement = scoreToPlacement.get(pResult.score());
             pStats.trackScore(pResult.score());
-            if (i == 0) {
+            if (placement == 1) {
                 pStats.incrementWins();
-                int secondPlaceScore = results.get(1).score();
-                pStats.trackWinMargin(pResult.score() - secondPlaceScore);
-            } else if (i == 1) {
+                pStats.trackWinMargin(winningMargin);
+            } else if (placement == 2) {
                 pStats.incrementSecond();
-            } else if (i == 2) {
+            } else if (placement == 3) {
                 pStats.incrementThird();
             } else {
                 pStats.incrementFourth();
