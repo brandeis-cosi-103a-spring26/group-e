@@ -60,16 +60,26 @@ public class RatingHelper {
             }
             PlayerType selectedType = null;
             boolean ambiguous = false;
+
             for (PlayerType type : types) {
-                if (type.name().contains(input)) {
-                    if (selectedType != null) {
-                        System.out.println(
-                                "Input is ambiguous, matches multiple options. Please be more specific.");
-                        selectedType = null;
-                        ambiguous = true;
-                        break;
-                    }
+                if (type.name().equalsIgnoreCase(input)) {
                     selectedType = type;
+                    break;
+                }
+            }
+
+            if (selectedType == null) {
+                for (PlayerType type : types) {
+                    if (type.name().contains(input)) {
+                        if (selectedType != null) {
+                            System.out.println(
+                                    "Input is ambiguous, matches multiple options. Please be more specific.");
+                            selectedType = null;
+                            ambiguous = true;
+                            break;
+                        }
+                        selectedType = type;
+                    }
                 }
             }
             if (selectedType == null) {
