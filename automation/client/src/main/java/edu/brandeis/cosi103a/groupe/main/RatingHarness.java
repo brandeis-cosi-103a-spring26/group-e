@@ -132,7 +132,7 @@ public class RatingHarness {
                 System.out.println();
             }
             if (numScores == 0) {
-                System.out.println("    Placement stats: no games recorded");
+                System.out.println("    Placement stats: no games recorded"); // this should never run but whatevs
             } else {
                 double percentSecond = (s.getSeconds() / numScores) * 100;
                 System.out.println(
@@ -145,7 +145,9 @@ public class RatingHarness {
                 if (entries.size() > 3) {
                     double percentFourth = (s.getFourths() / numScores) * 100;
                     System.out.println(
-                            "    Last place: " + String.format("%.1f", percentFourth) + "% of games");
+                            "    Last place: "
+                                    + String.format("%.1f", percentFourth)
+                                    + "% of games");
                 }
             }
             System.out.println(
