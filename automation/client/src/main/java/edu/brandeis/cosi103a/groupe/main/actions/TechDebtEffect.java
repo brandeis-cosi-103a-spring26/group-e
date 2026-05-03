@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** +1 Card, +1 Action, +1 Money; Discard one card per empty Supply pile. */
 public class TechDebtEffect implements ActionCardEffect {
@@ -23,7 +22,7 @@ public class TechDebtEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.adjustActions(1);
         ctx.adjustMoney(1);
-        ctx.log("  +1 Card, +1 Action, +1 Money");
+        // ctx.log("  +1 Card, +1 Action, +1 Money");
 
         GameState state = ctx.buildGameState();
         int emptyPiles = 0;
@@ -50,7 +49,7 @@ public class TechDebtEffect implements ActionCardEffect {
                 }
 
                 ctx.discardCard(discardDecision.card());
-                ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
+                // ctx.log("  Discarded " + Renderer.displayName(discardDecision.card().type()));
             }
         } finally {
             ctx.setPhase(previousPhase);

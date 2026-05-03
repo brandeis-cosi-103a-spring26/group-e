@@ -5,22 +5,26 @@ import edu.brandeis.cosi.atg.cards.Card;
 import edu.brandeis.cosi.atg.decisions.*;
 import edu.brandeis.cosi.atg.decisions.PlayCardDecision;
 import edu.brandeis.cosi.atg.event.Event;
+import edu.brandeis.cosi.atg.event.GameObserver;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.DecisionResult;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
+import edu.brandeis.cosi103a.groupe.cosi21.EventNotif;
 import edu.brandeis.cosi103a.groupe.main.ConsoleInput;
 import edu.brandeis.cosi103a.groupe.main.Renderer;
-import java.util.ArrayList;
+import edu.brandeis.cosi103a.groupe.observers.Observer;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 
 public class ConsolePlayer extends AbstractPlayer {
 
     private final ConsoleInput consoleInput;
     private final String customDisplayName;
     private boolean autoPlayTreasures = false;
+    private Observer observer;
+    private IntSupplier discountSupplier = () -> 0;
 
     /**
      * Creates a console player with the default display name format.
@@ -41,6 +45,26 @@ public class ConsolePlayer extends AbstractPlayer {
         this.consoleInput = Objects.requireNonNull(consoleInput);
         String trimmedName = customDisplayName == null ? "" : customDisplayName.trim();
         this.customDisplayName = trimmedName.isEmpty() ? null : trimmedName;
+        this.observer = new Observer();
+    }
+
+    /**
+     * Supplies the current shop discount for rendering purposes.
+     *
+     * @param discountSupplier supplier for the current shop discount
+     */
+    public void setDiscountSupplier(IntSupplier discountSupplier) {
+        this.discountSupplier = discountSupplier == null ? () -> 0 : discountSupplier;
+    }
+
+    /**
+     * Gets the GameObserver for this player.
+     *
+     * @return an Optional containing a GameObserver used by the Console Player
+     */
+    @Override
+    public Optional<GameObserver> getObserver() {
+        return Optional.of(observer);
     }
 
     @Override
@@ -49,38 +73,6 @@ public class ConsolePlayer extends AbstractPlayer {
             return customDisplayName;
         }
         return "Human " + super.getDisplayName();
-    }
-
-    /**
-     * Live reference to the engine's turn log history; set after engine creation via {@link
-     * #setTurnLogs(List)}. All turns from all players are visible.
-     */
-    private List<TurnLog> turnLogs = new ArrayList<>();
-
-    /**
-     * Sets the shared turn log list from the engine. Should be called once after the engine is
-     * constructed and before the game starts.
-     *
-     * @param logs the engine's live turn log list
-     */
-    public void setTurnLogs(List<TurnLog> logs) {
-        this.turnLogs = logs;
-    }
-
-    /**
-     * Total number of players in the game; controls how many past turns are shown in the log panel
-     * (one full previous round + current turn).
-     */
-    private int numPlayers = 2;
-
-    /**
-     * Sets the number of players so the log panel can show a complete previous round. Should be
-     * called alongside setTurnLogs(List).
-     *
-     * @param numPlayers total players in the game
-     */
-    public void setNumPlayers(int numPlayers) {
-        this.numPlayers = numPlayers;
     }
 
     /**
@@ -137,7 +129,8 @@ public class ConsolePlayer extends AbstractPlayer {
             }
         }
 
-        Renderer.renderGameWithDecisions(state, options, turnLogs, numPlayers);
+        List<EventNotif> eventNotifs = observer.getEventsView();
+        Renderer.renderGameWithDecisions(state, options, eventNotifs, discountSupplier.getAsInt());
 
         DecisionResult result = consoleInput.getDecisionFromConsole(state, options);
 

@@ -8,7 +8,6 @@ import edu.brandeis.cosi.atg.engine.PlayerViolationException;
 import edu.brandeis.cosi.atg.state.GameState.TurnPhase;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
 import edu.brandeis.cosi103a.groupe.main.DecisionBuilder;
-import edu.brandeis.cosi103a.groupe.main.Renderer;
 
 /** (Attack card) +2 Money; Each other player discards down to 3 cards in hand. */
 public class HackEffect implements ActionCardEffect {
@@ -21,7 +20,7 @@ public class HackEffect implements ActionCardEffect {
     @Override
     public void execute(ActionContext ctx) throws PlayerViolationException {
         ctx.adjustMoney(2);
-        ctx.log("  +2 Money; each other player discards down to 3 cards in hand");
+        // ctx.log("  +2 Money; each other player discards down to 3 cards in hand");
 
         TurnPhase previousPhase = ctx.getPhase();
         ctx.setPhase(TurnPhase.DISCARD);
@@ -42,11 +41,11 @@ public class HackEffect implements ActionCardEffect {
                     }
 
                     ctx.discardCardForPlayer(player, discardDecision.card());
-                    ctx.log(
-                            "  "
-                                    + player.getDisplayName()
-                                    + " discarded "
-                                    + Renderer.displayName(discardDecision.card().type()));
+                    // ctx.log(
+                    //         "  "
+                    //                 + player.getDisplayName()
+                    //                 + " discarded "
+                    //                 + Renderer.displayName(discardDecision.card().type()));
                 }
             }
         } finally {

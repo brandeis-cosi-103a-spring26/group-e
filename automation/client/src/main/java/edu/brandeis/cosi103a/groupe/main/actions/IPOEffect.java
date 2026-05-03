@@ -17,6 +17,6 @@ public class IPOEffect implements ActionCardEffect {
         ctx.drawCard();
         ctx.adjustActions(1);
         ctx.adjustMoney(2);
-        ctx.log("  +2 Cards, +1 Action, +2 Money");
+        // ctx.log("  +2 Cards, +1 Action, +2 Money");
     }
 }
