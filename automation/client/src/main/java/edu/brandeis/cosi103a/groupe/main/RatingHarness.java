@@ -9,6 +9,7 @@ import edu.brandeis.cosi103a.groupe.cosi21.PlayerStats;
 import edu.brandeis.cosi103a.groupe.player.AbstractPlayer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,46 @@ public class RatingHarness {
                 }
             }
         }
-        // after loop: print ratings
+        printRatings(stats);
+    }
+
+    private static void printRatings(Map<String, PlayerStats> stats) {
+        List<Map.Entry<String, PlayerStats>> entries = new ArrayList<>(stats.entrySet());
+        entries.sort(
+                Comparator.comparingDouble(
+                                (Map.Entry<String, PlayerStats> e) -> computeRating(e.getValue()))
+                        .reversed());
+
+        System.out.println("\n=== Player Ratings ===");
+        System.out.println();
+        for (Map.Entry<String, PlayerStats> entry : entries) {
+            String name = entry.getKey();
+            PlayerStats s = entry.getValue();
+            double rating = computeRating(s);
+            System.out.printf(
+                    "%s | rating=%.2f | W=%d 2nd=%d 3rd=%d 4th=%d | avg=%.2f sd=%.2f margin=%.2f%n",
+                    name,
+                    rating,
+                    s.getWins(),
+                    s.getSeconds(),
+                    s.getThirds(),
+                    s.getFourths(),
+                    s.getAverageScore(),
+                    s.getScoreStandardDeviation(),
+                    Math.max(0, s.getAverageWinMargin()));
+        }
+    }
+
+    private static double computeRating(PlayerStats stats) {
+        int placementPoints =
+                (3 * stats.getWins())
+                        + (2 * stats.getSeconds())
+                        + stats.getThirds()
+                        + (0 * stats.getFourths());
+        double avgScore = stats.getAverageScore();
+        double avgMargin = Math.max(0, stats.getAverageWinMargin());
+        double scoreStdDev = stats.getScoreStandardDeviation();
+        return placementPoints + (0.04 * avgScore) + (0.08 * avgMargin) - (0.03 * scoreStdDev);
     }
 
     private static void updateStatsFromResult(GameResult result, Map<String, PlayerStats> stats) {
