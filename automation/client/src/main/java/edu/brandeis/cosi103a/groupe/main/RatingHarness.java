@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import edu.brandeis.cosi.atg.cards.Card.Type;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameResult;
-import edu.brandeis.cosi.atg.state.PlayerResult;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerStats;
 import edu.brandeis.cosi103a.groupe.player.AbstractPlayer;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ public class RatingHarness {
     public static void main(String[] args) {
         System.out.println("This is the player rating harness, it's still a work in progress!");
         Scanner scanner = new Scanner(System.in);
-        List<Player> players = RatingInput.getPlayersFromUserInput(scanner);
+        List<Player> players = RatingHelper.getPlayersFromUserInput(scanner);
         Map<String, PlayerStats> stats = new HashMap<>();
         for (Player p : players) {
             AbstractPlayer ap = (AbstractPlayer) p;
@@ -51,7 +50,7 @@ public class RatingHarness {
                 OurEngine engine = new OurEngine(players, randomActions);
                 try {
                     GameResult result = engine.play();
-                    updateStatsFromResult(result, stats);
+                    RatingHelper.updateStatsFromResult(result, stats);
                 } catch (Exception e) {
                     System.out.println("An error occurred during the game: " + e.getMessage());
                     e.printStackTrace();
@@ -73,7 +72,7 @@ public class RatingHarness {
                     OurEngine engine = new OurEngine(playersThisGame, randomActions);
                     try {
                         GameResult result = engine.play();
-                        updateStatsFromResult(result, stats);
+                        RatingHelper.updateStatsFromResult(result, stats);
                     } catch (Exception e) {
                         System.out.println("An error occurred during the game: " + e.getMessage());
                         e.printStackTrace();
@@ -82,6 +81,18 @@ public class RatingHarness {
             }
         }
         printRatings(stats);
+    }
+
+    private static double computeRating(PlayerStats stats) {
+        int placementPoints =
+                (3 * stats.getWins())
+                        + (2 * stats.getSeconds())
+                        + stats.getThirds()
+                        + (0 * stats.getFourths());
+        double avgScore = stats.getAverageScore();
+        double avgMargin = Math.max(0, stats.getAverageWinMargin());
+        double scoreStdDev = stats.getScoreStandardDeviation();
+        return placementPoints + (0.04 * avgScore) + (0.08 * avgMargin) - (0.03 * scoreStdDev);
     }
 
     private static void printRatings(Map<String, PlayerStats> stats) {
@@ -144,62 +155,6 @@ public class RatingHarness {
             }
             System.out.println();
             rank++;
-        }
-    }
-
-    private static double computeRating(PlayerStats stats) {
-        int placementPoints =
-                (3 * stats.getWins())
-                        + (2 * stats.getSeconds())
-                        + stats.getThirds()
-                        + (0 * stats.getFourths());
-        double avgScore = stats.getAverageScore();
-        double avgMargin = Math.max(0, stats.getAverageWinMargin());
-        double scoreStdDev = stats.getScoreStandardDeviation();
-        return placementPoints + (0.04 * avgScore) + (0.08 * avgMargin) - (0.03 * scoreStdDev);
-    }
-
-    private static void updateStatsFromResult(GameResult result, Map<String, PlayerStats> stats) {
-        List<PlayerResult> results = result.playerResults();
-        if (results.isEmpty()) {
-            return;
-        }
-
-        List<Integer> distinctScores = new ArrayList<>();
-        for (PlayerResult pResult : results) {
-            int score = pResult.score();
-            if (!distinctScores.contains(score)) {
-                distinctScores.add(score);
-            }
-        }
-
-        Map<Integer, Integer> scoreToPlacement = new HashMap<>();
-        for (int i = 0; i < distinctScores.size(); i++) {
-            scoreToPlacement.put(distinctScores.get(i), i + 1);
-        }
-
-        int topScore = distinctScores.get(0);
-        int winningMargin = distinctScores.size() > 1 ? topScore - distinctScores.get(1) : 0;
-
-        for (PlayerResult pResult : results) {
-            String pName = pResult.playerName();
-            PlayerStats pStats = stats.get(pName);
-            if (pStats == null) {
-                continue;
-            }
-
-            int placement = scoreToPlacement.get(pResult.score());
-            pStats.trackScore(pResult.score());
-            if (placement == 1) {
-                pStats.incrementWins();
-                pStats.trackWinMargin(winningMargin);
-            } else if (placement == 2) {
-                pStats.incrementSecond();
-            } else if (placement == 3) {
-                pStats.incrementThird();
-            } else {
-                pStats.incrementFourth();
-            }
         }
     }
 }

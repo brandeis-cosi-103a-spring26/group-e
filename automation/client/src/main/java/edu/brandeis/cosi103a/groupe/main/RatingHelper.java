@@ -1,6 +1,9 @@
 package edu.brandeis.cosi103a.groupe.main;
 
 import edu.brandeis.cosi.atg.player.Player;
+import edu.brandeis.cosi.atg.state.GameResult;
+import edu.brandeis.cosi.atg.state.PlayerResult;
+import edu.brandeis.cosi103a.groupe.cosi21.PlayerStats;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
 import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
@@ -8,11 +11,13 @@ import edu.brandeis.cosi103a.groupe.player.ClientPlayer;
 import edu.brandeis.cosi103a.groupe.player.HandEVPlayer;
 import edu.brandeis.cosi103a.groupe.player.PlayerType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
-/** Helper for building a list of automated players based on user input. */
-public class RatingInput {
+/** Helper methods for rating harness input and score aggregation. */
+public class RatingHelper {
 
     /**
      * Prompts the user to select automated player types, enforcing uniqueness and a minimum of two
@@ -85,5 +90,52 @@ public class RatingInput {
         }
         System.out.println("Selected " + players.size() + " players.");
         return players;
+    }
+
+    /**
+     * Updates player stats based on the results of a completed game.
+     *
+     * @param result the completed game result
+     * @param stats the map of player names to stats to update
+     */
+    public static void updateStatsFromResult(GameResult result, Map<String, PlayerStats> stats) {
+        List<PlayerResult> results = result.playerResults();
+
+        List<Integer> distinctScores = new ArrayList<>();
+        for (PlayerResult pResult : results) {
+            int score = pResult.score();
+            if (!distinctScores.contains(score)) {
+                distinctScores.add(score);
+            }
+        }
+
+        Map<Integer, Integer> scoreToPlacement = new HashMap<>();
+        for (int i = 0; i < distinctScores.size(); i++) {
+            scoreToPlacement.put(distinctScores.get(i), i + 1);
+        }
+
+        int topScore = distinctScores.get(0);
+        int winningMargin = distinctScores.size() > 1 ? topScore - distinctScores.get(1) : 0;
+
+        for (PlayerResult pResult : results) {
+            String pName = pResult.playerName();
+            PlayerStats pStats = stats.get(pName);
+            if (pStats == null) {
+                continue;
+            }
+
+            int placement = scoreToPlacement.get(pResult.score());
+            pStats.trackScore(pResult.score());
+            if (placement == 1) {
+                pStats.incrementWins();
+                pStats.trackWinMargin(winningMargin);
+            } else if (placement == 2) {
+                pStats.incrementSecond();
+            } else if (placement == 3) {
+                pStats.incrementThird();
+            } else {
+                pStats.incrementFourth();
+            }
+        }
     }
 }
