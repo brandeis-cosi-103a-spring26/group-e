@@ -82,6 +82,7 @@ public class RatingHarness {
             }
         }
         printRatings(stats);
+        scanner.close();
     }
 
     private static double computeRating(PlayerStats stats) {
