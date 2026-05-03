@@ -147,7 +147,7 @@ public class RatingHarness {
                     "    Standard deviation: "
                             + String.format("%.2f", s.getScoreStandardDeviation())
                             + " points");
-            if (s.getWins() > 0) {
+            if (s.getAverageWinMargin() >= 0) {
                 System.out.println(
                         "  Average win margin: "
                                 + String.format("%.2f", s.getAverageWinMargin())
