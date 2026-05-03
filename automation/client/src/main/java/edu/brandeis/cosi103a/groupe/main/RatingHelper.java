@@ -101,21 +101,14 @@ public class RatingHelper {
     public static void updateStatsFromResult(GameResult result, Map<String, PlayerStats> stats) {
         List<PlayerResult> results = result.playerResults();
 
-        List<Integer> distinctScores = new ArrayList<>();
-        for (PlayerResult pResult : results) {
-            int score = pResult.score();
-            if (!distinctScores.contains(score)) {
-                distinctScores.add(score);
-            }
-        }
-
         Map<Integer, Integer> scoreToPlacement = new HashMap<>();
-        for (int i = 0; i < distinctScores.size(); i++) {
-            scoreToPlacement.put(distinctScores.get(i), i + 1);
+        for (int i = 0; i < results.size(); i++) {
+            int score = results.get(i).score();
+            scoreToPlacement.putIfAbsent(score, i + 1);
         }
 
-        int topScore = distinctScores.get(0);
-        int winningMargin = distinctScores.size() > 1 ? topScore - distinctScores.get(1) : 0;
+        int topScore = results.get(0).score();
+        int winningMargin = topScore - results.get(1).score();
 
         for (PlayerResult pResult : results) {
             String pName = pResult.playerName();
