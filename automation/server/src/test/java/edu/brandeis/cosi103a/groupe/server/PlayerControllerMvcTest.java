@@ -54,7 +54,9 @@ public class PlayerControllerMvcTest {
         PlayerController controller = new PlayerController(playerMap, playerProvider);
 
         objectMapper = new ObjectMapper();
-        objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(
+                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                false);
         objectMapper.findAndRegisterModules();
         objectMapper.registerModule(new AppConfig().guavaModule());
 

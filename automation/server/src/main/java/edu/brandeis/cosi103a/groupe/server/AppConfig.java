@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
-
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
