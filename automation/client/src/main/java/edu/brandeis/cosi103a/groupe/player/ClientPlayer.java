@@ -33,7 +33,7 @@ public class ClientPlayer extends AbstractPlayer {
         this(
                 "https://group-e-server.reddune-38407de0.eastus.azurecontainerapps.io",
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
-                new ObjectMapper());
+                new ObjectMapper().configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false));
     }
 
     ClientPlayer(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper) {
