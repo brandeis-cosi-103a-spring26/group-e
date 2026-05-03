@@ -17,7 +17,8 @@ import java.util.Scanner;
 public class RatingHarness {
 
     public static void main(String[] args) {
-        System.out.println("This is the player rating harness, it's still a work in progress!");
+        System.out.println(
+                "Welcome to the player rating harness! It runs over a hundred games between 2 or more automated players and uses a formula that weighs player placements and scores to rate them based on the results.");
         Scanner scanner = new Scanner(System.in);
         List<Player> players = RatingHelper.getPlayersFromUserInput(scanner);
         Map<String, PlayerStats> stats = new HashMap<>();
