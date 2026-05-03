@@ -124,21 +124,21 @@ public class RatingHarness {
             System.out.println(name + " (rating points: " + String.format("%.2f", rating) + ")");
             System.out.print("  Wins: " + s.getWins());
             if (s.getWins() > 0) {
-                double percentWin = (s.getWins() / 150.0) * 100;
+                double percentWin = (s.getWins() / s.getNumScores()) * 100;
                 System.out.println(" (" + String.format("%.1f", percentWin) + "% of games)");
             } else {
                 System.out.println();
             }
-            double percentSecond = (s.getSeconds() / 150.0) * 100;
+            double percentSecond = (s.getSeconds() / s.getNumScores()) * 100;
             System.out.println(
                     "    2nd place: " + String.format("%.1f", percentSecond) + "% of games");
             if (entries.size() > 2) {
-                double percentThird = (s.getThirds() / 150.0) * 100;
+                double percentThird = (s.getThirds() / s.getNumScores()) * 100;
                 System.out.println(
                         "    3rd place: " + String.format("%.1f", percentThird) + "% of games");
             }
             if (entries.size() > 3) {
-                double percentFourth = (s.getFourths() / 150.0) * 100;
+                double percentFourth = (s.getFourths() / s.getNumScores()) * 100;
                 System.out.println(
                         "    Last place: " + String.format("%.1f", percentFourth) + "% of games");
             }

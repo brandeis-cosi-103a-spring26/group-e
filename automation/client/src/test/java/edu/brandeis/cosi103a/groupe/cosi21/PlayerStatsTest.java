@@ -25,6 +25,17 @@ public class PlayerStatsTest {
     }
 
     @Test
+    public void testGetNumScores_TracksCount() {
+        PlayerStats stats = new PlayerStats();
+        assertEquals(0.0, stats.getNumScores(), 0.0001);
+
+        stats.trackScore(7);
+        stats.trackScore(12);
+
+        assertEquals(2.0, stats.getNumScores(), 0.0001);
+    }
+
+    @Test
     public void testWinMargins_DefaultAndAverage() {
         PlayerStats stats = new PlayerStats();
         assertEquals(-1.0, stats.getAverageWinMargin(), 0.0001);

@@ -48,6 +48,10 @@ public class PlayerStats {
         scores.add(score);
     }
 
+    public double getNumScores() {
+        return scores.size();
+    }
+
     public double getAverageScore() {
         return scores.stream().mapToInt(Integer::intValue).average().orElse(0);
     }
