@@ -25,6 +25,7 @@ public class RatingInput {
         List<Player> players = new ArrayList<>();
         List<PlayerType> types = new ArrayList<>(List.of(PlayerType.values()));
         while (types.size() > 0) {
+            System.out.println();
             System.out.print(
                     "Select a player type by entering its name or any unique substring (duplicates are not permitted)");
             if (players.size() >= 2) {

@@ -44,7 +44,7 @@ public class RatingHarness {
                         Type.UNIT_TEST,
                         Type.DEPLOYMENT_PIPELINE);
         if (players.size() <= 4) {
-            for (int i = 0; i < 15; i++) {
+            for (int i = 0; i < 150; i++) {
                 List<Type> randomActions = new ArrayList<>(actionCards);
                 Collections.shuffle(randomActions);
                 randomActions = randomActions.subList(0, 10);
@@ -58,7 +58,7 @@ public class RatingHarness {
                 }
             }
         } else { // 5 players
-            for (int rotation = 0; rotation < 5; rotation++) {
+            for (int rotation = 0; rotation < 50; rotation++) {
                 for (int i = 0; i < 5; i++) { // keep this at 5
                     Player sittingOut = players.get(i);
                     List<Player> playersThisGame = new ArrayList<>();
@@ -93,21 +93,57 @@ public class RatingHarness {
 
         System.out.println("\n=== Player Ratings ===");
         System.out.println();
+        int rank = 1;
         for (Map.Entry<String, PlayerStats> entry : entries) {
             String name = entry.getKey();
             PlayerStats s = entry.getValue();
             double rating = computeRating(s);
-            System.out.printf(
-                    "%s | rating=%.2f | W=%d 2nd=%d 3rd=%d 4th=%d | avg=%.2f sd=%.2f margin=%.2f%n",
-                    name,
-                    rating,
-                    s.getWins(),
-                    s.getSeconds(),
-                    s.getThirds(),
-                    s.getFourths(),
-                    s.getAverageScore(),
-                    s.getScoreStandardDeviation(),
-                    Math.max(0, s.getAverageWinMargin()));
+            if (rank == 1) {
+                System.out.print("1st: ");
+            } else if (rank == 2) {
+                System.out.print("2nd: ");
+            } else if (rank == 3) {
+                System.out.print("3rd: ");
+            } else if (rank == 4) {
+                System.out.print("4th: ");
+            } else {
+                System.out.print("5th: ");
+            }
+            System.out.println(name + " (rating points: " + String.format("%.2f", rating) + ")");
+            System.out.print("  Wins: " + s.getWins());
+            if (s.getWins() > 0) {
+                double percentWin = (s.getWins() / 150.0) * 100;
+                System.out.println(" (" + String.format("%.1f", percentWin) + "% of games)");
+            } else {
+                System.out.println();
+            }
+            double percentSecond = (s.getSeconds() / 150.0) * 100;
+            System.out.println(
+                    "    2nd place: " + String.format("%.1f", percentSecond) + "% of games");
+            if (entries.size() > 2) {
+                double percentThird = (s.getThirds() / 150.0) * 100;
+                System.out.println(
+                        "    3rd place: " + String.format("%.1f", percentThird) + "% of games");
+            }
+            if (entries.size() > 3) {
+                double percentFourth = (s.getFourths() / 150.0) * 100;
+                System.out.println(
+                        "    Last place: " + String.format("%.1f", percentFourth) + "% of games");
+            }
+            System.out.println(
+                    "  Average score: " + String.format("%.2f", s.getAverageScore()) + " points");
+            System.out.println(
+                    "    Standard deviation: "
+                            + String.format("%.2f", s.getScoreStandardDeviation())
+                            + " points");
+            if (s.getWins() > 0) {
+                System.out.println(
+                        "  Average win margin: "
+                                + String.format("%.2f", s.getAverageWinMargin())
+                                + " points");
+            }
+            System.out.println();
+            rank++;
         }
     }
 
@@ -136,7 +172,6 @@ public class RatingHarness {
                 distinctScores.add(score);
             }
         }
-        distinctScores.sort(Collections.reverseOrder());
 
         Map<Integer, Integer> scoreToPlacement = new HashMap<>();
         for (int i = 0; i < distinctScores.size(); i++) {
