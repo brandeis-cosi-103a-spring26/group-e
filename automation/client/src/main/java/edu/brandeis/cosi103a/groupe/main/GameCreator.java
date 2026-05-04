@@ -4,7 +4,7 @@ import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 
 import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi103a.groupe.player.BigMoneyPlayer;
+import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
 import edu.brandeis.cosi103a.groupe.player.ConsolePlayer;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +76,7 @@ public class GameCreator {
                         maxAI);
         for (int i = 0; i < numAI; i++) {
             System.out.println(ansi().fg(MAGENTA).a("  ✓ AI player " + (i + 1) + " added").reset());
-            players.add(new BigMoneyPlayer());
+            players.add(new AutoPlayerPlus());
         }
 
         // Ensure at least 2 players total
@@ -140,7 +140,7 @@ public class GameCreator {
                         ansi().fg(MAGENTA)
                                 .a("  ✓ AI player " + (numAI + i + 1) + " added")
                                 .reset());
-                players.add(new BigMoneyPlayer());
+                players.add(new AutoPlayerPlus());
             }
             numAI += additionalAI;
         }

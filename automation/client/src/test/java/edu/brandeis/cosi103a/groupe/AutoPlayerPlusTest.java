@@ -444,6 +444,87 @@ public class AutoPlayerPlusTest {
                 result);
     }
 
+    @Test
+    public void testDeckStats_TracksTerminalBuysAndGains_FiltersTerminalOptions() {
+        GameState buyState =
+                createMockBuyState(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 10,
+                                Card.Type.FRAMEWORK, 5,
+                                Card.Type.IPO, 5,
+                                Card.Type.DOGECOIN, 5));
+
+        BuyDecision buyTerminal = new BuyDecision(Card.Type.HACK);
+        ImmutableList<Decision> terminalBuyOptions = ImmutableList.of(buyTerminal);
+
+        assertSame(
+                buyTerminal,
+                player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty()));
+        assertSame(
+                buyTerminal,
+                player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty()));
+
+        GameState gainState = createMockGameState(GameState.TurnPhase.GAIN);
+        GainCardDecision gainTerminal = new GainCardDecision(Card.Type.HACK);
+        ImmutableList<Decision> terminalGainOptions = ImmutableList.of(gainTerminal);
+
+        assertSame(
+                gainTerminal,
+                player.makeDecision(gainState, terminalGainOptions, java.util.Optional.empty()));
+
+        BuyDecision buyDogecoin = new BuyDecision(Card.Type.DOGECOIN);
+        ImmutableList<Decision> options = ImmutableList.of(buyTerminal, buyDogecoin);
+
+        Decision result = player.makeDecision(buyState, options, java.util.Optional.empty());
+
+        assertSame(
+                "Over the terminal threshold, terminal buys should be filtered out",
+                buyDogecoin,
+                result);
+    }
+
+    @Test
+    public void testDeckStats_TrashLowersTerminalRatio_AllowsTerminalAgain() {
+        GameState buyState =
+                createMockBuyState(
+                        ImmutableMap.of(
+                                Card.Type.BITCOIN, 10,
+                                Card.Type.FRAMEWORK, 5,
+                                Card.Type.IPO, 5,
+                                Card.Type.DOGECOIN, 5));
+
+        BuyDecision buyTerminal = new BuyDecision(Card.Type.HACK);
+        ImmutableList<Decision> terminalBuyOptions = ImmutableList.of(buyTerminal);
+
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+        player.makeDecision(buyState, terminalBuyOptions, java.util.Optional.empty());
+
+        EndPhaseDecision endPhase = new EndPhaseDecision(GameState.TurnPhase.BUY);
+        ImmutableList<Decision> beforeTrashOptions = ImmutableList.of(endPhase, buyTerminal);
+
+        Decision beforeTrash =
+                player.makeDecision(buyState, beforeTrashOptions, java.util.Optional.empty());
+
+        assertSame(
+                "Over the threshold, terminal buys should be filtered out", endPhase, beforeTrash);
+
+        GameState trashState = createMockGameState(GameState.TurnPhase.ACTION);
+        Card terminalCard = new Card(Card.Type.HACK, 13);
+        TrashCardDecision trashTerminal = new TrashCardDecision(terminalCard);
+        ImmutableList<Decision> trashOptions = ImmutableList.of(trashTerminal);
+
+        assertSame(
+                trashTerminal,
+                player.makeDecision(trashState, trashOptions, java.util.Optional.empty()));
+
+        Decision result =
+                player.makeDecision(buyState, beforeTrashOptions, java.util.Optional.empty());
+
+        assertSame(
+                "After trashing a terminal, should allow terminal buys again", buyTerminal, result);
+    }
+
     // ========== makeDiscardDecision ==========
 
     @Test
