@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public class AutoPlayer extends AbstractPlayer {
 
-    private static final Card.Type[] PLUS_ACTION_CARDS = {
+    protected static final Card.Type[] PLUS_ACTION_CARDS = {
         Card.Type.IPO,
         Card.Type.TECH_DEBT,
         Card.Type.CODE_REVIEW,

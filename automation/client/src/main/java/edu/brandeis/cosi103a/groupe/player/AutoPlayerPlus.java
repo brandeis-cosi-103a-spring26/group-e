@@ -17,13 +17,15 @@ public class AutoPlayerPlus extends AutoPlayer {
         Card.Type.FRAMEWORK, Card.Type.MODULE, Card.Type.METHOD
     };
 
-    private static final Card.Type[] PLUS_ACTION_CARDS = {
-        Card.Type.IPO,
-        Card.Type.TECH_DEBT,
-        Card.Type.CODE_REVIEW,
-        Card.Type.SPRINT_PLANNING,
-        Card.Type.UNIT_TEST,
-        Card.Type.BACKLOG
+    private static final Card.Type[] TERMINAL_CARDS = {
+        Card.Type.DEPLOYMENT_PIPELINE,
+        Card.Type.HACK,
+        Card.Type.MERGE_CONFLICT,
+        Card.Type.MONITORING,
+        Card.Type.RANSOMWARE,
+        Card.Type.REFACTOR,
+        Card.Type.DAILY_SCRUM,
+        Card.Type.EVERGREEN_TEST
     };
 
     // Track deck statistics to inform buying decisions.
@@ -77,27 +79,21 @@ public class AutoPlayerPlus extends AutoPlayer {
         ArrayList<Decision> shuffledOptions = new ArrayList<>(options);
         Collections.shuffle(shuffledOptions);
 
-        // If more than 20% of our deck are terminal cards, prioritize buying plus action cards
-        // (Can still buy Framework, since it's more important)
-        if ((double) terminalCount / deckSize > 0.2) {
-            for (Card.Type plusType : PLUS_ACTION_CARDS) {
-                for (Decision option : shuffledOptions) {
-                    if (option instanceof BuyDecision buyDecision) {
-                        if (buyDecision.cardType() == Card.Type.FRAMEWORK
-                                || buyDecision.cardType() == plusType) {
-                            deckSize++;
-                            return buyDecision;
-                        }
-                    }
-                }
-            }
+        // If more than 20% of our deck are terminal cards, filter out terminal buy options
+        if (deckSize > 0 && (double) terminalCount / deckSize > 0.2) {
+            shuffledOptions.removeIf(
+                    option ->
+                            option instanceof BuyDecision buyDecision
+                                    && Arrays.asList(TERMINAL_CARDS)
+                                            .contains(buyDecision.cardType()));
         }
 
         Decision decision = super.makeBuyDecision(state, ImmutableList.copyOf(shuffledOptions));
+
         if (decision instanceof BuyDecision buyDecision) {
             // Track terminal cards to inform future decisions.
             if (buyDecision.cardType().category() == Card.Type.Category.ACTION
-                    && !Arrays.asList(PLUS_ACTION_CARDS).contains(buyDecision.cardType())) {
+                    && Arrays.asList(TERMINAL_CARDS).contains(buyDecision.cardType())) {
                 terminalCount++;
             }
             deckSize++;
@@ -112,12 +108,13 @@ public class AutoPlayerPlus extends AutoPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
+    @Override
     protected Decision makeGainDecision(GameState state, ImmutableList<Decision> options) {
         Decision decision = super.makeGainDecision(state, options);
         if (decision instanceof GainCardDecision gainCardDecision) {
             // Track terminal cards to inform future decisions.
             if (gainCardDecision.cardType().category() == Card.Type.Category.ACTION
-                    && !Arrays.asList(PLUS_ACTION_CARDS).contains(gainCardDecision.cardType())) {
+                    && Arrays.asList(TERMINAL_CARDS).contains(gainCardDecision.cardType())) {
                 terminalCount++;
             }
             deckSize++;
@@ -132,13 +129,13 @@ public class AutoPlayerPlus extends AutoPlayer {
      * @param options The list of available decisions.
      * @return The chosen decision.
      */
+    @Override
     protected Decision handleTrashing(GameState state, ImmutableList<Decision> options) {
         Decision decision = super.handleTrashing(state, options);
         if (decision instanceof TrashCardDecision trashCardDecision) {
             // If we trash a terminal card, decrease the terminal count.
             if (trashCardDecision.card().type().category() == Card.Type.Category.ACTION
-                    && !Arrays.asList(PLUS_ACTION_CARDS)
-                            .contains(trashCardDecision.card().type())) {
+                    && Arrays.asList(TERMINAL_CARDS).contains(trashCardDecision.card().type())) {
                 terminalCount = Math.max(0, terminalCount - 1);
             }
             deckSize = Math.max(0, deckSize - 1);
