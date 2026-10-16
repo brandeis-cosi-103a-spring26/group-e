@@ -16,6 +16,6 @@ public class DeploymentPipelineEffect implements ActionCardEffect {
         ctx.adjustBuys(1);
         ctx.adjustMoney(1);
         ctx.incrementDiscount();
-        ctx.log("  +1 Buy, +1 Money; cards cost $1 less this turn");
+        // ctx.log("  +1 Buy, +1 Money; cards cost $1 less this turn");
     }
 }

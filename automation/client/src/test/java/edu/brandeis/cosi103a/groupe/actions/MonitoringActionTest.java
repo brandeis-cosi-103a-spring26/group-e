@@ -15,7 +15,6 @@ import edu.brandeis.cosi.atg.player.Player;
 import edu.brandeis.cosi.atg.state.GameState;
 import edu.brandeis.cosi103a.groupe.cosi21.MutableHand;
 import edu.brandeis.cosi103a.groupe.cosi21.PlayerInfo;
-import edu.brandeis.cosi103a.groupe.cosi21.TurnLog;
 import edu.brandeis.cosi103a.groupe.main.actions.EvergreenTestEffect;
 import edu.brandeis.cosi103a.groupe.main.actions.MonitoringEffect;
 import java.lang.reflect.Field;
@@ -97,7 +96,6 @@ public class MonitoringActionTest extends ActionTestSupport {
                         ImmutableSet.of(Card.Type.EVERGREEN_TEST, Card.Type.MONITORING),
                         List.of(new EvergreenTestEffect(), new MonitoringEffect()));
         s.active.turnReset();
-        s.runner.setCurrentTurnLog(new TurnLog(1, s.active.getDisplayName()));
 
         PlayerInfo opponent = s.players.get(1);
         AtomicInteger counter = getField(s.shop, "cardIdCounter");
@@ -117,9 +115,10 @@ public class MonitoringActionTest extends ActionTestSupport {
 
         assertEquals(initialOpponentDiscardSize, opponentDiscard.size());
         assertTrue(opponent.getUnplayedCards().contains(monitoring));
-
-        TurnLog log = getField(s.runner, "currentTurnLog");
-        assertTrue(log.getEntries().stream().anyMatch(e -> e.contains("revealed Monitoring")));
+        assertTrue(
+                s.eventSink.getEvents().stream()
+                        .map(n -> n.getEvent().getDescription())
+                        .anyMatch(desc -> desc.contains("revealed Monitoring")));
     }
 
     @Test

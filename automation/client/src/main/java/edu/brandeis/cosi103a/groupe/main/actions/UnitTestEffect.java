@@ -28,15 +28,15 @@ public class UnitTestEffect implements ActionCardEffect {
         ChooseEffectDecision chosenEffectDecision = (ChooseEffectDecision) chosenDecision;
         switch (chosenEffectDecision.effect()) {
             case UNIT_TEST_PLUS_TWO_ACTIONS:
-                ctx.log("  +2 Actions");
+                // ctx.log("  +2 Actions");
                 ctx.adjustActions(2);
                 break;
             case UNIT_TEST_PLUS_TWO_MONEY:
-                ctx.log("  +2 Money");
+                // ctx.log("  +2 Money");
                 ctx.adjustMoney(2);
                 break;
             case UNIT_TEST_PLUS_TWO_CARDS:
-                ctx.log("  +2 Cards");
+                // ctx.log("  +2 Cards");
                 ctx.drawCard();
                 ctx.drawCard();
                 break;

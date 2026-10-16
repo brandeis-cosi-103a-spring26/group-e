@@ -39,11 +39,15 @@ public class PlayerController {
     @PostMapping("/log-event")
     public void logEvent(@RequestBody LogEventRequest eventRequest) {
         Event event = eventRequest.event();
-        Player player = getOrCreatePlayer(eventRequest.playerUUID());
-        GameState state = eventRequest.state();
-        player.getObserver().ifPresent(o -> o.notifyEvent(state, event));
-        if (event instanceof GameEndEvent) {
-            playerMap.remove(eventRequest.playerUUID());
+        try {
+            Player player = getOrCreatePlayer(eventRequest.playerUUID());
+            GameState state = eventRequest.state();
+            player.getObserver().ifPresent(o -> o.notifyEvent(state, event));
+            if (event instanceof GameEndEvent) {
+                playerMap.remove(eventRequest.playerUUID());
+            }
+        } catch (BadRequestException e) {
+            return;
         }
     }
 

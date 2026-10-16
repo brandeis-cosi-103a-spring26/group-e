@@ -3,7 +3,7 @@ package edu.brandeis.cosi103a.groupe.server;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import edu.brandeis.cosi.atg.player.Player;
-import edu.brandeis.cosi103a.groupe.player.AutoPlayer;
+import edu.brandeis.cosi103a.groupe.player.AutoPlayerPlus;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +20,7 @@ public class AppConfig {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public Player player() {
-        return new AutoPlayer();
+        return new AutoPlayerPlus();
     }
 
     @Bean
